@@ -1,0 +1,99 @@
+---
+output: 
+    html_document:
+        css: style.css
+---
+
+```{r setup, include=FALSE}
+load_all()
+library(DT)
+library(pander)
+source("~/code/ssReports/scripts/load.R")
+panderOptions('knitr.auto.asis', FALSE)
+panderOptions('table.alignment.rownames', 'left')
+```
+
+```{r, echo=F, results='asis'}
+    report_header(start_date, end_date, report_date)
+```
+
+# Data Summary - Meteorological Data 
+
+<body>
+```{r met_summary, echo=F, message=F, results='hide'}
+source("~/code/ssReports/scripts/met_summary.R")
+```
+```{r met_table, echo=F, results='asis'}
+row_names <- c("Data Capture", "Monthly Mean", "Max Hour", "Min Hour")
+#for (i in 1:length(met_summary)){
+#    if (i==1){
+#        pandoc.table(met_summary[[i]], caption=names(met_summary[i]),
+#                     split.table=Inf)
+#    } else{
+#        tmp <- setNames(met_summary[[i]], rep("", length(met_summary[[i]])))
+#        pandoc.table(tmp, caption=names(met_summary[i]), split.table=Inf)
+#    }
+#}
+for (i in 1:length(met_summary)){
+    pandoc.table(met_summary[[i]], caption=names(met_summary[i]),
+                 split.table=Inf)
+}
+```
+</body>
+
+<p style="page-break-after:always;"></p>
+
+```{r, echo=F, results='asis'}
+    report_header(start_date, end_date, report_date)
+```
+
+# Data Summary - Particulate Concentration
+
+```{r teom_table, echo=F, results='asis', message=F}
+source("~/code/ssReports/scripts/teom_summary.R")
+pandoc.table(pm10_tbl, caption="PM10", split.table=Inf)
+pandoc.table(pm25_tbl, caption="PM2.5", split.table=Inf)
+```
+
+# Data Review -  Flagged Data
+(Total invalid hours during summary period)
+
+<body>
+```{r flag_script, echo=F, message=F, results='hide'}
+source("~/code/ssReports/scripts/flag_summary.R")
+```
+```{r flig_table, echo=F, results='asis'}
+pandoc.table(invalid_spread, split.table=Inf)
+```
+</body>
+
+<p style="page-break-after:always;"></p>
+
+```{r, echo=F, results='asis'}
+    report_header(start_date, end_date, report_date)
+```
+
+# Site Exceedance Days
+```{r run_events, echo=F, message=F, results='hide'}
+source("~/code/ssReports/scripts/events.R")
+```
+```{r list_events, echo=F, message=F, results='asis'}
+pandoc.table(events)
+```
+
+<p style="page-break-after:always;"></p>
+
+```{r event_pages, echo=F, results='asis', fig.height=4}
+for (i in 1:length(event_list)){
+    report_header(start_date, end_date, report_date)
+    cat(paste0(" \n# Dust Event - ", 
+               format(as.Date(names(event_list[i])), "%m-%d-%Y"), 
+               " \n"))
+    cat(" \n## Sites in Exceedance \n")
+    pandoc.table(filter(events, Date==names(event_list)[i]))
+    gridExtra::grid.arrange(event_list[[i]]$combo.grob)
+    cat(" \n \n \n")
+    print(event_list[[i]]$map)
+    cat("<p style=\"page-break-after:always;\"></p> \n")
+}
+```
