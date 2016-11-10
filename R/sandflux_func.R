@@ -1,35 +1,3 @@
-clean_flux_sfwct <- function(df_in){
-  df_out <- df_in %>% dplyr::select(-sensit_deployment_id, 
-                                    -csc_deployment_id, -avgpc, -sumpc, 
-                                    -avgpc_total, -sumpc_total, -district_mass,
-                                    -dwp_mass, -modeled_mass, -method_used, 
-                                    -resultant_wd_10m, csc=deployment, 
-                                    y=northing_utm, x=easting_utm, -description)
-  df_out$area <- gsub("-", "", df_out$area)
-  df_out$area <- substr(df_out$area, 1, 3)
-  cscs <- df_out[!duplicated(df_out$csc), ]
-  cscs <- dplyr::select(cscs, csc, x, y)
-  cscs <- assign_dcm(cscs, sfwct_polys)
-  cscs <- inner_join(cscs, select(sfwct_dcm_data, objectid, treatment), 
-                     by="objectid")
-  cscs <- select(cscs, csc, treatment)
-  df_out <- inner_join(df_out, cscs, by="csc")
-  df_out
-}
-
-clean_flux_twb2 <- function(df_in){
-  df_out <- df_in %>% dplyr::select(-sensit_deployment_id, 
-                                    -csc_deployment_id, -avgpc, -sumpc, 
-                                    -avgpc_total, -sumpc_total, -district_mass,
-                                    -dwp_mass, -modeled_mass, -method_used, 
-                                    -resultant_wd_10m, csc=deployment, 
-                                    y=northing_utm, x=easting_utm, -description)
-  df_out$area <- gsub(" ", "-", df_out$area)
-  df_out$area <- substr(df_out$area, 1, 5)
-  # these sites are not in tilled areas
-  df_out <- filter(df_out, !(csc %in% c('1622', '1623', '1624', '1625', '1627')))
-  df_out
-}
 
 summarize_flux_twb2 <- function(df1, df2){
   df_out <- inner_join(df1, df2, by="csc") %>%
@@ -52,9 +20,7 @@ summarize_flux_twb2 <- function(df1, df2){
 }
 
 summarize_flux_sfwct <- function(df1){
-  df1$treatment <- paste0("t_", substr(df1$dcm, 5, nchar(df1$dcm)-1))
-  df1$area <- substr(df1$dcm, 1, 3)
-  df2 <- df1 %>% group_by(area, treatment, day) %>% 
+  df2 <- df1 %>% group_by(dca, treatment, day) %>% 
     summarize(sand=mean(sand.flux)) %>% ungroup()
   df_temp <- summarize_ce(df2) %>% arrange(day, area) %>%
     filter(control.sand>1)

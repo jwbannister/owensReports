@@ -1,0 +1,47 @@
+---
+output: 
+    html_document:
+        css: style.css
+---
+
+```{r setup, include=FALSE}
+load_all()
+library(pander)
+library(tidyverse)
+panderOptions('knitr.auto.asis', FALSE)
+panderOptions('keep.line.breaks', TRUE)
+panderOptions('table.alignment.rownames', 'left')
+flux_df <- load_sandflux(area, start_date, end_date)
+source("~/code/owensReports/scripts/sandmotion.R")
+source("~/code/owensReports/scripts/teom_pairs.R")
+```
+
+```{r flux_pages, echo=F, results='asis', fig.height=5}
+for (i in unique(csc_mass$dca)){
+    report_header(start_date, end_date, report_date, area)
+    cat(paste0(" \n#", i, "\n"))
+    print(csc_plots[[i]])
+    cat(" \n \n ")
+    tbl <- csc_mass %>% filter(dca==i) %>% 
+        select(csc, sand.mass, max.daily.flux)
+    colnames(tbl) <- c("CSC Site", "Total Mass\n(g)", 
+                       "Max. Daily Flux\n(g/cm^2/day)")
+    pandoc.table(tbl)
+    cat("<p style=\"page-break-after:always;\"></p> \n")
+}
+```
+
+```{r pm10_pages, echo=F, results='asis', fig.height=5}
+for (i in names(twb2_dcas)){
+    report_header(start_date, end_date, report_date, area)
+    cat(paste0(" \n#", i, " TwB2 Areas - TEOM Pairs\n"))
+    print(pairs_plots[[i]])
+    cat(" \n \n ")
+    tbl <- highest.10 %>% filter(dca.group==i) %>% 
+        select(-dca.group, -status)
+    colnames(tbl) <- c("Date", "Upwind PM10", "Downwind PM10", 
+                       "PM10 Diff.", "Windspeed")
+    pandoc.table(tbl)
+    cat("<p style=\"page-break-after:always;\"></p> \n")
+}
+```

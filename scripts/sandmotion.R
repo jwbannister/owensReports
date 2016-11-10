@@ -18,35 +18,37 @@ expand_daily <- expand.grid(csc=unique(daily_flux$csc),
 full_daily <- left_join(expand_daily, daily_flux, by=c("csc", "day"))
 full_daily[is.na(full_daily$sand.flux), "sand.flux"] <- 0
 
-background <- plot_dca_background("T3SW", owens_areas$dca$polygons, 
-                                  owens_areas$dca$labels)
-p1 <- plot_csc_masses(background, csc_mass, "T3SW")
+max_daily <- full_daily %>% group_by(csc) %>%
+    summarize(max.daily.flux = max(sand.flux)) 
 
+csc_mass <- left_join(csc_mass, max_daily, by="csc")
 
-
-
-
-
-  contour_plots <- vector(mode="list", length=length(areas))
-  names(contour_plots) <- areas
-  wind_plots <- contour_plots
-  wind_data <- contour_plots
-  for (i in areas){
-    p1 <- plot_dcm_background(i, sfwct_polys, sfwct_labels)
-    contour_plots[[i]] <- plot_csc_masses(p1, csc_mass, i)
-    wind_plots[[i]] <- precollection_wind(i)
-    wind_data[[i]] <- precollection_wind(i)$data
-  }
-
-for (i in 1:nrow(flux_summary)){
-  dat <- filter(wind_data[[flux_summary$area[i]]],
-                as.Date(ymd(substring(datetime, 1, 10)))==flux_summary$day[i])
-  max_wind <- ifelse(nrow(dat)>0, max(dat$windspeed_10m), NA)
-  flux_summary$max.windspeed[i] <- ifelse(nrow(dat)>0, round(max_wind, 1), NA)
-  wind_dir <- arrange(dat, desc(windspeed_10m)) %>% 
-    filter(!is.na(winddirection_10m))
-  flux_summary$winddirection[i] <- ifelse(nrow(wind_dir)>0, 
-                                          wind_dir$winddirection_10m[1],
-                                          NA)
+if (area=="sfwcrft"){
+    sfwcrft_areas <- build_sfwcrft_areas()
+    csc_mass$treatment <- apply(cbind(csc_mass$x, csc_mass$y), 1, 
+                                point_in_dca, poly_df=sfwcrft_areas$polygons)
+    csc_plots <- vector(mode="list", length=length(unique(csc_mass$dca)))
+    names(csc_plots) <- unique(csc_mass$dca)
+    for (i in unique(csc_mass$dca)){
+        print(i)
+        tmp_polys <- filter(sfwcrft_areas$polygons, dca==i)
+        tmp_labels <- filter(sfwcrft_areas$labels, dca==i)
+        background <- plot_dca_background(unique(tmp_polys$area), 
+                                          tmp_polys, tmp_labels)
+        csc_plots[[i]] <- plot_csc_site_nolabel(background, csc_mass, i)
+    }
+    mass_ce <- summarize_sandmass(csc_mass)
 }
+    
+csc_plots <- vector(mode="list", length=length(unique(csc_mass$dca)))
+names(csc_plots) <- unique(csc_mass$dca)
+for (i in unique(csc_mass$dca)){
+    print(i)
+    background <- plot_dca_background(i, owens_areas$dca$polygons, 
+                                      owens_areas$dca$labels)
+    csc_plots[[i]] <- plot_csc_site(background, csc_mass, i)
+}
+
+
+
 

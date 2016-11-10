@@ -1,100 +1,21 @@
-#' Plot SFWCT area with CSC masses for collection
+
+#' Summarize SFWCRFT sand mass collection results
 #' 
 #' @import dplyr
-#' @import ggplot2
-#' @param background GGplot object. Background image with treatment borders and 
-#' labels.
-#' @param sand_df Data frame of sand mass data.
-#' @param area. String. Area to be plotted.
-#' @return ggplot2 object. Plot of SFWCT area with sand catch masses and 
-#' countour lines.
-plot_csc_masses <- function(background, sand_df, area_txt,
-                            begin=start_date,
-                            ending=end_date){
-  catches <- sand_df %>% filter(dca==area_txt)
-  mass.range <- range(catches$sand.mass)[2] - range(catches$sand.mass)[1]
-  plot.title <- paste0(area_txt, " Sand Masses (", format(begin, "%m/%d"), 
-                       " - ", format(ending, "%m/%d/%Y"), ")")
-  p1 <- background +
-    geom_point(data=catches, mapping=aes(x=x, y=y), color="yellow") +
-    geom_text(data=catches, mapping=aes(x=x, y=y, label=csc), 
-               nudge_x=10) +
-    coord_fixed() +
-    ggtitle(plot.title) +
-    theme(axis.ticks.x=element_blank(),
-          axis.text.x=element_blank(),
-          axis.title.x=element_blank(),
-          axis.ticks.y=element_blank(),
-          axis.text.y=element_blank(),
-          axis.title.y=element_blank(),
-          plot.title=element_text(size=12))
-  p1
-}  
-
-#' Plot DCA areas with background
-#' 
-#' @import dplyr
-#' @import ggplot2
-#' @param areas String.
-#' @param polys_df Data frame. Points defining polygons are DCM areas. 
-#' @param lables_df Data frame. Area labels and position coordinates.
-#' @param external_points Data frame. *x* and *y* coordinates of points external 
-#' to polygons to be included in plot range. 
-plot_dca_background <- function(areas, polys_df, labels_df, 
-                                external_points=NULL){
-  polys <- polys_df %>% filter(area %in% areas)
-  labels <- labels_df %>% filter(area %in% areas)
-  plot.range <- get_plot_range(polys, external_points)
-  map <- raster::stack("~/dropbox/gis/owens/pleiades_20160824.tif")
-  ext <- sp::SpatialPointsDataFrame(coords=cbind(x=plot.range$x, y=plot.range$y), 
-                                data=data.frame(id=1:2), 
-                                proj4string=raster::crs(map))
-  map_sub <- raster::crop(map, raster::extent(ext))
-  map_sub <- raster::aggregate(map_sub, 4)
-  map_df <- raster::as.data.frame(map_sub, xy=T)
-  map_df <- data.frame(x=map_df$x, y=map_df$y, r=map_df[ , 3], g=map_df[ , 4], 
-                       b=map_df[ , 5])
-  p1 <- ggplot(data=map_df) + coord_fixed() + theme_bw() +
-  geom_tile(aes(x=x, y=y, fill=rgb(r,g,b, maxColorValue = 255)), alpha=0.75) + 
-  geom_path(data=polys, mapping=aes(x=x, y=y, group=objectid), color="black") +
-  geom_text(data=labels, aes(x=x, y=y, label=area), color="black") +
-  scale_fill_identity() + 
-  scale_x_continuous(breaks=range(map_df$x)*c(1.01, 0.99), 
-                     labels=range(map_df$x), expand = c(0,0)) +
-  scale_y_continuous(breaks=range(map_df$y)*c(0.99, 1.01), 
-                     labels=range(map_df$y), expand = c(0,0)) +
-  theme(panel.grid=element_blank())
-p1
-}
-
-
-#' Get coordinate ranges for square plot around DCM areas.
-#' 
-#' @param polys. Data frame. Points defining polygons of interest.
-#' @param external_points Data frame. *x* and *y* coordinates of points external 
-#' to polygons to be included in plot range. 
-#' @return A list with the x and y ranges for a sqaure plot around the areas of 
-#' interest.
-get_plot_range <- function(polys, external_points=NULL){
-  p.temp <- ggplot(polys, aes(x=x, y=y)) + geom_path() +
-    geom_point(data=external_points)
-  info <- ggplot_build(p.temp)
-  plot_xrange <- info[[2]]$ranges[[1]]$x.range
-  plot_yrange <- info[[2]]$ranges[[1]]$y.range
-  maxspan <- max(c(plot_xrange[2] - plot_xrange[1], 
-                   plot_yrange[2] - plot_yrange[1]))
-  midpoint <- c(mean(plot_xrange), mean(plot_yrange))
-  xrange <- c(midpoint[1] - (maxspan/2), 
-              midpoint[1] + (maxspan/2))
-  yrange <- c(midpoint[2] - (maxspan/2), 
-              midpoint[2] + (maxspan/2))
-  plot.range <- list(x=xrange, y=yrange)
-  plot.range
-}
- 
-clean_ce <- function(x){
-  x <- as.character(x)
-  x <- sapply(x, function(x) ifelse((x=="Inf" | x=="-Inf" | is.na(x) 
-                                     | x=="NaN"), 
-                                    "NA", paste0(x, "%")))
+#' @param df_in Data frame of sand mass data.
+#' @return Data frame of sumamrized results.
+summarize_sandmass <- function(df_in){
+  treat_sum <- df_in %>% group_by(dca, treatment) %>% 
+    summarize(avg.sand.mass=mean(sand.mass)) %>% ungroup()
+  control_sum <- treat_sum %>% group_by(dca) %>%
+    do(control.mass=filter(., treatment=="0%")$avg.sand.mass)
+  control_sum[control_sum$dca=="T13-1", 2] <- NA
+  control_sum$control.mass <- unlist(control_sum$control.mass)
+  treat_sum <- inner_join(treat_sum, control_sum, by="dca") %>%
+    mutate(control.eff=1-(avg.sand.mass/control.mass)) %>% 
+    select(-control.mass)
+  treat_sum$control.eff <- round(treat_sum$control.eff, 2) * 100
+  treat_sum[treat_sum$treatment=="0%", ]$control.eff <- NA
+  treat_sum$avg.sand.mass <- round(treat_sum$avg.sand.mass, 2)
+  treat_sum
 }
