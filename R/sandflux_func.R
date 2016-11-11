@@ -19,38 +19,6 @@ summarize_flux_twb2 <- function(df1, df2){
   df_out
 }
 
-summarize_flux_sfwct <- function(df1){
-  df2 <- df1 %>% group_by(dca, treatment, day) %>% 
-    summarize(sand=mean(sand.flux)) %>% ungroup()
-  df_temp <- summarize_ce(df2) %>% arrange(day, area) %>%
-    filter(control.sand>1)
-  if (nrow(df_temp)==0) {
-    return("No days with control area sand flux > 1")
-  } else{
-  df_out <- dcast(df_temp, area + day + control.sand ~ treatment,
-                  value.var="control.eff") %>%
-  filter(!is.na(t_45)) %>% select(-t_0) %>% group_by(area) %>%
-  arrange(desc(control.sand))
-  }
-  df_out
-}
-
-#' Summarize SFWCT sand results for control efficiency
-#' 
-#' @import dplyr
-#' @param df_in Data frame of sand mass data.
-#' @return Data frame of sumamrized results.
-summarize_ce <- function(df_in){
-  control <- filter(df_in, treatment=="t_0") %>%
-    select(area, day, control.sand=sand)
-  control_sum <- df_in %>% 
-    inner_join(control, by=c("area", "day")) %>%
-    mutate(control.eff=1-(sand/control.sand))
-  control_sum$control.eff <- round(control_sum$control.eff, 2)
-  control_sum[control_sum$treatment=="t_0", ]$control.eff <- NA
-  control_sum
-}
-
 rank_flux_cells <- function(df_in){
   maxes <- df_in %>% group_by(area) %>%
     summarize(t_45=max(t_45, na.rm=TRUE), t_55=max(t_55, na.rm=TRUE), 

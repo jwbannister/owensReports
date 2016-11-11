@@ -129,24 +129,28 @@ build_sfwcrft_areas <- function(){
 }
 
 plot_csc_site_nolabel <- function(background, sand_df, area_txt,
-                            begin=start_date,
-                            ending=end_date){
+                            begin=start_date, ending=end_date, 
+                            legend_title="", value_index, value_max){
   catches <- sand_df %>% filter(dca==area_txt)
-  mass.range <- range(catches$sand.mass)[2] - range(catches$sand.mass)[1]
+  value.range <- 
+      range(catches[ , value_index])[2] - range(catches[ , value_index])[1]
   plot.title <- paste0(area_txt, " CSC Sites (", format(begin, "%m/%d"), 
                        " - ", format(ending, "%m/%d/%Y"), ")")
   x_range <- diff(ggplot_build(background)[[2]]$ranges[[1]]$x.range)
   y_range <- diff(ggplot_build(background)[[2]]$ranges[[1]]$y.range)
-  catches$max.daily.flux <- sapply(catches$max.daily.flux, 
-                                   function(x) ifelse(x>1, 1, x))
+  catches[ , value_index] <- 
+      sapply(catches[ , value_index], 
+             function(x) ifelse(x>value_max, value_max, x))
   p1 <- background +
-    geom_point(data=catches, mapping=aes(x=x, y=y, color=max.daily.flux), 
-               size=4) + 
-    scale_color_gradientn(name='Max. Daily Flux\n(g/cm^2/day)\n', 
+    geom_point(data=catches, size=4,  
+               mapping=aes_string(x='x', y='y', 
+                                  color=names(sand_df)[value_index])) +
+    scale_color_gradientn(name=legend_title,  
                           colors=c("green", "yellow", "red"), 
-                          limits=c(-0.001, 1.001), 
-                          breaks=c(0, 0.5, 1), 
-                          labels=c("0", "0.5", ">1")) +
+                          limits=c(-0.001, value_max+0.001), 
+                          breaks=c(0, value_max/2, value_max), 
+                          labels=c("0", as.character(value_max/2), 
+                                   paste0(">", value_max))) +
     coord_fixed() +
     ggtitle(plot.title) +
     theme(axis.ticks.x=element_blank(),

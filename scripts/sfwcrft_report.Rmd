@@ -11,7 +11,9 @@ library(tidyverse)
 panderOptions('knitr.auto.asis', FALSE)
 panderOptions('keep.line.breaks', TRUE)
 panderOptions('table.alignment.rownames', 'left')
-flux_df <- load_sandflux(area, start_date, end_date)
+# databse load disabled for offsite work
+# temporary sfwcrft flux_df stored in ./data/
+# flux_df <- load_sandflux(area, start_date, end_date)
 source("~/code/owensReports/scripts/sandmotion.R")
 ```
 
@@ -19,13 +21,19 @@ source("~/code/owensReports/scripts/sandmotion.R")
 for (i in unique(csc_mass$dca)){
     report_header(start_date, end_date, report_date, area)
     cat(paste0(" \n#", i, "\n"))
-    print(csc_plots[[i]])
+    gridExtra::grid.arrange(sfwcrft_grobs[[i]])
     cat(" \n \n ")
-    tbl <- csc_mass %>% filter(dca==i) %>% 
-        select(csc, sand.mass, max.daily.flux)
-    colnames(tbl) <- c("CSC Site", "Total Mass\n(g)", 
-                       "Max. Daily Flux\n(g/cm^2/day)")
-    pandoc.table(tbl)
+    tbl_mass <- mass_ce %>% filter(dca==i) 
+    colnames(tbl_mass) <- c("CSC Site", "Treatment", "Avg. Sand Mass\\\n(g)", 
+                            "Control Efficiency")
+    pandoc.table(tbl_mass)
+    tbl_flux <- flux_ce %>% filter(dca==i) 
+    colnames(tbl_flux) <- c("DCA", "Date", "Average Sand Flux\\\n(0% Treatment)", 
+                            "Control Efficiency\\\n(45% Treatment)",
+                            "Control Efficiency\\\n(55% Treatment)",
+                            "Control Efficiency\\\n(65% Treatment)", 
+                            "Control Efficiency\\\n(75% Treatment)")
+    pandoc.table(tbl_flux, split.table=Inf)
     cat("<p style=\"page-break-after:always;\"></p> \n")
 }
 ```
