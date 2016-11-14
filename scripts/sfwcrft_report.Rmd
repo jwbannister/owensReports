@@ -11,29 +11,50 @@ library(tidyverse)
 panderOptions('knitr.auto.asis', FALSE)
 panderOptions('keep.line.breaks', TRUE)
 panderOptions('table.alignment.rownames', 'left')
-# databse load disabled for offsite work
-# temporary sfwcrft flux_df stored in ./data/
-# flux_df <- load_sandflux(area, start_date, end_date)
+```
+```{r load_data, include=FALSE}
+flux_df <- load_sandflux_aws(area, start_date, end_date)
+```
+
+```{r sandmotion, include=FALSE}
 source("~/code/owensReports/scripts/sandmotion.R")
 ```
 
-```{r flux_pages, echo=F, results='asis', fig.height=5}
+```{r wetness, include=FALSE}
+source("~/code/owensReports/scripts/swir_wetness.R")
+```
+
+```{r output, echo=F, results='asis', fig.width=9}
 for (i in unique(csc_mass$dca)){
     report_header(start_date, end_date, report_date, area)
-    cat(paste0(" \n#", i, "\n"))
+    cat(paste0(" \n# ", i, " \n"))
     gridExtra::grid.arrange(sfwcrft_grobs[[i]])
-    cat(" \n \n ")
+    cat(" \n")
     tbl_mass <- mass_ce %>% filter(dca==i) 
-    colnames(tbl_mass) <- c("CSC Site", "Treatment", "Avg. Sand Mass\\\n(g)", 
+    colnames(tbl_mass) <- c("DCA", "Treatment", "Avg. Sand Mass\\\n(g)", 
                             "Control Efficiency")
+    cat(" \n## Monthly Sand Reduction Control Efficiency \n")
     pandoc.table(tbl_mass)
+    cat(" \n## Daily Sand Flux Reduction Control Efficiency \n")
     tbl_flux <- flux_ce %>% filter(dca==i) 
-    colnames(tbl_flux) <- c("DCA", "Date", "Average Sand Flux\\\n(0% Treatment)", 
-                            "Control Efficiency\\\n(45% Treatment)",
-                            "Control Efficiency\\\n(55% Treatment)",
-                            "Control Efficiency\\\n(65% Treatment)", 
-                            "Control Efficiency\\\n(75% Treatment)")
+    if (nrow(tbl_flux)==0){
+        print("No days with average daily flux in control area > 1 g/cm^2/day.")
+    } else{
+    colnames(tbl_flux) <- c("DCA", "Date", 
+                            "0% Target\\\nAvg. Daily Flux\\\n(g/cm^2/day)", 
+                            "CE\\\n(45% Target)",
+                            "CE\\\n(55% Target)",
+                            "CE\\\n(65% Target)", 
+                            "CE\\\n(75% Target)")
     pandoc.table(tbl_flux, split.table=Inf)
+    }
+    cat("<p style=\"page-break-after:always;\"></p> \n")
+    report_header(start_date, end_date, report_date, area)
+    print(dcas[[i]]$wet_plot)
+    cat(" \n")
+    tbl_wet <- wetness %>% filter(dca==i)
+    colnames(tbl_wet) <- c("DCA", "Target Wetness", "SWIR Estimated\nWetness")
+    pandoc.table(tbl_wet)
     cat("<p style=\"page-break-after:always;\"></p> \n")
 }
 ```

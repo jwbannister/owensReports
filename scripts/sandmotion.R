@@ -34,10 +34,8 @@ if (area=="sfwcrft"){
         print(i)
         tmp_polys <- filter(sfwcrft_areas$polygons, dca==i)
         tmp_labels <- filter(sfwcrft_areas$labels, dca==i)
-        # make background blank for out-of-office work
-        background <- ggplot() + geom_blank()
-        # background <- plot_dca_background(unique(tmp_polys$area), 
-        #                                   tmp_polys, tmp_labels)
+        background <- plot_dca_background(unique(tmp_polys$area), 
+                                          tmp_polys, tmp_labels)
         legend_mass='Total Mass (g)'
         fl1 <- tempfile()
         png(filename=fl1, width=6, height=6, units="in", res=300)
@@ -70,7 +68,7 @@ if (area=="sfwcrft"){
     mass_ce <- calc_mass_ce_sfwcrft(csc_mass)
 
     full_daily <- full_daily %>%
-        left_join(select(csc_mass, csc, dca, treatment), by="csc") 
+        left_join(dplyr::select(csc_mass, csc, dca, treatment), by="csc") 
     flux_ce <- calc_flux_ce_sfwcrft(full_daily)
 }
 

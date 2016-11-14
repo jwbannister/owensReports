@@ -3,7 +3,7 @@ library(lubridate)
 rm(list=ls())
 
 area <- "sfwcrft" # c("brine", "channel", "dwm", "sfwcrft", "twb2")
-start_date <- mdy("03-01-2016") # date to start reporting period
+start_date <- mdy("05-01-2016") # date to start reporting period
 end_date <- start_date %m+% months(1) %m-% days(1)
 report_date <- format(Sys.Date(), "%m-%d-%Y")
 file_name <- paste0("~/code/owensReports/output/", area, "_", 

@@ -12,7 +12,7 @@ report_header <- function(start_date, end_date, report_date, area){
                               "Shallow Flood Wetness Curve Refinement Field Test",
                               "Tillage with BACM Backup"))
     cat("<img style=\"float: right;\" src=\"logo.png\"> \n")
-    cat(" \n# Owens Lake ", index[index$a==area, ]$b, " Areas \n")
+    cat(" \n# ", index[index$a==area, ]$b, " \n")
     cat(" \n##Summary Period: ", format(start_date, "%m-%d-%Y"), " through ", 
         format(end_date, "%m-%d-%Y"), " \n")
     cat(" \n##Report Date: ", report_date, " \n") 
@@ -26,4 +26,15 @@ point_in_dca <- function(vec_in, poly_df=sfwct_polys){
                                     dplyr::filter(poly_df, objectid==j)$y)
       if (polycheck==1) return(dplyr::filter(poly_df, objectid==j)$area[1]) 
     }
+}
+
+ras_clip <- function(ras, shp, fld=1){
+          a1_crop <- crop(ras, shp)
+          step1 <- rasterize(shp, a1_crop, field=fld)
+          a1_crop * step1
+}
+
+class_wet <- function(ras, teeter=2080){
+  ras[ , ] <- sapply(ras[ , ], function(x) ifelse(x<2080, 1, 0))
+  ras
 }
