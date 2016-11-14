@@ -3,7 +3,7 @@ load_sandflux <- function(area, start_date, end_date){
     csc_list <- list("brine"=seq(1701, 1710, 1), 
                      "channel"=c(seq(1301, 1314, 1), seq(1101, 1118, 1)),
                      "dwm"=seq(1901, 1929, 1), 
-                     "sfwcrft"=c(seq(1801, 1880, 1)),
+                     "sfwcrft"=c(seq(1420, 1488, 1), seq(1500, 1596, 1)),
                      "twb2"=seq(1600, 1640, 1))
     query1 <- paste0("SELECT flux.datetime, idep.deployment AS csc, ",
                      "flux.sensit, flux.sand_flux, flux.windspeed_10m, ",
