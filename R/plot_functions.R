@@ -109,6 +109,12 @@ build_sfwcrft_areas <- function(){
     dat <- shape_data(shpfile, "DCM_SFWCT_2015_Bndys_070815", 
                       proj_string)
     sfwcrft_areas <- vector(mode="list", length=0)
+    sfwcrft_areas$spdf <- rgdal::readOGR(shpfile, 
+                                         "DCM_SFWCT_2015_Bndys_070815")
+    sfwcrft_areas$spdf@data$dca <- sapply(sfwcrft_areas$spdf@data$DCM, rename)
+    sfwcrft_areas$spdf@data$dcaid <- 
+        sapply(sfwcrft_areas$spdf@data$dca, 
+               function(x) which(unique(sfwcrft_areas$spdf@data$dca)==x))
     sfwcrft_areas$data <- dat
     sfwcrft_areas$data$dca <- sfwcrft_areas$data$dcm
     rename <- function(x){
