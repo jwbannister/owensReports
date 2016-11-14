@@ -19,15 +19,15 @@ summarize_flux_twb2 <- function(df1, df2){
   df_out
 }
 
-summarize_flux_sfwct <- function(df1){
+summarize_flux_sfwcrft <- function(df1){
   df2 <- df1 %>% group_by(dca, treatment, day) %>% 
     summarize(sand=mean(sand.flux)) %>% ungroup()
-  df_temp <- summarize_ce(df2) %>% arrange(day, area) %>%
+  df_temp <- summarize_ce(df2) %>% arrange(day, dca) %>%
     filter(control.sand>1)
   if (nrow(df_temp)==0) {
     return("No days with control area sand flux > 1")
   } else{
-  df_out <- dcast(df_temp, area + day + control.sand ~ treatment,
+  df_out <- spread(df_temp, dca + day + control.sand ~ treatment,
                   value.var="control.eff") %>%
   filter(!is.na(t_45)) %>% select(-t_0) %>% group_by(area) %>%
   arrange(desc(control.sand))
