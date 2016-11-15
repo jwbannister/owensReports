@@ -19,18 +19,10 @@ report_header <- function(start_date, end_date, report_date, area){
     cat("<hr class=\"style1\">")
 }
 
-point_in_dca <- function(vec_in, poly_df=sfwct_polys){
-    for (j in unique(poly_df$objectid)){
-      polycheck <- sp::point.in.polygon(vec_in[1], vec_in[2],
-                                    dplyr::filter(poly_df, objectid==j)$x, 
-                                    dplyr::filter(poly_df, objectid==j)$y)
-      if (polycheck==1) return(dplyr::filter(poly_df, objectid==j)$area[1]) 
-    }
-}
 
 ras_clip <- function(ras, shp, fld=1){
-          a1_crop <- crop(ras, shp)
-          step1 <- rasterize(shp, a1_crop, field=fld)
+          a1_crop <- raster::crop(ras, shp)
+          step1 <- raster::rasterize(shp, a1_crop, field=fld)
           a1_crop * step1
 }
 

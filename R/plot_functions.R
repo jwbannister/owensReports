@@ -75,12 +75,11 @@ p1
 
 plot_csc_site_nolabel <- function(background, sand_df, area_txt,
                             begin=start_date, ending=end_date, 
-                            legend_title="", value_index, value_max){
+                            legend_title="", value_index, value_max, 
+                            plot_title=""){
   catches <- sand_df %>% filter(dca==area_txt)
   value.range <- 
       range(catches[ , value_index])[2] - range(catches[ , value_index])[1]
-  plot.title <- paste0(area_txt, " CSC Sites (", format(begin, "%m/%d"), 
-                       " - ", format(ending, "%m/%d/%Y"), ")")
   x_range <- diff(ggplot_build(background)[[2]]$ranges[[1]]$x.range)
   y_range <- diff(ggplot_build(background)[[2]]$ranges[[1]]$y.range)
   catches[ , value_index] <- 
@@ -97,15 +96,22 @@ plot_csc_site_nolabel <- function(background, sand_df, area_txt,
                           labels=c("0", as.character(value_max/2), 
                                    paste0(">", value_max))) +
     coord_fixed() +
-    ggtitle(plot.title) +
+    ggtitle(plot_title) +
     theme(axis.ticks.x=element_blank(),
           axis.text.x=element_blank(),
           axis.title.x=element_blank(),
           axis.ticks.y=element_blank(),
           axis.text.y=element_blank(),
           axis.title.y=element_blank(),
-          plot.title=element_text(size=12))
+          plot.title=element_text(size=12),
+          legend.position=leg_pos[[area_txt]])
   p1
 }  
+
+leg_pos <- vector(mode="list", length=0)
+leg_pos[['T10-1']] <- c(.8, .2)
+leg_pos[['T26']] <- c(.2, .2)
+leg_pos[['T13-1']] <- c(.2, .8)
+leg_pos[['T29-2']] <- c(.2, .2)
 
 
