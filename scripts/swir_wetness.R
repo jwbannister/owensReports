@@ -51,6 +51,8 @@ for (j in names(zones)){
                        swir.wet=round(wet_value, 2))
     wetness <- rbind(wetness, temp)
 }
+wetness <- wetness %>% arrange(dca, as.numeric(gsub("%", "", trgtwet)))
+wetness$swir.wet <- paste0(wetness$swir.wet*100, "%")
 
 dcas <- vector(mode="list", length=length(unique(sfwcrft$data$dca)))
 names(dcas) <- unique(sfwcrft$data$dca)
@@ -61,27 +63,74 @@ for (i in unique(sfwcrft$spdf@data$dcaid)){
                          sfwcrft$spdf[sfwcrft$spdf@data$dca==nm, ])
     temp[ , ] <- sapply(temp[ , ], function(x) ifelse(x==i, 1, NA))
     reflect_ras <- ras_swir * temp
-#    dcas[[i]]$reflect_df <- as.data.frame(rasterToPoints(reflect_ras))
-#    colnames(dcas[[i]]$reflect_df)[3] <- "value"
+    dcas[[i]]$reflect_df <- as.data.frame(raster::rasterToPoints(reflect_ras))
+    colnames(dcas[[i]]$reflect_df)[3] <- "value"
     dcas[[i]]$wet_ras <- class_wet(reflect_ras)
     dcas[[i]]$wet_df <- as.data.frame(raster::rasterToPoints(dcas[[i]]$wet_ras))
     colnames(dcas[[i]]$wet_df)[3] <- "value"
     dcas[[i]]$wet_df$value <- ordered(dcas[[i]]$wet_df$value, levels=c(1, 0), 
                                       labels=c("Wet", "Dry"))
+    tmp_polys <- filter(sfwcrft$polygons, dca==nm) %>%
+        select(x, y, id=treatment)
+    tmp_labels <- filter(sfwcrft$labels, dca==nm) %>%
+        select(x, y, id=treatment)
+    background <- plot_dca_background_noboundaries(tmp_polys)
+    x_range <- ggplot_build(background)[[2]]$ranges[[1]]$x.range
+    y_range <- ggplot_build(background)[[2]]$ranges[[1]]$y.range
+    backgrob <- ggplotGrob(background)
     dcas[[i]]$wet_plot <- ggplot(dcas[[i]]$wet_df, aes(x=x, y=y)) +
+        annotation_custom(backgrob, xmin=x_range[1], xmax=x_range[2], 
+                          ymin=y_range[1], ymax=y_range[2]) +
         geom_tile(aes(fill=value)) + 
         geom_path(data=filter(sfwcrft$polygons, dca==nm),
-                  mapping=aes(group=objectid)) +
+                  mapping=aes(x=x, y=y, group=objectid)) +
         geom_label(data=filter(sfwcrft$labels, dca==nm), 
-                   mapping=aes(label=paste0("Target ", treatment))) +
-        coord_fixed() +
-        scale_fill_manual(name="", values=c("blue", "grey")) +
+                   mapping=aes(x=x, y=y, label=treatment)) +
+        coord_fixed() + xlim(x_range) + ylim(y_range) + 
+        scale_y_continuous(limits=y_range, expand=c(0, 0)) + 
+        scale_x_continuous(limits=x_range, expand=c(0, 0)) +
+        scale_fill_manual(name="Ground Condition", values=c("blue", "grey")) +
         theme(axis.title=element_blank(), 
               axis.text=element_blank(),
               axis.ticks=element_blank(), 
               panel.background=NULL, 
-              legend.position=leg_pos[[nm]]) +
-        ggtitle("SWIR Wet/Dry Image")
+              legend.position=leg_pos[[nm]],
+              legend.background=element_rect(linetype="solid", color="black"), 
+              legend.justification=leg_jus[[nm]]) +
+        ggtitle("Wetness Classification")
+    dcas[[i]]$reflect_plot <- ggplot(dcas[[i]]$reflect_df, aes(x=x, y=y)) +
+        annotation_custom(backgrob, xmin=x_range[1], xmax=x_range[2], 
+                          ymin=y_range[1], ymax=y_range[2]) +
+        geom_tile(aes(fill=value)) + 
+        geom_path(data=filter(sfwcrft$polygons, dca==nm),
+                  mapping=aes(x=x, y=y, group=objectid)) +
+        geom_label(data=filter(sfwcrft$labels, dca==nm), 
+                   mapping=aes(x=x, y=y, label=treatment)) +
+        coord_fixed() + 
+        scale_y_continuous(limits=y_range, expand=c(0, 0)) + 
+        scale_x_continuous(limits=x_range, expand=c(0, 0)) +
+        scale_fill_gradient(name="SWIR Reflectance", low="black", 
+                            high="white") + 
+        theme(axis.title=element_blank(), 
+              axis.text=element_blank(),
+              axis.ticks=element_blank(), 
+              panel.background=NULL, 
+              legend.position=leg_pos[[nm]],
+              legend.background=element_rect(linetype="solid", color="black"), 
+              legend.justification=leg_jus[[nm]]) +
+        ggtitle("SWIR Reflectance")
+    fl1 <- paste0(tempfile(), ".png")
+    png(filename=fl1, width=8, height=8, units="in", res=300)
+    print(dcas[[i]]$wet_plot)
+    dev.off()
+    fl2 <- paste0(tempfile(), ".png")
+    png(filename=fl2, width=8, height=8, units="in", res=300)
+    print(dcas[[i]]$reflect_plot)
+    dev.off()
+    wet_grob <- grid::rasterGrob(png::readPNG(fl1), interpolate=TRUE)
+    reflect_grob <- grid::rasterGrob(png::readPNG(fl2), interpolate=TRUE)
+    dcas[[i]]$img_file <- paste0(tempfile(), ".png")
+    png(filename=dcas[[i]]$img_file, width=8, height=4, units="in", res=300)
+    gridExtra::grid.arrange(reflect_grob, wet_grob, ncol=2)
+    dev.off()
 }
-
-  

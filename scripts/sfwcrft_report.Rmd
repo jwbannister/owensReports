@@ -13,8 +13,8 @@ panderOptions('keep.line.breaks', TRUE)
 panderOptions('table.alignment.rownames', 'left')
 ```
 ```{r load_data, include=FALSE}
-load("~/Desktop/temp.RData")
-#flux_df <- load_sandflux(area, start_date, end_date)
+# load("~/Desktop/temp.RData")
+flux_df <- load_sandflux(area, start_date, end_date)
 ```
 
 ```{r sandmass, include=FALSE}
@@ -29,34 +29,57 @@ source("~/code/owensReports/scripts/sandflux.R")
 source("~/code/owensReports/scripts/swir_wetness.R")
 ```
 
+```{r plot_image, include=FALSE}
+img_files <- vector(mode="character", length=length(unique(csc_mass$dca)))
+names(img_files) <- unique(csc_mass$dca)
+for (i in unique(csc_mass$dca)){
+    img_files[[i]] <- paste0(tempfile(), ".png")
+    png(filename=img_files[[i]], width=8, height=4, units="in", res=300)
+    gridExtra::grid.arrange(mass_grobs[[i]], flux_grobs[[i]], ncol=2)
+    dev.off()
+}
+```
+
 ```{r output, echo=F, results='asis'}
 for (i in unique(csc_mass$dca)){
     report_header(start_date, end_date, report_date, area)
     cat(paste0(" \n# ", i, " \n"))
-    gridExtra::grid.arrange(mass_grobs[[i]], flux_grobs[[i]], ncol=2)
+    cat(" \n## Monitoring Site Results \n")
+    cat(paste0("![](", img_files[[i]], ")"))
     cat(" \n")
     cat(" \n## Monthly Sand Reduction Control Efficiency \n")
     tbl_mass <- mass_ce %>% filter(dca==i) 
-    colnames(tbl_mass) <- c("DCA", "Treatment", "Avg. Sand Mass\\\n(g)", 
+    colnames(tbl_mass) <- c("DCA", "Treatment\nArea", 
+                            "Area Average\nSand Mass\\\n(g/month)", 
                             "Control Efficiency")
     pandoc.table(tbl_mass)
     cat(" \n## Daily Sand Flux Reduction Control Efficiency \n")
     tbl_flux <- flux_ce %>% filter(dca==i) 
     if (nrow(tbl_flux)==0){
-        cat(" \n\nNo days with average daily flux in control area > 1 g/cm^2/day.")
+        cat(" \n\nNo days with average daily flux in control area 
+            > 1 g/cm^2/day. \n")
     } else{
     colnames(tbl_flux) <- c("DCA", "Date", 
                             "0% Target\\\nAvg. Daily Flux\\\n(g/cm^2/day)", 
-                            "CE\\\n(45% Target)",
                             "CE\\\n(55% Target)",
-                            "CE\\\n(65% Target)", 
-                            "CE\\\n(75% Target)")
+                            "CE\\\n(65% Target)") 
     pandoc.table(tbl_flux, split.table=Inf)
     }
+    cat(" \n")
+    cat(" \n## Comments \n")
+    cat(" \n Add area specific comments here \n")
+    cat(" \n\n## De Minimis Filtering Criteria \n")
+    cat(" \n **Monthly sand reduction control efficiency** is only calculated 
+        if area average sand mass in the control area is more than 10 grams 
+        for the month. \n")
+    cat(" \n **Daily sand flux reduction control efficiency** is only reported 
+        for days when the area average sand flux in the control area is more 
+        than 1 g/cm^2/day. \n")
     cat("<p style=\"page-break-after:always;\"></p> \n")
     report_header(start_date, end_date, report_date, area)
     cat(paste0(" \n# ", i, " \n"))
-    print(dcas[[i]]$wet_plot)
+    cat(" \n\n## SWIR Wet/Dry Image \n")
+    cat(paste0("![](", dcas[[i]]$img_file, ")"))
     cat(" \n")
     cat(" \n## SWIR Estimated Wetness \n")
     tbl_wet <- wetness %>% filter(dca==i)

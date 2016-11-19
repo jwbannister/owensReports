@@ -69,7 +69,8 @@ plot_dca_background <- function(polys_df, labels_df,
                      labels=range(map_df$x), expand = c(0,0)) +
   scale_y_continuous(breaks=range(map_df$y)*c(0.99, 1.01), 
                      labels=range(map_df$y), expand = c(0,0)) +
-  theme(panel.grid=element_blank())
+  theme(panel.grid=element_blank(), 
+        axis.title=element_blank())
 p1
 }
 
@@ -104,14 +105,46 @@ plot_csc_site_nolabel <- function(background, sand_df, area_txt,
           axis.text.y=element_blank(),
           axis.title.y=element_blank(),
           plot.title=element_text(size=12),
-          legend.position=leg_pos[[area_txt]])
+          legend.position=leg_pos[[area_txt]], 
+          legend.background=element_rect(linetype="solid", color="black"), 
+          legend.justification=leg_jus[[area_txt]])
   p1
 }  
 
+plot_dca_background_noboundaries <- function(polys_df, external_points=NULL){
+  plot.range <- owensMaps::get_plot_range(polys_df, external_points)
+  map <- raster::stack("~/dropbox/owens/gis/pleiades/pleiades_20160824.tif")
+  ext <- sp::SpatialPointsDataFrame(coords=cbind(x=plot.range$x, y=plot.range$y), 
+                                data=data.frame(id=1:2), 
+                                proj4string=raster::crs(map))
+  map_sub <- raster::crop(map, raster::extent(ext))
+  map_sub <- raster::aggregate(map_sub, 4)
+  map_df <- raster::as.data.frame(map_sub, xy=T)
+  map_df <- data.frame(x=map_df$x, y=map_df$y, r=map_df[ , 3], g=map_df[ , 4], 
+                       b=map_df[ , 5])
+  p1 <- ggplot(data=map_df) + coord_fixed() + theme_bw() +
+  geom_tile(aes(x=x, y=y, fill=rgb(r,g,b, maxColorValue = 255)), alpha=0.75) + 
+  scale_fill_identity() + 
+  scale_x_continuous(breaks=range(map_df$x)*c(1.01, 0.99), 
+                     labels=range(map_df$x), expand = c(0,0)) +
+  scale_y_continuous(breaks=range(map_df$y)*c(0.99, 1.01), 
+                     labels=range(map_df$y), expand = c(0,0)) +
+  theme(panel.grid=element_blank(), 
+        axis.title=element_blank())
+p1
+}
+
 leg_pos <- vector(mode="list", length=0)
-leg_pos[['T10-1']] <- c(.8, .2)
-leg_pos[['T26']] <- c(.2, .2)
+leg_pos[['T10-1']] <- c(1, 0)
+leg_pos[['T26']] <- c(0, 0)
 leg_pos[['T13-1']] <- c(.2, .8)
-leg_pos[['T29-2']] <- c(.2, .2)
+leg_pos[['T29-2']] <- c(0, 0)
+leg_pos[['T1A-4']] <- c(1, 0)
 
 
+leg_jus <- vector(mode="list", length=0)
+leg_jus[['T10-1']] <- c(1, 0)
+leg_jus[['T26']] <- c(0, 0)
+leg_jus[['T13-1']] <- c(.2, .8)
+leg_jus[['T29-2']] <- c(0, 0)
+leg_jus[['T1A-4']] <- c(1, 0)

@@ -29,14 +29,14 @@ for (i in unique(csc_mass$dca)){
         select(x, y, id=treatment)
     background <- plot_dca_background(tmp_polys, tmp_labels)
     legend_mass='Total Mass (g)'
-    fl <- tempfile()
-    png(filename=fl, width=6, height=6, units="in", res=300)
-    print(plot_csc_site_nolabel(background, csc_mass, i, 
+    p1 <- plot_csc_site_nolabel(background, csc_mass, i, 
                                 legend_title=legend_mass, 
                                 value_index=2, value_max=200,
-                                plot_title="Monthly Mass"))
+                                plot_title="Monthly Mass")
+    fl <- tempfile()
+    png(filename=fl, width=8, height=8, units="in", res=300)
+    print(p1)
     dev.off()
     mass_plot <- png::readPNG(fl)
     mass_grobs[[i]] <- grid::rasterGrob(mass_plot, interpolate=TRUE)
 }
-

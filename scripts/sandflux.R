@@ -41,17 +41,17 @@ daily_flux <- flux_df %>%
         tmp_labels <- filter(sfwcrft$labels, dca==i) %>%
             select(x, y, id=treatment)
         background <- plot_dca_background(tmp_polys, tmp_labels)
-        legend_flux='Max. Daily Flux\n(g/cm^2/day)\n'
+        legend_flux='Max. Daily Flux\n(g/cm^2/day)'
         max_flux <- round(max(filter(max_daily, dca==i)$max.daily.flux), 0)
-        fl <- tempfile()
-        png(filename=fl, width=6, height=6, units="in", res=300)
-        print(plot_csc_site_nolabel(background, max_daily, i, 
+         p1 <- plot_csc_site_nolabel(background, max_daily, i, 
                                     legend_title=legend_flux, 
                                     value_index=2, 
                                     value_max=max_flux,
-                                    plot_title="Daily Flux"))
+                                    plot_title="Daily Flux")
+        fl <- tempfile()
+        png(filename=fl, width=8, height=8, units="in", res=300)
+        print(p1)
         dev.off()
         flux_plot <- png::readPNG(fl)
         flux_grobs[[i]] <- grid::rasterGrob(flux_plot, interpolate=TRUE)
     }
-
