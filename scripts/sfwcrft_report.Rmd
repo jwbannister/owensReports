@@ -13,7 +13,6 @@ panderOptions('keep.line.breaks', TRUE)
 panderOptions('table.alignment.rownames', 'left')
 ```
 ```{r load_data, include=FALSE}
-# load("~/Desktop/temp.RData")
 flux_df <- load_sandflux(area, start_date, end_date)
 ```
 
@@ -45,15 +44,15 @@ for (i in unique(csc_mass$dca)){
     report_header(start_date, end_date, report_date, area)
     cat(paste0(" \n# ", i, " \n"))
     cat(" \n## Monitoring Site Results \n")
+    cat("(Area label indicates wetness cover target.) \n")
     cat(paste0("![](", img_files[[i]], ")"))
-    cat(" \n")
-    cat(" \n## Monthly Sand Reduction Control Efficiency \n")
+    cat(" \n\n## Monthly Sand Reduction Control Efficiency \n")
     tbl_mass <- mass_ce %>% filter(dca==i) 
-    colnames(tbl_mass) <- c("DCA", "Treatment\nArea", 
+    colnames(tbl_mass) <- c("DCA", "Target\nWetness", 
                             "Area Average\nSand Mass\\\n(g/month)", 
                             "Control Efficiency")
     pandoc.table(tbl_mass)
-    cat(" \n## Daily Sand Flux Reduction Control Efficiency \n")
+    cat(" \n\n## Daily Sand Flux Reduction Control Efficiency \n")
     tbl_flux <- flux_ce %>% filter(dca==i) 
     if (nrow(tbl_flux)==0){
         cat(" \n\nNo days with average daily flux in control area 
@@ -65,9 +64,15 @@ for (i in unique(csc_mass$dca)){
                             "CE\\\n(65% Target)") 
     pandoc.table(tbl_flux, split.table=Inf)
     }
-    cat(" \n")
-    cat(" \n## Comments \n")
-    cat(" \n Add area specific comments here \n")
+    cat(" \n\n## Comments \n")
+    comment_file <- paste0("~/code/owensReports/data/", area, month(start_date), 
+                           year(start_date), i, ".txt")
+    if (file.exists(comment_file)){
+        cat(" \n ", readLines(comment_file), " \n")
+    }
+    if (is.na(swir_fl)){
+        cat(" \n No SWIR image available for this report period. \n")
+    }
     cat(" \n\n## De Minimis Filtering Criteria \n")
     cat(" \n **Monthly sand reduction control efficiency** is only calculated 
         if area average sand mass in the control area is more than 10 grams 
@@ -76,16 +81,18 @@ for (i in unique(csc_mass$dca)){
         for days when the area average sand flux in the control area is more 
         than 1 g/cm^2/day. \n")
     cat("<p style=\"page-break-after:always;\"></p> \n")
-    report_header(start_date, end_date, report_date, area)
-    cat(paste0(" \n# ", i, " \n"))
-    cat(" \n\n## SWIR Wet/Dry Image \n")
-    cat(paste0("![](", dcas[[i]]$img_file, ")"))
-    cat(" \n")
-    cat(" \n## SWIR Estimated Wetness \n")
-    tbl_wet <- wetness %>% filter(dca==i)
-    colnames(tbl_wet) <- c("DCA", "Target Wetness", "SWIR Estimated\nWetness")
-    pandoc.table(tbl_wet)
-    cat("<p style=\"page-break-after:always;\"></p> \n")
+    if (!is.na(swir_fl)){
+        report_header(start_date, end_date, report_date, area)
+        cat(paste0(" \n# ", i, " \n"))
+        cat(" \n\n## SWIR Wet/Dry Image \n")
+        cat(paste0("![](", dcas[[i]]$img_file, ")"))
+        cat(" \n")
+        cat(" \n## SWIR Estimated Wetness \n")
+        tbl_wet <- wetness %>% filter(dca==i)
+        colnames(tbl_wet) <- c("DCA", "Target Wetness", "SWIR Estimated\nWetness")
+        pandoc.table(tbl_wet)
+        cat("<p style=\"page-break-after:always;\"></p> \n")
+    }
 }
 ```
 

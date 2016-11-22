@@ -46,7 +46,7 @@ daily_flux <- flux_df %>%
          p1 <- plot_csc_site_nolabel(background, max_daily, i, 
                                     legend_title=legend_flux, 
                                     value_index=2, 
-                                    value_max=max_flux,
+                                    value_max=10,
                                     plot_title="Daily Flux")
         fl <- tempfile()
         png(filename=fl, width=8, height=8, units="in", res=300)
