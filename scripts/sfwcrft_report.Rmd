@@ -17,11 +17,11 @@ flux_df <- load_sandflux(area, start_date, end_date)
 ```
 
 ```{r sandmass, include=FALSE}
-source("~/code/owensReports/scripts/sandmass.R")
+source("~/code/owensReports/scripts/sfwcrft_sandmass.R")
 ```
 
 ```{r sandflux, include=FALSE}
-source("~/code/owensReports/scripts/sandflux.R")
+source("~/code/owensReports/scripts/sfwcrft_sandflux.R")
 ```
 
 ```{r wetness, include=FALSE}

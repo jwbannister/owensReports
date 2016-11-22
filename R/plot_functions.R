@@ -1,46 +1,3 @@
-#' Plot SFWCT area with CSC masses for collection
-#' 
-#' @import dplyr
-#' @import ggplot2
-#' @param background GGplot object. Background image with treatment borders and 
-#' labels.
-#' @param sand_df Data frame of sand mass data.
-#' @param area. String. Area to be plotted.
-#' @return ggplot2 object. Plot of SFWCT area with sand catch masses and 
-#' countour lines.
-plot_csc_site <- function(background, sand_df, area_txt,
-                            begin=start_date,
-                            ending=end_date){
-  catches <- sand_df %>% filter(dca==area_txt)
-  mass.range <- range(catches$sand.mass)[2] - range(catches$sand.mass)[1]
-  plot.title <- paste0(area_txt, " CSC Sites (", format(begin, "%m/%d"), 
-                       " - ", format(ending, "%m/%d/%Y"), ")")
-  x_range <- diff(ggplot_build(background)[[2]]$ranges[[1]]$x.range)
-  y_range <- diff(ggplot_build(background)[[2]]$ranges[[1]]$y.range)
-  catches$max.daily.flux <- sapply(catches$max.daily.flux, 
-                                   function(x) ifelse(x>1, 1, x))
-  p1 <- background +
-    geom_point(data=catches, mapping=aes(x=x, y=y, color=max.daily.flux), 
-               size=4) + 
-    geom_label(data=catches, mapping=aes(x=x, y=y, label=csc), 
-               nudge_x=x_range*0.06, nudge_y=y_range*0.03) +
-    scale_color_gradientn(name='Max. Daily Flux\n(g/cm^2/day)\n', 
-                          colors=c("green", "yellow", "red"), 
-                          limits=c(-0.001, 1.001), 
-                          breaks=c(0, 0.5, 1), 
-                          labels=c("0", "0.5", ">1")) +
-    coord_fixed() +
-    ggtitle(plot.title) +
-    theme(axis.ticks.x=element_blank(),
-          axis.text.x=element_blank(),
-          axis.title.x=element_blank(),
-          axis.ticks.y=element_blank(),
-          axis.text.y=element_blank(),
-          axis.title.y=element_blank(),
-          plot.title=element_text(size=12))
-  p1
-}  
-
 #' Plot DCA areas with background
 #' 
 #' @import dplyr
@@ -140,6 +97,16 @@ leg_pos[['T26']] <- c(0, 0)
 leg_pos[['T13-1']] <- c(.2, .8)
 leg_pos[['T29-2']] <- c(0, 0)
 leg_pos[['T1A-4']] <- c(1, 0)
+leg_pos[['T2-4']] <- c(1, 0)
+leg_pos[['T2-5']] <- c(1, 0)
+leg_pos[['T8W']] <- c(1, 0)
+leg_pos[['T10-3W']] <- c(1, 0)
+leg_pos[['T23NE']] <- c(1, 0)
+leg_pos[['T27 Addition']] <- c(0, 0)
+leg_pos[['T29-4']] <- c(1, 0)
+leg_pos[['T36-3 Addition']] <- c(1, 0)
+leg_pos[['T36-3E']] <- c(1, 0)
+leg_pos[['T36-2W']] <- c(1, 0)
 
 
 leg_jus <- vector(mode="list", length=0)
@@ -148,3 +115,13 @@ leg_jus[['T26']] <- c(0, 0)
 leg_jus[['T13-1']] <- c(.2, .8)
 leg_jus[['T29-2']] <- c(0, 0)
 leg_jus[['T1A-4']] <- c(1, 0)
+leg_jus[['T2-4']] <- c(1, 0)
+leg_jus[['T2-5']] <- c(1, 0)
+leg_jus[['T8W']] <- c(1, 0)
+leg_jus[['T10-3W']] <- c(1, 0)
+leg_jus[['T23NE']] <- c(1, 0)
+leg_jus[['T27 Addition']] <- c(0, 0)
+leg_jus[['T29-4']] <- c(1, 0)
+leg_jus[['T36-3 Addition']] <- c(1, 0)
+leg_jus[['T36-3E']] <- c(1, 0)
+leg_jus[['T36-2W']] <- c(1, 0)
