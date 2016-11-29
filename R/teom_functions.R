@@ -12,56 +12,30 @@
 #' @examples
 #' pull_teom_wind("2016-02-01", "2016-03-01")
 pull_teom_wind <- function(date1, date2){
-  print("pulling wind data from teoms.teom_summary_data...")
-  wind_df <- 
-    query_owenslake(paste0("SELECT teom_summary_data_id, datetime, 
-                           deployment_id, qaqc_level_id, wd, ws 
-                           FROM teoms.teom_summary_data 
-                           WHERE datetime > timestamp '", date1,  
-                           "' AND datetime < timestamp '", date2, 
-                           "' AND NOT deployment_id = 8"))
-  if (sum(wind_df$qaqc_level_id!=0)>0) print("QA/QC failures in data!")
-  wind_df <- wind_df[wind_df$qaqc_level_id==0, ]
-  wind_df <- select(wind_df, data.id = teom_summary_data_id, datetime, 
-                    deployment.id = deployment_id, wd, ws)
-  # add dummy column for pm10 data for binding with mfile dataframe
-  wind_df$pm10.avg <- rep(NA, nrow(wind_df))
-  # remove duplicated data lines (problem in database)
-  wind_df <- wind_df[!duplicated(wind_df[ , -1]), ]
-  wind_df
+    query1 <- paste0("SELECT i.deployment, t.datetime, t.ws_wvc AS ws, 
+                     t.wd_wvc AS wd  
+                     FROM teom.teom_analog_1hour t
+                     JOIN instruments.deployments i 
+                     ON t.deployment_id=i.deployment_id 
+                     WHERE t.datetime > timestamp '", date1,  
+                     "' AND t.datetime < timestamp '", date2, 
+                     "' AND NOT t.deployment_id = 8")
+    wind_df <- query_owens_aws(query1)
+    # convert wind speed from mph to m/s
+#    wind_df$ws <- round(wind_df$ws * .44704, 2)
+#    wind_df$wd <- round(wind_df$wd, 2)
+    wind_df
 }
 
-#' Pull wind and pm10 data from the GBUAPCD m-files. 
-#' 
-#' Pull wind speed and direction from teoms.teom_summary_data in AirSci 
-#' PostgreSQL database. This function pulls only the T7 station (required as 
-#' part of the TwB2 paired TEOM analysis.
-#' *Note: The PM10 data in this table is the analog averaged data transmitted 
-#' via LoggerNet. Although the digitial 5 minute data is preferrable for 
-#' reporting, this data is used as the long turn-around for District collected 
-#' PM10 data makes it unavailable for monthly reports. 
-#' 
-#' @param date1, date2 Text string. Date range for which to pull data.
-#' @return Data frame.
-#' @examples
-#' pull_mfile_wind("2016-02-01", "2016-03-01")
 pull_mfile_wind<- function(date1, date2){
-  print("pulling wind and pm10 data from archive.mfile_data...")
-  mfile_df <- 
-    query_owenslake(paste0("SELECT did, datetime, deployment_id, dir, aspd, 
-                           teom, qaqc_level_id 
-                           FROM archive.mfile_data 
-                           WHERE datetime > timestamp '", date1, 
-                           "' AND datetime < timestamp '", date2, 
-                           "' AND site = 'T7'"))
-  if (sum(!is.na(mfile_df$qaqc_level_id))>0) print("QA/QC failures in data!")
-  mfile_df <- mfile_df[is.na(mfile_df$qaqc_level_id), ]
-  mfile_df <- select(mfile_df, data.id = did, datetime, 
-                     deployment.id = deployment_id, 
-                     wd = dir, ws = aspd, pm10.avg=teom)
-  # remove duplicated data lines (problem in database)
-  mfile_df <- mfile_df[!duplicated(mfile_df[ , -1]), ]
-  mfile_df
+    query1 <- paste0("SELECT site AS deployment,  datetime, aspd AS ws, 
+                     dir AS wd, teom AS pm10_avg 
+                     FROM archive.mfile_data 
+                     WHERE datetime > timestamp '", date1, 
+                     "' AND datetime < timestamp '", date2, 
+                     "' AND site = 'T7'")
+    mfile_df <- query_owens_aws(query1)
+    mfile_df
 }
 
 #' Pull instrument location data.
@@ -75,16 +49,13 @@ pull_mfile_wind<- function(date1, date2){
 #' @examples
 #' pull_locations(c(1719, 1718, 1849))
 pull_locations <- function(deploys){
-  deploys <- paste0("(", paste(deploys, collapse=", "), ")")
-  station_locs <- 
-    query_owenslake(paste0("SELECT deployment_id, deployment, northing_utm, 
-                           easting_utm, description 
-                           FROM instruments.deployments 
-                           WHERE deployment_id IN ", deploys))
-  colnames(station_locs) <- gsub("_", ".", colnames(station_locs))
-  station_locs <- select(station_locs, -description)
-  station_locs <- rename(station_locs, x=easting.utm, y=northing.utm)
-  station_locs
+    deploys <- paste0("('", paste(deploys, collapse="', '"), "')")
+    query1 <- paste0("SELECT deployment, easting_utm AS x, 
+                     northing_utm AS y
+                     FROM instruments.deployments 
+                     WHERE deployment IN ", deploys)
+     station_locs <- query_owens_aws(query1)
+     station_locs
 }
 
 #' Pull report-quality PM10 data
@@ -97,28 +68,21 @@ pull_locations <- function(deploys){
 #' @examples
 #' pull_pm10(c(1719, 1718, 1849))
 pull_pm10 <- function(date1, date2, deploys){
-  print("pulling PM10 data from teoms.deployment_data...")
-  deploys <- paste0("(", paste(deploys, collapse=", "), ")")
-  pm10_df <- 
-    query_owenslake(paste0("SELECT d.deployment, 
-                           file_uploads.date_trunc_hour(datetime) 
-                           AS datetime_hour, 
-                           AVG(dd.teomamc) 
-                           FROM teoms.deployment_data dd 
-                           JOIN instruments.deployments d 
-                           ON dd.deployment_id=d.deployment_id 
+  deploys <- paste0("('", paste(deploys, collapse="', '"), "')")
+    query1 <- paste0("SELECT i.deployment, 
+                           file_uploads.date_trunc_hour(t.datetime) 
+                           AS datetime, AVG(t.pm10_std) AS pm10_avg 
+                           FROM teom.teom_1min t 
+                           JOIN instruments.deployments i 
+                           ON t.deployment_id=i.deployment_id 
                            WHERE datetime > timestamp '", date1,  
                            "' AND datetime < timestamp '", date2, 
-                           "' AND dd.deployment_id IN ", deploys, 
-                           " GROUP BY d.deployment, 
-                           file_uploads.date_trunc_hour(datetime) 
-                           ORDER BY d.deployment, datetime_hour"))
-  pm10_df <- rename(pm10_df, pm10.avg=avg)
-  print(paste0("removing ", nrow(filter(pm10_df, pm10.avg < -35)),
-               " hours with pm10.avg < -35"))
-  pm10_df <- filter(pm10_df, pm10.avg > -35)
-  # remove duplicated data lines (problem in database)
-  pm10_df <- pm10_df[!duplicated(pm10_df[ , -1]), ]
+                           "' AND i.deployment IN ", deploys, 
+                           " GROUP BY i.deployment, 
+                           file_uploads.date_trunc_hour(t.datetime) 
+                           ORDER BY i.deployment, datetime")
+  pm10_df <- query_owens_aws(query1)
+  pm10_df <- filter(pm10_df, pm10_avg > -35)
   pm10_df
 }
 

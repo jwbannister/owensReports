@@ -2,12 +2,9 @@ load_all()
 library(lubridate)
 rm(list=ls())
 
-area <- "sfwcrft" # c("brine", "channel", "dwm", "sfwcrft", "twb2")
+area <- "dwm" # c("brine", "channel", "dwm", "sfwcrft", "twb2")
 
-for (i in c("11-01-2015", "12-01-2015", "01-01-2016", "02-01-2016", 
-            "03-01-2016", "04-01-2016", "05-01-2016", "06-01-2016", 
-            "10-01-2016")){
-start_date <- mdy(i) # date to start reporting period
+start_date <- mdy("10-01-2016") # date to start reporting period
 end_date <- start_date %m+% months(1) %m-% days(1)
 report_date <- format(Sys.Date(), "%m-%d-%Y")
 file_name <- paste0("~/code/owensReports/output/", area, "_", 
@@ -25,4 +22,3 @@ if (area %in% c("brine", "dwm", "channel")){
 convert_command <- paste0("wkhtmltopdf  --page-size letter ", 
                           file_name, ".html ", file_name, ".pdf") 
 system(convert_command)
-}

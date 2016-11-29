@@ -25,7 +25,7 @@ source("~/code/owensReports/scripts/sfwcrft_sandflux.R")
 ```
 
 ```{r wetness, include=FALSE}
-source("~/code/owensReports/scripts/swir_wetness.R")
+source("~/code/owensReports/scripts/sfwcrft_wetness.R")
 ```
 
 ```{r plot_image, include=FALSE}

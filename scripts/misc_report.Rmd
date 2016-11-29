@@ -13,15 +13,15 @@ panderOptions('keep.line.breaks', TRUE)
 panderOptions('table.alignment.rownames', 'left')
 ```
 ```{r load_data, include=FALSE}
-flux_df <- load_sandflux(area, start_date, end_date)
+#flux_df <- load_sandflux(area, start_date, end_date)
 ```
 
 ```{r sandmass, include=FALSE}
-source("~/code/owensReports/scripts/sandmass.R")
+#source("~/code/owensReports/scripts/misc_sandmass.R")
 ```
 
 ```{r sandflux, include=FALSE}
-source("~/code/owensReports/scripts/sandflux.R")
+#source("~/code/owensReports/scripts/misc_sandflux.R")
 ```
 
 ```{r plot_image, include=FALSE}
@@ -30,7 +30,7 @@ names(img_files) <- unique(csc_mass$dca)
 for (i in unique(csc_mass$dca)){
     img_files[[i]] <- paste0(tempfile(), ".png")
     png(filename=img_files[[i]], width=8, height=4, units="in", res=300)
-    gridExtra::grid.arrange(mass_grobs[[i]], flux_grobs[[i]], ncol=2)
+    gridExtra::grid.arrange(flux_grobs[[i]], ncol=2)
     dev.off()
 }
 ```
@@ -43,19 +43,29 @@ for (i in unique(csc_mass$dca)){
     cat(paste0("![](", img_files[[i]], ")"))
     cat(" \n\n## Monthly Sand Mass \n")
     tbl_mass <- csc_mass %>% filter(dca==i) %>% select(dca, csc, sand.mass)
+    if (area=="dwm"){
+        tbl_mass$sand.mass <- sapply(tbl_mass$sand.mass, 
+                                     function(x) ifelse(x<0, "Flooded", x))
+    }
     colnames(tbl_mass) <- c("DCA", "CSC Site", "Sand Mass (g)") 
     pandoc.table(tbl_mass)
     cat(" \n\n## Daily Sand Flux \n")
-    tbl_flux <- full_daily %>% filter(dca==i, sand.flux>1) %>% 
+    cat(" \n(5 highest days with recorded sand flux > 0.1 g/cm^2/day) \n")
+    tbl_flux <- full_daily %>% filter(dca==i, sand.flux>0.1) %>% 
         select(dca, csc, date, sand.flux) %>% arrange(desc(sand.flux))
     if (nrow(tbl_flux)==0){
-        cat(" \nNo days with sand flux greater than 1 g/cm^2/day. \n")
+        cat(" \nNo days with measurable sand flux. \n")
     } else{
-    colnames(tbl_flux) <- c("DCA", "Date", "CSC Site", 
-                            "Sand Flux\\\n(g/cm^2/day)") 
-    pandoc.table(tbl_flux, split.table=Inf)
+        colnames(tbl_flux) <- c("DCA", "CSC Site", "Date", 
+                                "Sand Flux\\\n(g/cm^2/day)") 
+        pandoc.table(tbl_flux[1:5, ], split.table=Inf)
     }
     cat(" \n\n## Comments \n")
+    if (area %in% c("brine", "dwm")){
+        cat(" \nErosion threshold to trigger BACM Shallow Flooding is sand flux 
+            of 5.0 grams per square centimeter per day (Rule 433, paragraph 
+                                                        h.*i*.) \n")
+    } 
     comment_file <- paste0("~/code/owensReports/data/", area, month(start_date), 
                            year(start_date), i, ".txt")
     if (file.exists(comment_file)){

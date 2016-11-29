@@ -11,37 +11,63 @@ library(tidyverse)
 panderOptions('knitr.auto.asis', FALSE)
 panderOptions('keep.line.breaks', TRUE)
 panderOptions('table.alignment.rownames', 'left')
+```
+```{r load_data, include=FALSE}
 flux_df <- load_sandflux(area, start_date, end_date)
-source("~/code/owensReports/scripts/sandmotion.R")
-source("~/code/owensReports/scripts/teom_pairs.R")
 ```
 
-```{r flux_pages, echo=F, results='asis', fig.height=5}
+```{r sandmass, include=FALSE}
+source("~/code/owensReports/scripts/misc_sandmass.R")
+```
+
+```{r sandflux, include=FALSE}
+source("~/code/owensReports/scripts/misc_sandflux.R")
+```
+
+```{r plot_image, include=FALSE}
+img_files <- vector(mode="character", length=length(unique(csc_mass$dca)))
+names(img_files) <- unique(csc_mass$dca)
+for (i in unique(csc_mass$dca)){
+    img_files[[i]] <- paste0(tempfile(), ".png")
+    png(filename=img_files[[i]], width=8, height=4, units="in", res=300)
+    gridExtra::grid.arrange(flux_grobs[[i]], ncol=2)
+    dev.off()
+}
+```
+
+```{r output, echo=F, results='asis'}
 for (i in unique(csc_mass$dca)){
     report_header(start_date, end_date, report_date, area)
-    cat(paste0(" \n#", i, "\n"))
-    print(csc_plots[[i]])
-    cat(" \n \n ")
-    tbl <- csc_mass %>% filter(dca==i) %>% 
-        select(csc, sand.mass, max.daily.flux)
-    colnames(tbl) <- c("CSC Site", "Total Mass\n(g)", 
-                       "Max. Daily Flux\n(g/cm^2/day)")
-    pandoc.table(tbl)
+    cat(paste0(" \n# ", i, " \n"))
+    cat(" \n## Monitoring Site Results \n")
+    cat(paste0("![](", img_files[[i]], ")"))
+    cat(" \n\n## Monthly Sand Mass \n")
+    tbl_mass <- csc_mass %>% filter(dca==i) %>% select(dca, csc, sand.mass)
+    colnames(tbl_mass) <- c("DCA", "CSC Site", "Sand Mass (g)") 
+    pandoc.table(tbl_mass)
+    cat(" \n\n## Daily Sand Flux \n")
+    cat(" \n(5 highest days with recorded sand flux > 0.1 g/cm^2/day) \n")
+    tbl_flux <- full_daily %>% filter(dca==i, sand.flux>0.1) %>% 
+        select(dca, csc, date, sand.flux) %>% arrange(desc(sand.flux))
+    if (nrow(tbl_flux)==0){
+        cat(" \nNo days with measurable sand flux. \n")
+    } else{
+        colnames(tbl_flux) <- c("DCA", "CSC Site", "Date", 
+                                "Sand Flux\\\n(g/cm^2/day)") 
+        pandoc.table(tbl_flux, split.table=Inf)
+    }
+    cat(" \n\n## Comments \n")
+    if (area %in% c("brine", "dwm")){
+        cat(" \nErosion threshold to trigger BACM Shallow Flooding is sand flux 
+            of 1.0 grams per square centimeter per day (Rule 433, paragraph 
+                                                        h.*i*.) \n")
+    } 
+    comment_file <- paste0("~/code/owensReports/data/", area, month(start_date), 
+                           year(start_date), i, ".txt")
+    if (file.exists(comment_file)){
+        cat(" \n ", readLines(comment_file), " \n")
+    }
     cat("<p style=\"page-break-after:always;\"></p> \n")
 }
 ```
 
-```{r pm10_pages, echo=F, results='asis', fig.height=5}
-for (i in names(twb2_dcas)){
-    report_header(start_date, end_date, report_date, area)
-    cat(paste0(" \n#", i, " TwB2 Areas - TEOM Pairs\n"))
-    print(pairs_plots[[i]])
-    cat(" \n \n ")
-    tbl <- highest.10 %>% filter(dca.group==i) %>% 
-        select(-dca.group, -status)
-    colnames(tbl) <- c("Date", "Upwind PM10", "Downwind PM10", 
-                       "PM10 Diff.", "Windspeed")
-    pandoc.table(tbl)
-    cat("<p style=\"page-break-after:always;\"></p> \n")
-}
-```
