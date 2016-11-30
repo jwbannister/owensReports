@@ -4,6 +4,8 @@ load_all("~/code/owensMaps")
 load_all("~/code/Roses")
 library(tidyverse)
 
+twb2 <- group_twb2_areas()
+
 # pull data from portable teoms, keep wind direction and speed
 teom_wind <- pull_teom_wind(start_date, end_date)
 teom_pm10 <- pull_pm10(start_date, end_date, deploys)
@@ -18,22 +20,11 @@ df0 <- rbind(teom_met, mfile)
 
 deploys <- as.character(unique(df0$deployment))
 teom_locs <- pull_locations(deploys)
-
-
-teom_data <- inner_join(df0, teom_locs, by="deployment") %>%
-  left_join(pm10_df, by=c("datetime", "deployment")) %>%
-  mutate(pm10 = ifelse(is.na(pm10.avg.x), pm10.avg.y, pm10.avg.x)) %>%
-  select(-pm10.avg.x, -pm10.avg.y) 
+teom_locs <- pair_teoms(teom_locs)
+teom_locs <- assign_wind_angle(teom_locs)
 
 flagged_data <- find_missing(teom_data)
 
-twb2_dcas <- list("North" = c("T29-3", "T29-4"),
-                  "Central" = c("T12-1", "T16"),
-                  "South" = c("T3SW", "T3SE", "T2-2", "T2-3", 
-                                        "T2-4", "T5-4"))
-
-teom_locs <- pair_teoms(teom_locs)
-teom_locs <- assign_wind_angle(teom_locs)
 # df1 == all available hourly data from teoms
 df1 <- inner_join(teom_data, dplyr::select(teom_locs, deployment.id, 
                                            dca.group, position),

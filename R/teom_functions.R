@@ -22,8 +22,8 @@ pull_teom_wind <- function(date1, date2){
                      "' AND NOT t.deployment_id = 8")
     wind_df <- query_owens_aws(query1)
     # convert wind speed from mph to m/s
-#    wind_df$ws <- round(wind_df$ws * .44704, 2)
-#    wind_df$wd <- round(wind_df$wd, 2)
+    wind_df$ws <- round(wind_df$ws * .44704, 2)
+    wind_df$wd <- round(wind_df$wd, 2)
     wind_df
 }
 
@@ -35,6 +35,9 @@ pull_mfile_wind<- function(date1, date2){
                      "' AND datetime < timestamp '", date2, 
                      "' AND site = 'T7'")
     mfile_df <- query_owens_aws(query1)
+    mfile_df$ws <- round(mfile_df$ws * .44704, 2)
+    mfile_df$wd <- round(mfile_df$wd, 2)
+    mfile_df$pm10_avg <- round(mfile_df$pm10_avg, 2)
     mfile_df
 }
 
@@ -83,6 +86,7 @@ pull_pm10 <- function(date1, date2, deploys){
                            ORDER BY i.deployment, datetime")
   pm10_df <- query_owens_aws(query1)
   pm10_df <- filter(pm10_df, pm10_avg > -35)
+  pm10_df$pm10_avg <- round(pm10_df$pm10_avg, 2)
   pm10_df
 }
 
@@ -189,7 +193,7 @@ assign_wind_angle <- function(df1){
     ungroup()
   df1$upwind.angle <- circular::deg(df1$upwind.angle) 
   df1$upwind.angle <- round(df1$upwind.angle, 1)
-  df1 <- df1 %>% group_by(deployment.id) %>% 
+  df1 <- df1 %>% group_by(deployment) %>% 
     mutate(downwind.angle=ifelse(upwind.angle>180, upwind.angle-180,
                                  upwind.angle+180)) %>%
   ungroup()
