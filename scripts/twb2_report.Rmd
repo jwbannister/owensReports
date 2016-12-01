@@ -13,41 +13,56 @@ panderOptions('keep.line.breaks', TRUE)
 panderOptions('table.alignment.rownames', 'left')
 ```
 ```{r load_data, include=FALSE}
-flux_df <- load_sandflux(area, start_date, end_date)
+#flux_df <- load_sandflux(area, start_date, end_date)
 ```
 
 ```{r sandmass, include=FALSE}
-source("~/code/owensReports/scripts/misc_sandmass.R")
+#source("~/code/owensReports/scripts/twb2_sandmass.R")
 ```
 
 ```{r sandflux, include=FALSE}
-source("~/code/owensReports/scripts/misc_sandflux.R")
+#source("~/code/owensReports/scripts/twb2_sandflux.R")
+```
+
+```{r pairs, include=FALSE}
+#source("~/code/owensReports/scripts/twb2_pairs.R")
+```
+
+```{r surface, include=FALSE}
+source("~/code/owensReports/scripts/twb2_surface.R")
 ```
 
 ```{r plot_image, include=FALSE}
-img_files <- vector(mode="character", length=length(unique(csc_mass$dca)))
-names(img_files) <- unique(csc_mass$dca)
-for (i in unique(csc_mass$dca)){
+img_files <- vector(mode="character", length=length(unique(csc_mass$group)))
+names(img_files) <- unique(csc_mass$group)
+pair_img_files <- img_files
+for (i in unique(csc_mass$group)){
     img_files[[i]] <- paste0(tempfile(), ".png")
     png(filename=img_files[[i]], width=8, height=4, units="in", res=300)
     gridExtra::grid.arrange(flux_grobs[[i]], ncol=2)
     dev.off()
+    if (i!="East"){
+    pair_img_files[[i]] <- paste0(tempfile(), ".png")
+    png(filename=pair_img_files[[i]], width=8, height=4, units="in", res=300)
+    gridExtra::grid.arrange(pair_grobs[[i]], ncol=2)
+    dev.off()
+    }
 }
 ```
 
 ```{r output, echo=F, results='asis'}
-for (i in unique(csc_mass$dca)){
+for (i in unique(csc_mass$group)){
     report_header(start_date, end_date, report_date, area)
-    cat(paste0(" \n# ", i, " \n"))
+    cat(paste0(" \n# ", i, " TwB2 \n"))
     cat(" \n## Monitoring Site Results \n")
     cat(paste0("![](", img_files[[i]], ")"))
-    cat(" \n\n## Monthly Sand Mass \n")
-    tbl_mass <- csc_mass %>% filter(dca==i) %>% select(dca, csc, sand.mass)
-    colnames(tbl_mass) <- c("DCA", "CSC Site", "Sand Mass (g)") 
-    pandoc.table(tbl_mass)
+#    cat(" \n\n## Monthly Sand Mass \n")
+#    tbl_mass <- csc_mass %>% filter(group==i) %>% select(dca, csc, sand.mass)
+#    colnames(tbl_mass) <- c("DCA", "CSC Site", "Sand Mass (g)") 
+#    pandoc.table(tbl_mass)
     cat(" \n\n## Daily Sand Flux \n")
     cat(" \n(5 highest days with recorded sand flux > 0.1 g/cm^2/day) \n")
-    tbl_flux <- full_daily %>% filter(dca==i, sand.flux>0.1) %>% 
+    tbl_flux <- full_daily %>% filter(group==i, sand.flux>0.1) %>% 
         select(dca, csc, date, sand.flux) %>% arrange(desc(sand.flux))
     if (nrow(tbl_flux)==0){
         cat(" \nNo days with measurable sand flux. \n")
@@ -57,16 +72,41 @@ for (i in unique(csc_mass$dca)){
         pandoc.table(tbl_flux, split.table=Inf)
     }
     cat(" \n\n## Comments \n")
-    if (area %in% c("brine", "dwm")){
         cat(" \nErosion threshold to trigger BACM Shallow Flooding is sand flux 
             of 1.0 grams per square centimeter per day (Rule 433, paragraph 
                                                         h.*i*.) \n")
-    } 
     comment_file <- paste0("~/code/owensReports/data/", area, month(start_date), 
                            year(start_date), i, ".txt")
     if (file.exists(comment_file)){
         cat(" \n ", readLines(comment_file), " \n")
     }
+    cat("<p style=\"page-break-after:always;\"></p> \n")
+    if (i!="East"){
+        report_header(start_date, end_date, report_date, area)
+        cat(paste0(" \n# ", i, " TwB2 \n"))
+        cat(" \n## Paired TEOM PM10 Results\n")
+        cat(paste0("![](", pair_img_files[[i]], ")"))
+        cat(" \n\n\n\n")
+        tbl_pair <- daily_summary %>% filter(dca.group==i, pm10.delta>0) %>% 
+            arrange(desc(pm10.delta)) %>% select(-dca.group, -status)
+        colnames(tbl_pair) <- c("Date", "Upwind PM10\\\n(micrograms/m^3)", 
+                                "Downwind PM10\\\n(micrograms/m^3)", 
+                                "PM10 Increase\\\n(micrograms/m^3)", 
+                                "Windspeed at Max\\\nPM10 Increase (m/s)")
+        pandoc.table(tbl_pair, split.table=Inf)
+        cat("<p style=\"page-break-after:always;\"></p> \n")
+    }
+    report_header(start_date, end_date, report_date, area)
+    cat(paste0(" \n# ", i, " TwB2 \n"))
+    cat(" \n## Surface Survey Data\n")
+    tbl_surface <- surface_df %>% filter(group==i) %>% 
+        select(dca, site, rs, rh, rs.rh, clods)
+    colnames(tbl_surface) <- c("DCA", "Site", "Row Spacing (cm)", 
+                            "Row Height (cm)", "RS/RH", 
+                            "Clod Coverage (%)")
+    cat("<h6> \n")
+    pandoc.table(tbl_surface, split.table=Inf)
+    cat("</h6> \n")
     cat("<p style=\"page-break-after:always;\"></p> \n")
 }
 ```

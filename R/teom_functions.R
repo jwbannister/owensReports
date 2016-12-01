@@ -21,8 +21,6 @@ pull_teom_wind <- function(date1, date2){
                      "' AND t.datetime < timestamp '", date2, 
                      "' AND NOT t.deployment_id = 8")
     wind_df <- query_owens_aws(query1)
-    # convert wind speed from mph to m/s
-    wind_df$ws <- round(wind_df$ws * .44704, 2)
     wind_df$wd <- round(wind_df$wd, 2)
     wind_df
 }
@@ -34,8 +32,7 @@ pull_mfile_wind<- function(date1, date2){
                      WHERE datetime > timestamp '", date1, 
                      "' AND datetime < timestamp '", date2, 
                      "' AND site = 'T7'")
-    mfile_df <- query_owens_aws(query1)
-    mfile_df$ws <- round(mfile_df$ws * .44704, 2)
+    mfile_df <- query_owenslake(query1)
     mfile_df$wd <- round(mfile_df$wd, 2)
     mfile_df$pm10_avg <- round(mfile_df$pm10_avg, 2)
     mfile_df
@@ -72,19 +69,22 @@ pull_locations <- function(deploys){
 #' pull_pm10(c(1719, 1718, 1849))
 pull_pm10 <- function(date1, date2, deploys){
   deploys <- paste0("('", paste(deploys, collapse="', '"), "')")
-    query1 <- paste0("SELECT i.deployment, 
-                           file_uploads.date_trunc_hour(t.datetime) 
-                           AS datetime, AVG(t.pm10_std) AS pm10_avg 
-                           FROM teom.teom_1min t 
-                           JOIN instruments.deployments i 
-                           ON t.deployment_id=i.deployment_id 
-                           WHERE datetime > timestamp '", date1,  
-                           "' AND datetime < timestamp '", date2, 
-                           "' AND i.deployment IN ", deploys, 
-                           " GROUP BY i.deployment, 
-                           file_uploads.date_trunc_hour(t.datetime) 
-                           ORDER BY i.deployment, datetime")
-  pm10_df <- query_owens_aws(query1)
+query1 <- paste0("SELECT i.deployment, 
+                 file_uploads.date_trunc_hour(t.datetime) 
+                 AS datetime, AVG(t.pm10_std) AS pm10_avg, 
+                 COUNT(flags.is_invalid(t.deployment_id, 
+                                  t.datetime - '00:01:00'::interval, 
+                                  t.datetime + '00:01:00'::interval)) AS invalid 
+                 FROM teom.teom_1min t 
+                 JOIN instruments.deployments i 
+                 ON t.deployment_id=i.deployment_id 
+                 WHERE datetime > timestamp '", date1,  
+                 "' AND datetime < timestamp '", date2, 
+                 "' AND i.deployment IN ", deploys, 
+                 " GROUP BY i.deployment, 
+                 file_uploads.date_trunc_hour(t.datetime) 
+                 ORDER BY i.deployment, datetime")
+                 pm10_df <- query_owens_aws(query1)
   pm10_df <- filter(pm10_df, pm10_avg > -35)
   pm10_df$pm10_avg <- round(pm10_df$pm10_avg, 2)
   pm10_df
@@ -212,9 +212,9 @@ define_event <- function(df1, locs){
   return_df$tag <- rep(NA, nrow(return_df))
   return_df <- return_df[numeric(0), ]
   for (i in 1:nrow(locs)){
-    a <- filter_by_angle(df1, locs$deployment.id[i], locs$upwind.angle[i], 
+    a <- filter_by_angle(df1, locs$deployment[i], locs$upwind.angle[i], 
                          "UW")
-    b <- filter_by_angle(df1, locs$deployment.id[i], locs$downwind.angle[i], 
+    b <- filter_by_angle(df1, locs$deployment[i], locs$downwind.angle[i], 
                          "DW")
     return_df <- rbind(return_df, a, b)
   }
@@ -228,16 +228,16 @@ filter_by_angle <- function(df1, id, angle, tag){
   lower.angle.alt <- lower.angle+360
   if (upper.angle>360){
     if (lower.angle<0){
-      events <- dplyr::filter(df1, deployment.id==id,
+      events <- dplyr::filter(df1, deployment==id,
                               (wd>lower.angle.alt&wd<360) |
                                 (wd>0&wd<upper.angle))
     }else {
-      events <- dplyr::filter(df1, deployment.id==id,
+      events <- dplyr::filter(df1, deployment==id,
                               (wd>lower.angle&wd<360) |
                                 (wd>0&wd<upper.angle.alt))
     }
   }else {
-    events <- dplyr::filter(df1, deployment.id==id,
+    events <- dplyr::filter(df1, deployment==id,
                             wd>lower.angle&wd<upper.angle)
   }
   events$tag <- rep(tag, nrow(events))
@@ -253,12 +253,12 @@ teom_pair_plot <- function(teom_locs, df1, background, start_date, end_date){
   a <- list(grobs=c(), centers=c())
   valueseq <- c(10, 50, 150, 500)
   legend.plot <- df1 %>% filter(dca.group==teom_locs$dca.group[1]) %>%
-    plot_rose(., value='pm10', dir='wd', valueseq=valueseq,
+    plot_rose(., value='pm10_avg', dir='wd', valueseq=valueseq,
               legend.title="PM10")
   legnd <- g_legend(legend.plot)
   for (j in 1:nrow(teom_locs)){
     p <- filter(df1, deployment==teom_locs$deployment[j]) %>% 
-      plot_rose_image_only(., value='pm10', dir='wd', valueseq=valueseq)
+      plot_rose_image_only(., value='pm10_avg', dir='wd', valueseq=valueseq)
     png(filename="./p.png", bg="transparent")
     print(p)
     dev.off()
@@ -303,6 +303,7 @@ teom_pair_plot <- function(teom_locs, df1, background, start_date, end_date){
           plot.background=element_blank(),
           plot.title=element_text(size=12))
   file.remove("./p.png")
+  dev.off()
   p3
 }
 
