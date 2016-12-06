@@ -10,4 +10,5 @@ colnames(df1) <- tolower(colnames(df1))
 surface_df <- df1 %>% rename(dca=area) %>%
     left_join(select(twb2$data, dca, group), by="dca") %>%
     filter(month==month(start_date) & year==year(start_date))
+surface_df <- surface_df[!duplicated(surface_df), ]
 

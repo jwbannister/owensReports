@@ -125,6 +125,7 @@ leg_pos[['East']] <- c(0, 0)
 leg_pos[['South']] <- c(1, 0)
 leg_pos[['C1']] <- c(1, 0)
 leg_pos[['C2']] <- c(1, 0)
+leg_pos[['T1A-1']] <- c(1, 0)
 
 
 leg_jus <- vector(mode="list", length=0)
@@ -161,3 +162,4 @@ leg_jus[['East']] <- c(0, 0)
 leg_jus[['South']] <- c(1, 0)
 leg_jus[['C1']] <- c(1, 0)
 leg_jus[['C2']] <- c(1, 0)
+leg_jus[['T1A-1']] <- c(1, 0)

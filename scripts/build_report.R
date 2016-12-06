@@ -1,8 +1,8 @@
 load_all()
 library(lubridate)
-#rm(list=ls())
+rm(list=ls())
 
-area <- "twb2" # c("brine", "channel", "dwm", "sfwcrft", "twb2")
+area <- "t1a1" # c("brine", "channel", "dwm", "sfwcrft", "twb2", "t1a1)
 
 start_date <- mdy("10-01-2016") # date to start reporting period
 end_date <- start_date %m+% months(1) %m-% days(1)

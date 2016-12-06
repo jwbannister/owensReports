@@ -13,19 +13,19 @@ panderOptions('keep.line.breaks', TRUE)
 panderOptions('table.alignment.rownames', 'left')
 ```
 ```{r load_data, include=FALSE}
-#flux_df <- load_sandflux(area, start_date, end_date)
+flux_df <- load_sandflux(area, start_date, end_date)
 ```
 
 ```{r sandmass, include=FALSE}
-#source("~/code/owensReports/scripts/twb2_sandmass.R")
+source("~/code/owensReports/scripts/twb2_sandmass.R")
 ```
 
 ```{r sandflux, include=FALSE}
-#source("~/code/owensReports/scripts/twb2_sandflux.R")
+source("~/code/owensReports/scripts/twb2_sandflux.R")
 ```
 
 ```{r pairs, include=FALSE}
-#source("~/code/owensReports/scripts/twb2_pairs.R")
+source("~/code/owensReports/scripts/twb2_pairs.R")
 ```
 
 ```{r surface, include=FALSE}

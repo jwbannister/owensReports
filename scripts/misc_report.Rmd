@@ -29,7 +29,7 @@ img_files <- vector(mode="character", length=length(unique(csc_mass$dca)))
 names(img_files) <- unique(csc_mass$dca)
 for (i in unique(csc_mass$dca)){
     img_files[[i]] <- paste0(tempfile(), ".png")
-    png(filename=img_files[[i]], width=8, height=4, units="in", res=300)
+    png(filename=img_files[[i]], width=6, height=3, units="in", res=300)
     gridExtra::grid.arrange(flux_grobs[[i]], ncol=2)
     dev.off()
 }
@@ -37,18 +37,12 @@ for (i in unique(csc_mass$dca)){
 
 ```{r output, echo=F, results='asis'}
 for (i in unique(csc_mass$dca)){
+    titles <- c("C1"="C-North", "C2"="C-South")
+    page_hdr <- ifelse(i %in% names(titles), titles[i], i)
     report_header(start_date, end_date, report_date, area)
-    cat(paste0(" \n# ", i, " \n"))
+    cat(paste0(" \n# ", page_hdr, " \n"))
     cat(" \n## Monitoring Site Results \n")
     cat(paste0("![](", img_files[[i]], ")"))
-    cat(" \n\n## Monthly Sand Mass \n")
-    tbl_mass <- csc_mass %>% filter(dca==i) %>% select(dca, csc, sand.mass)
-    if (area=="dwm"){
-        tbl_mass$sand.mass <- sapply(tbl_mass$sand.mass, 
-                                     function(x) ifelse(x<0, "Flooded", x))
-    }
-    colnames(tbl_mass) <- c("DCA", "CSC Site", "Sand Mass (g)") 
-    pandoc.table(tbl_mass)
     cat(" \n\n## Daily Sand Flux \n")
     cat(" \n(5 highest days with recorded sand flux > 0.1 g/cm^2/day) \n")
     tbl_flux <- full_daily %>% filter(dca==i, sand.flux>0.1) %>% 
@@ -60,6 +54,17 @@ for (i in unique(csc_mass$dca)){
                                 "Sand Flux\\\n(g/cm^2/day)") 
         pandoc.table(tbl_flux[1:5, ], split.table=Inf)
     }
+    cat("<p style=\"page-break-after:always;\"></p> \n")
+    report_header(start_date, end_date, report_date, area)
+    cat(paste0(" \n# ", page_hdr, " \n"))
+    cat(" \n\n## Monthly Sand Mass \n")
+    tbl_mass <- csc_mass %>% filter(dca==i) %>% select(dca, csc, sand.mass)
+    if (area=="dwm"){
+        tbl_mass$sand.mass <- sapply(tbl_mass$sand.mass, 
+                                     function(x) ifelse(x<0, "Flooded", x))
+    }
+    colnames(tbl_mass) <- c("DCA", "CSC Site", "Sand Mass (g)") 
+    pandoc.table(tbl_mass)
     cat(" \n\n## Comments \n")
     if (area %in% c("brine", "dwm")){
         cat(" \nErosion threshold to trigger BACM Shallow Flooding is sand flux 

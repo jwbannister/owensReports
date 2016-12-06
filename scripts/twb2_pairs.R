@@ -15,7 +15,12 @@ mfile <- pull_mfile_wind(start_date, end_date)
 deploys <- as.character(c(unique(teom_wind$deployment), 
                           unique(mfile$deployment)))
 teom_pm10 <- pull_pm10(start_date, end_date, deploys)
-teom <- left_join(teom_wind, teom_pm10, by=c("deployment", "datetime"))
+teom_pm10$valid_hour <- sapply(teom_pm10$invalid_minutes, 
+                         function(x) ifelse(x>15, F, T))
+
+teom <- left_join(teom_wind, filter(teom_pm10, valid_hour), 
+                  by=c("deployment", "datetime"))
+teom <- teom[complete.cases(teom), ] %>% select(-invalid_minutes, -valid_hour)
 
 df0 <- rbind(teom, mfile)
 

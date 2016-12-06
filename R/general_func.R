@@ -6,11 +6,12 @@ S3_bucket_access <- function(key, file){
 }
 
 report_header <- function(start_date, end_date, report_date, area){
-    index <- data.frame(a = c("brine", "channel", "dwm", "sfwcrft", "twb2"), 
+    index <- data.frame(a = c("brine", "channel", "dwm", "sfwcrft", "twb2", "t1a1"), 
                         b = c("Brine", "Channel", 
                               "Dynamic Water Management", 
                               "Shallow Flood Wetness Curve Refinement Field Test",
-                              "Tillage with BACM Backup"))
+                              "Tillage with BACM Backup", 
+                              "T1A-1"))
     cat("<img style=\"float: right;\" src=\"logo.png\"> \n")
     cat(" \n# ", index[index$a==area, ]$b, " \n")
     cat(" \n##Summary Period: ", format(start_date, "%m-%d-%Y"), " through ", 

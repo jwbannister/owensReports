@@ -18,8 +18,7 @@ daily_flux <- flux_df %>%
                                 stringsAsFactors=FALSE)
     full_daily <- expand_daily %>%
         left_join(select(daily_flux, -x, -y), by=c("csc", "date")) %>%
-        left_join(csc_locs, by="csc") %>%
-        filter(dca!="T1A-1") 
+        left_join(csc_locs, by="csc") 
     full_daily[is.na(full_daily$sand.flux), "sand.flux"] <- 0
 
     max_daily <- full_daily %>% group_by(csc) %>%

@@ -12,8 +12,6 @@ csc_mass$objectid <- apply(cbind(csc_mass$x, csc_mass$y), 1,
 csc_mass <- csc_mass %>% 
     left_join(select(owens$data, objectid, dca), by="objectid")
 
-csc_mass <- filter(csc_mass, dca!="T1A-1")
-
 mass_grobs <- vector(mode="list", length=length(unique(csc_mass$dca)))
 names(mass_grobs) <- unique(csc_mass$dca)
 for (i in unique(csc_mass$dca)){

@@ -70,11 +70,12 @@ pull_locations <- function(deploys){
 pull_pm10 <- function(date1, date2, deploys){
   deploys <- paste0("('", paste(deploys, collapse="', '"), "')")
 query1 <- paste0("SELECT i.deployment, 
-                 file_uploads.date_trunc_hour(t.datetime) 
+                 file_uploads.date_trunc_hour(t.datetime) + '01:00:00'::interval 
                  AS datetime, AVG(t.pm10_std) AS pm10_avg, 
-                 COUNT(flags.is_invalid(t.deployment_id, 
+                 SUM(flags.is_invalid(t.deployment_id, 
                                   t.datetime - '00:01:00'::interval, 
-                                  t.datetime + '00:01:00'::interval)) AS invalid 
+                                  t.datetime + '00:01:00'::interval)::integer) 
+                 AS invalid_minutes 
                  FROM teom.teom_1min t 
                  JOIN instruments.deployments i 
                  ON t.deployment_id=i.deployment_id 
