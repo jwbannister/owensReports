@@ -36,11 +36,19 @@ daily_flux <- flux_df %>%
         background <- plot_dca_background(tmp_polys, tmp_labels)
         legend_flux='Max. Daily Flux\n(g/cm^2/day)'
         max_flux <- round(max(filter(max_daily, dca==i)$max.daily.flux), 0)
-         p1 <- plot_csc_site_nolabel(background, max_daily, i, 
-                                    legend_title=legend_flux, 
-                                    value_index=2, 
-                                    value_max=5,
-                                    plot_title="Daily Flux")
+        if (area=="channel"){
+            p1 <- plot_csc_site_label_nocolor(background, max_daily, i, 
+                                              legend_title=legend_flux, 
+                                              value_index=2, 
+                                              value_max=5,
+                                              plot_title="Daily Flux")
+        } else{
+            p1 <- plot_csc_site_nolabel(background, max_daily, i, 
+                                        legend_title=legend_flux, 
+                                        value_index=2, 
+                                        value_max=5,
+                                        plot_title="Daily Flux")
+        }
         fl <- tempfile()
         png(filename=fl, width=8, height=8, units="in", res=300)
         print(p1)
