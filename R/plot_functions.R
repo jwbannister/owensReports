@@ -91,6 +91,45 @@ plot_dca_background_noboundaries <- function(polys_df, external_points=NULL){
 p1
 }
 
+plot_csc_site <- function(background, sand_df, area_txt,
+                            begin=start_date, ending=end_date, 
+                            legend_title="", value_index, value_max, 
+                            plot_title=""){
+  catches <- sand_df %>% filter(dca==area_txt)
+  value.range <- 
+      range(catches[ , value_index])[2] - range(catches[ , value_index])[1]
+  x_range <- diff(ggplot_build(background)[[2]]$ranges[[1]]$x.range)
+  y_range <- diff(ggplot_build(background)[[2]]$ranges[[1]]$y.range)
+  catches[ , value_index] <- 
+      sapply(catches[ , value_index], 
+             function(x) ifelse(x>value_max, value_max, x))
+  p1 <- background +
+    geom_point(data=catches, size=4,  
+               mapping=aes_string(x='x', y='y', 
+                                  color=names(sand_df)[value_index])) +
+    scale_color_gradientn(name=legend_title,  
+                          colors=c("green", "yellow", "red"), 
+                          limits=c(-0.001, value_max+0.001), 
+                          breaks=c(0, value_max/2, value_max), 
+                          labels=c("0", as.character(value_max/2), 
+                                   paste0(">", value_max))) +
+    coord_fixed() +
+    ggrepel::geom_label_repel(data=catches, mapping=aes(x=x, y=y, label=csc), 
+               nudge_x=x_range/25, nudge_y=y_range/45) +
+    ggtitle(plot_title) +
+    theme(axis.ticks.x=element_blank(),
+          axis.text.x=element_blank(),
+          axis.title.x=element_blank(),
+          axis.ticks.y=element_blank(),
+          axis.text.y=element_blank(),
+          axis.title.y=element_blank(),
+          plot.title=element_text(size=12),
+          legend.position=leg_pos[[area_txt]], 
+          legend.background=element_rect(linetype="solid", color="black"), 
+          legend.justification=leg_jus[[area_txt]])
+  p1
+}  
+
 leg_pos <- vector(mode="list", length=0)
 leg_pos[['T10-1']] <- c(1, 0)
 leg_pos[['T26']] <- c(0, 0)

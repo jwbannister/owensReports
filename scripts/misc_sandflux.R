@@ -3,6 +3,12 @@ load("~/code/owensMaps/data/map_data.RData")
 library(tidyverse)
 library(lubridate)
 
+# remove "C2" dca label to avoid conflict with points
+owens$labels[owens$labels$dca=="C2", ]$x <- 410100 
+owens$labels[owens$labels$dca=="C2", ]$y <- 4020800
+owens$labels[owens$labels$dca=="C1", ]$x <- 411665
+owens$labels[owens$labels$dca=="C1", ]$y <- 4022961
+
 daily_flux <- flux_df %>% 
     group_by(csc, date=date(datetime)) %>% 
     summarize(sand.flux=round(sum(sand_flux), 2), 

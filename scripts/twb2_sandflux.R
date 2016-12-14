@@ -39,7 +39,7 @@ daily_flux <- flux_df %>%
     tmp_flux$dca <- tmp_flux$group
         background <- plot_dca_background(tmp_polys, tmp_labels)
         legend_flux='Max. Daily Flux\n(g/cm^2/day)'
-         p1 <- plot_csc_site_nolabel(background, tmp_flux, i, 
+         p1 <- plot_csc_site(background, tmp_flux, i, 
                                     legend_title=legend_flux, 
                                     value_index=2, 
                                     value_max=1,
