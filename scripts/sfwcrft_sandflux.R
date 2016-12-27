@@ -9,6 +9,8 @@ if (start_date < "2016-08-01"){
     sfwcrft <- sfwcrft2
 }
 
+sfwcrft$labels <- adjust_sfwcrft_labels()
+
 daily_flux <- flux_df %>% 
     group_by(csc, date=date(datetime)) %>% 
     summarize(sand.flux=round(sum(sand_flux), 2), 
@@ -43,7 +45,7 @@ daily_flux <- flux_df %>%
         background <- plot_dca_background(tmp_polys, tmp_labels)
         legend_flux='Max. Daily Flux\n(g/cm^2/day)'
         max_flux <- round(max(filter(max_daily, dca==i)$max.daily.flux), 0)
-         p1 <- plot_csc_site_nolabel(background, max_daily, i, 
+         p1 <- plot_csc_site(background, max_daily, i, 
                                     legend_title=legend_flux, 
                                     value_index=2, 
                                     value_max=10,

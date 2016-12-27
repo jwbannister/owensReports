@@ -14,6 +14,7 @@ panderOptions('table.alignment.rownames', 'left')
 ```
 ```{r load_data, include=FALSE}
 flux_df <- load_sandflux(area, start_date, end_date)
+sites_df <- load_sites(area, start_date, end_date)
 ```
 
 ```{r sandmass, include=FALSE}
@@ -54,9 +55,9 @@ for (i in unique(csc_mass$dca)){
                                 "Sand Flux\\\n(g/cm^2/day)") 
         pandoc.table(tbl_flux[1:5, ], split.table=Inf)
     }
-    cat("<p style=\"page-break-after:always;\"></p> \n")
-    report_header(start_date, end_date, report_date, area)
-    cat(paste0(" \n# ", page_hdr, " \n"))
+#    cat("<p style=\"page-break-after:always;\"></p> \n")
+#    report_header(start_date, end_date, report_date, area)
+#    cat(paste0(" \n# ", page_hdr, " \n"))
     cat(" \n\n## Monthly Sand Mass \n")
     tbl_mass <- csc_mass %>% filter(dca==i) %>% select(dca, csc, sand.mass)
     if (area=="dwm"){

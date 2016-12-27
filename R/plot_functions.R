@@ -8,7 +8,7 @@
 plot_dca_background <- function(polys_df, labels_df, 
                                 external_points=NULL){
   plot.range <- owensMaps::get_plot_range(polys_df, external_points)
-  map <- raster::stack("~/dropbox/owens/gis/pleiades/pleiades_20160824.tif")
+  map <- raster::stack("~/dropbox/owens/gis/pleiades/pleiades_20161101.tif")
   ext <- sp::SpatialPointsDataFrame(coords=cbind(x=plot.range$x, y=plot.range$y), 
                                 data=data.frame(id=1:2), 
                                 proj4string=raster::crs(map))
@@ -64,7 +64,7 @@ plot_csc_site_nolabel <- function(background, sand_df, area_txt,
           plot.title=element_text(size=12),
           legend.position=leg_pos[[area_txt]], 
           legend.background=element_rect(linetype="solid", color="black"), 
-          legend.justification=leg_jus[[area_txt]])
+          legend.justification=leg_pos[[area_txt]])
   p1
 }  
 
@@ -126,10 +126,11 @@ plot_csc_site <- function(background, sand_df, area_txt,
           plot.title=element_text(size=12),
           legend.position=leg_pos[[area_txt]], 
           legend.background=element_rect(linetype="solid", color="black"), 
-          legend.justification=leg_jus[[area_txt]])
+          legend.justification=leg_pos[[area_txt]])
   p1
 }  
 
+# adjust legend positions for plotting
 leg_pos <- vector(mode="list", length=0)
 leg_pos[['T10-1']] <- c(1, 0)
 leg_pos[['T26']] <- c(0, 0)
@@ -165,40 +166,29 @@ leg_pos[['South']] <- c(1, 0)
 leg_pos[['C1']] <- c(1, 0)
 leg_pos[['C2']] <- c(1, 0)
 leg_pos[['T1A-1']] <- c(1, 0)
+leg_pos[['T16']] <- c(1, 0)
+leg_pos[['T29-3']] <- c(0, 0)
 
-
-leg_jus <- vector(mode="list", length=0)
-leg_jus[['T10-1']] <- c(1, 0)
-leg_jus[['T26']] <- c(0, 0)
-leg_jus[['T13-1']] <- c(.2, .8)
-leg_jus[['T29-2']] <- c(0, 0)
-leg_jus[['T1A-4']] <- c(1, 0)
-leg_jus[['T2-4']] <- c(1, 0)
-leg_jus[['T2-5']] <- c(1, 0)
-leg_jus[['T8W']] <- c(1, 0)
-leg_jus[['T10-3W']] <- c(1, 0)
-leg_jus[['T23NE']] <- c(1, 0)
-leg_jus[['T27 Addition']] <- c(0, 0)
-leg_jus[['T29-4']] <- c(1, 0)
-leg_jus[['T36-3 Addition']] <- c(1, 0)
-leg_jus[['T36-3E']] <- c(1, 0)
-leg_jus[['T36-2W']] <- c(1, 0)
-leg_jus[['T1-1']] <- c(1, 0)
-leg_jus[['T5-3']] <- c(1, 0)
-leg_jus[['T5-3 Addition']] <- c(1, 0)
-leg_jus[['T9']] <- c(1, 0)
-leg_jus[['T10-1']] <- c(0, 0)
-leg_jus[['T10-2S']] <- c(1, 0)
-leg_jus[['T10-2N']] <- c(1, 0)
-leg_jus[['T10-3E']] <- c(1, 0)
-leg_jus[['T18-0']] <- c(1, 0)
-leg_jus[['T21W']] <- c(1, 0)
-leg_jus[['T25-3']] <- c(1, 0)
-leg_jus[['T37-2']] <- c(1, 0)
-leg_jus[['North']] <- c(1, 0)
-leg_jus[['Central']] <- c(1, 0)
-leg_jus[['East']] <- c(0, 0)
-leg_jus[['South']] <- c(1, 0)
-leg_jus[['C1']] <- c(1, 0)
-leg_jus[['C2']] <- c(1, 0)
-leg_jus[['T1A-1']] <- c(1, 0)
+# adjust area label locations for sfwcrft areas
+adjust_sfwcrft_labels <- function(){
+sfwcrft$labels <- arrange(sfwcrft$labels, dca, treatment)
+sfwcrft$labels$x[1] <- sfwcrft$labels$x[1] + 0
+sfwcrft$labels$y[1] <- sfwcrft$labels$y[1] - 150
+sfwcrft$labels$x[2] <- sfwcrft$labels$x[2] - 100 
+sfwcrft$labels$y[2] <- sfwcrft$labels$y[2] - 100
+sfwcrft$labels$x[3] <- sfwcrft$labels$x[3] - 100
+sfwcrft$labels$y[3] <- sfwcrft$labels$y[3] - 50 
+sfwcrft$labels$x[7] <- sfwcrft$labels$x[7] - 120
+sfwcrft$labels$y[7] <- sfwcrft$labels$y[7] - 70
+sfwcrft$labels$x[8] <- sfwcrft$labels$x[8] + 150 
+sfwcrft$labels$y[8] <- sfwcrft$labels$y[8] - 150
+sfwcrft$labels$x[9] <- sfwcrft$labels$x[9] - 100
+sfwcrft$labels$y[9] <- sfwcrft$labels$y[9] + 100
+sfwcrft$labels$x[10] <- sfwcrft$labels$x[10] + 0 
+sfwcrft$labels$y[10] <- sfwcrft$labels$y[10] + 0
+sfwcrft$labels$x[11] <- sfwcrft$labels$x[11] + 0
+sfwcrft$labels$y[11] <- sfwcrft$labels$y[11] + 0
+sfwcrft$labels$x[12] <- sfwcrft$labels$x[12] - 50
+sfwcrft$labels$y[12] <- sfwcrft$labels$y[12] + 50
+sfwcrft$labels
+}

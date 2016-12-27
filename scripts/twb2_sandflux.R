@@ -5,6 +5,12 @@ library(lubridate)
 
 twb2 <- group_twb2_areas()
 
+# move dca labels to avoid conflict with points
+twb2$labels[twb2$labels$dca=="T2-2", ]$x[2] <- 410547
+twb2$labels[twb2$labels$dca=="T2-2", ]$y[2] <- 4020386
+twb2$labels[twb2$labels$dca=="T5-4", ]$x <- 414060
+twb2$labels[twb2$labels$dca=="T5-4", ]$y <- 4021851
+
 daily_flux <- flux_df %>% 
     group_by(csc, date=date(datetime)) %>% 
     summarize(sand.flux=round(sum(sand_flux), 2), 

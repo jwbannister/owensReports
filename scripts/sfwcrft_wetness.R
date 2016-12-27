@@ -25,6 +25,7 @@ a <- list.files(path="~/dropbox/data/swir/LS_adjusted/",
                 pattern=".tif")
 b <- as.Date(substr(a, 1, 6), "%m%d%y")
 swir_fl <- a[which(month(b)==month(start_date) & year(b)==year(start_date))][1]
+swir_date <- as.Date(substr(swir_fl, 1, 6), format="%m%d%y")
 
 if (!is.na(swir_fl)){
     print(paste0("File used: ", swir_fl))

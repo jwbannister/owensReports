@@ -12,27 +12,29 @@
 #' @examples
 #' pull_teom_wind("2016-02-01", "2016-03-01")
 pull_teom_wind <- function(date1, date2){
-    query1 <- paste0("SELECT i.deployment, t.datetime, t.ws_wvc AS ws, 
-                     t.wd_wvc AS wd  
-                     FROM teom.teom_analog_1hour t
-                     JOIN instruments.deployments i 
-                     ON t.deployment_id=i.deployment_id 
-                     WHERE t.datetime > timestamp '", date1,  
-                     "' AND t.datetime < timestamp '", date2, 
-                     "' AND NOT t.deployment_id = 8")
+    query1 <- paste0("SELECT i.deployment, t.datetime, t.ws_wvc AS ws, ",
+                     "t.wd_wvc AS wd ",
+                     "FROM teom.teom_analog_1hour t ",
+                     "JOIN instruments.deployments i ",
+                     "ON t.deployment_id=i.deployment_id ",
+                     "WHERE (datetime-'1 second'::interval)::date ",
+                     "BETWEEN '", date1, "'::date ", 
+                     "AND '", date2, "'::date ",  
+                     "AND NOT t.deployment_id = 8")
     wind_df <- owensData::query_owens(query1)
     wind_df$wd <- round(wind_df$wd, 2)
     wind_df
 }
 
-pull_mfile_wind<- function(date1, date2){
-    query1 <- paste0("SELECT site AS deployment,  datetime, aspd AS ws, 
-                     dir AS wd, teom AS pm10_avg 
-                     FROM archive.mfile_data 
-                     WHERE datetime > timestamp '", date1, 
-                     "' AND datetime < timestamp '", date2, 
-                     "' AND site = 'T7'")
-    mfile_df <- owensData::query_owens(query1)
+pull_mfile <- function(date1, date2){
+    query1 <- paste0("SELECT site AS deployment,  datetime, aspd AS ws, ",
+                     "dir AS wd, teom AS pm10_avg ",
+                     "FROM archive.mfile_data ",
+                     "WHERE (datetime-'1 second'::interval)::date ",
+                     "BETWEEN '", date1, "'::date ", 
+                     "AND '", date2, "'::date ",  
+                     "AND site = 'T7'")
+    mfile_df <- owensData::query_owens_local(query1)
     mfile_df$wd <- round(mfile_df$wd, 2)
     mfile_df$pm10_avg <- round(mfile_df$pm10_avg, 2)
     mfile_df
@@ -68,27 +70,20 @@ pull_locations <- function(deploys){
 #' @examples
 #' pull_pm10(c(1719, 1718, 1849))
 pull_pm10 <- function(date1, date2, deploys){
-  deploys <- paste0("('", paste(deploys, collapse="', '"), "')")
-query1 <- paste0("SELECT i.deployment, 
-                 file_uploads.date_trunc_hour(t.datetime) + '01:00:00'::interval 
-                 AS datetime, AVG(t.pm10_std) AS pm10_avg, 
-                 SUM(flags.is_invalid(t.deployment_id, 
-                                  t.datetime - '00:01:00'::interval, 
-                                  t.datetime + '00:01:00'::interval)::integer) 
-                 AS invalid_minutes 
-                 FROM teom.teom_1min t 
-                 JOIN instruments.deployments i 
-                 ON t.deployment_id=i.deployment_id 
-                 WHERE datetime > timestamp '", date1,  
-                 "' AND datetime < timestamp '", date2, 
-                 "' AND i.deployment IN ", deploys, 
-                 " GROUP BY i.deployment, 
-                 file_uploads.date_trunc_hour(t.datetime) 
-                 ORDER BY i.deployment, datetime")
-                 pm10_df <- owensData::query_owens(query1)
-  pm10_df <- filter(pm10_df, pm10_avg > -35)
-  pm10_df$pm10_avg <- round(pm10_df$pm10_avg, 2)
-  pm10_df
+    d1 <- paste0(date1, " ", "00:00:00")
+    d2 <- paste0(date2 %m+% days(1), " ", "00:00:00")
+    deploys <- paste0("('", paste(deploys, collapse="', '"), "')")
+    query1 <- paste0("SELECT deployment, datetime, pm10_std_avg AS pm10_avg, ",
+                     "invalid ",
+                     "FROM teom.avg_1hour_validated ",
+                     "WHERE (datetime-'1 second'::interval)::date ",
+                     "BETWEEN '", date1, "'::date ", 
+                     "AND '", date2, "'::date ",  
+                     "AND deployment IN ", deploys) 
+    pm10_df <- owensData::query_owens(query1)
+#    pm10_df <- filter(pm10_df, pm10_avg > -35)
+    pm10_df$pm10_avg <- round(pm10_df$pm10_avg, 2)
+    pm10_df
 }
 
 #' Identify missing hourly data
@@ -258,12 +253,13 @@ teom_pair_plot <- function(teom_locs, df1, background, start_date, end_date){
               legend.title="PM10")
   legnd <- g_legend(legend.plot)
   for (j in 1:nrow(teom_locs)){
-    p <- filter(df1, deployment==teom_locs$deployment[j]) %>% 
-      plot_rose_image_only(., value='pm10_avg', dir='wd', valueseq=valueseq)
-    png(filename="./p.png", bg="transparent")
+    tmp_df <- filter(df1, deployment==teom_locs$deployment[j])
+    p <- plot_rose_image_only(tmp_df, value='pm10_avg', dir='wd', valueseq=valueseq)
+    fl <- paste0(tempfile(), ".png")
+    png(filename=fl, height=3, width=3, units="in", res=300, bg="transparent")
     print(p)
     dev.off()
-    img <- png::readPNG("./p.png")
+    img <- png::readPNG(fl)
     ras <- grid::rasterGrob(img, interpolate=TRUE)
     a$grobs[[j]] <- ras
     a$centers[[j]] <- c(teom_locs$x[j], teom_locs$y[j])
@@ -303,7 +299,6 @@ teom_pair_plot <- function(teom_locs, df1, background, start_date, end_date){
           panel.grid.minor=element_blank(),
           plot.background=element_blank(),
           plot.title=element_text(size=12))
-  file.remove("./p.png")
   dev.off()
   p3
 }

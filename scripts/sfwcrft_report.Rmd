@@ -91,6 +91,15 @@ for (i in unique(csc_mass$dca)){
         tbl_wet <- wetness %>% filter(dca==i)
         colnames(tbl_wet) <- c("DCA", "Target Wetness", "SWIR Estimated\nWetness")
         pandoc.table(tbl_wet)
+    cat(" \n\n## Comments \n")
+    cat(paste0(" \n SWIR image collected on ", 
+               month(swir_date, label=T, abbr=F), " ", day(swir_date), ", ", 
+               year(swir_date), ". \n"))
+    comment_file <- paste0("~/code/owensReports/data/", area, month(start_date), 
+                           year(start_date), i, "_wet.txt")
+    if (file.exists(comment_file)){
+        cat(" \n ", readLines(comment_file), " \n")
+    }
         cat("<p style=\"page-break-after:always;\"></p> \n")
     }
 }

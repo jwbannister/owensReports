@@ -27,6 +27,33 @@ plot_csc_site_label_nocolor <- function(background, sand_df, area_txt,
           plot.title=element_text(size=12),
           legend.position=leg_pos[[area_txt]], 
           legend.background=element_rect(linetype="solid", color="black"), 
-          legend.justification=leg_jus[[area_txt]])
+          legend.justification=leg_pos[[area_txt]])
   p1
 }  
+
+move_brine_labels <- function(){
+    df <- filter(owens$labels, dca %in% unique(csc_mass$dca)) %>%
+        arrange(dca)
+    df[2, ]$x <- df[2, ]$x - 150
+    df[3, ]$x <- df[3, ]$x + 150
+    df[11, ]$x <- df[11, ]$x + 50
+    df
+}
+
+move_dwm_labels <- function(){
+    df <- filter(owens$labels, dca %in% unique(csc_mass$dca)) %>%
+        arrange(dca)
+    df[1, ]$x <- df[1, ]$x + 300
+    df[11, ]$y <- df[11, ]$y - 300
+    df
+}
+
+move_channel_labels <- function(){
+    df <- filter(owens$labels, dca %in% unique(csc_mass$dca)) %>%
+        arrange(dca)
+    df[df$dca=="C2", ]$x <- 410100 
+    df[df$dca=="C2", ]$y <- 4020800
+    df[df$dca=="C1", ]$x <- 411665
+    df[df$dca=="C1", ]$y <- 4022961
+    df
+}

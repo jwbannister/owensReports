@@ -3,11 +3,9 @@ load("~/code/owensMaps/data/map_data.RData")
 library(tidyverse)
 library(lubridate)
 
-# remove "C2" dca label to avoid conflict with points
-owens$labels[owens$labels$dca=="C2", ]$x <- 410100 
-owens$labels[owens$labels$dca=="C2", ]$y <- 4020800
-owens$labels[owens$labels$dca=="C1", ]$x <- 411665
-owens$labels[owens$labels$dca=="C1", ]$y <- 4022961
+if (area=="dwm") owens$labels <- move_dwm_labels()
+if (area=="brine") owens$labels <- move_brine_labels()
+if (area=="channel") owens$labels <- move_channel_labels()
 
 daily_flux <- flux_df %>% 
     group_by(csc, date=date(datetime)) %>% 
@@ -49,7 +47,7 @@ daily_flux <- flux_df %>%
                                               value_max=5,
                                               plot_title="Daily Flux")
         } else{
-            p1 <- plot_csc_site_nolabel(background, max_daily, i, 
+            p1 <- plot_csc_site(background, max_daily, i, 
                                         legend_title=legend_flux, 
                                         value_index=2, 
                                         value_max=5,
