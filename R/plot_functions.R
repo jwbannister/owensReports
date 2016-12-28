@@ -168,6 +168,7 @@ leg_pos[['C2']] <- c(1, 0)
 leg_pos[['T1A-1']] <- c(1, 0)
 leg_pos[['T16']] <- c(1, 0)
 leg_pos[['T29-3']] <- c(0, 0)
+leg_pos[['T1-1']] <- c(1, 1)
 
 # adjust area label locations for sfwcrft areas
 adjust_sfwcrft_labels <- function(){

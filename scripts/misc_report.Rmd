@@ -13,16 +13,19 @@ panderOptions('keep.line.breaks', TRUE)
 panderOptions('table.alignment.rownames', 'left')
 ```
 ```{r load_data, include=FALSE}
-flux_df <- load_sandflux(area, start_date, end_date)
-sites_df <- load_sites(area, start_date, end_date)
+#flux_df <- load_sandflux(area, start_date, end_date)
+#sites_df <- load_sites(area, start_date, end_date)
+# TEMPORARY CHANGE FOR NOVEMBER REPORT
+# REMOVE AFTER NOVEMBER 2016 REPORT
+flux_df <- dplyr::filter(flux_df, sand_flux>=0)
 ```
 
 ```{r sandmass, include=FALSE}
-source("~/code/owensReports/scripts/misc_sandmass.R")
+#source("~/code/owensReports/scripts/misc_sandmass.R")
 ```
 
 ```{r sandflux, include=FALSE}
-source("~/code/owensReports/scripts/misc_sandflux.R")
+#source("~/code/owensReports/scripts/misc_sandflux.R")
 ```
 
 ```{r plot_image, include=FALSE}
@@ -37,6 +40,10 @@ for (i in unique(csc_mass$dca)){
 ```
 
 ```{r output, echo=F, results='asis'}
+# TEMPORARY CHANGE FOR NOVEMBER REPORT ONLY
+# REMOVE AFTER NOVEMBER 2016 REPORT
+#csc_mass[csc_mass$csc %in% c('1901', '1905', '1906'), ]$sand.mass <- "Flooded"
+
 for (i in unique(csc_mass$dca)){
     titles <- c("C1"="C-North", "C2"="C-South")
     page_hdr <- ifelse(i %in% names(titles), titles[i], i)
@@ -47,13 +54,13 @@ for (i in unique(csc_mass$dca)){
     cat(" \n\n## Daily Sand Flux \n")
     cat(" \n(5 highest days with recorded sand flux > 0.1 g/cm^2/day) \n")
     tbl_flux <- full_daily %>% filter(dca==i, sand.flux>0.1) %>% 
-        select(dca, csc, date, sand.flux) %>% arrange(desc(sand.flux))
+        arrange(desc(sand.flux)) %>% select(dca, csc, date, sand.flux)
     if (nrow(tbl_flux)==0){
         cat(" \nNo days with measurable sand flux. \n")
     } else{
         colnames(tbl_flux) <- c("DCA", "CSC Site", "Date", 
                                 "Sand Flux\\\n(g/cm^2/day)") 
-        pandoc.table(tbl_flux[1:5, ], split.table=Inf)
+        pandoc.table(head(tbl_flux, 5), split.table=Inf)
     }
 #    cat("<p style=\"page-break-after:always;\"></p> \n")
 #    report_header(start_date, end_date, report_date, area)

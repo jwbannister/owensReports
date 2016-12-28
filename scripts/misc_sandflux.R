@@ -11,23 +11,20 @@ daily_flux <- flux_df %>%
     group_by(csc, date=date(datetime)) %>% 
     summarize(sand.flux=round(sum(sand_flux), 2), 
               x=unique(easting_utm), y=unique(northing_utm)) %>% ungroup() 
-    csc_locs <- daily_flux[!duplicated(daily_flux$csc), ] %>%
-        select(csc, x, y)
-    csc_locs$objectid <- apply(cbind(csc_locs$x, csc_locs$y), 1, 
-                               owensMaps::point_in_dca, poly_df=owens$polygons)
-    csc_locs <- csc_locs %>% 
-        left_join(select(owens$data, objectid, dca), by="objectid")
     expand_daily <- expand.grid(csc=unique(daily_flux$csc), 
                                 date=seq(start_date, end_date, "days"), 
                                 stringsAsFactors=FALSE)
     full_daily <- expand_daily %>%
         left_join(select(daily_flux, -x, -y), by=c("csc", "date")) %>%
-        left_join(csc_locs, by="csc") 
+        left_join(select(sites_df, csc, dca), by="csc")
     full_daily[is.na(full_daily$sand.flux), "sand.flux"] <- 0
 
-    max_daily <- full_daily %>% group_by(csc) %>%
-        summarize(max.daily.flux = max(sand.flux), x=unique(x), y=unique(y),
-                  dca=unique(dca)) 
+    prelim_max_daily <- full_daily %>% group_by(csc) %>%
+        summarize(max.daily.flux = max(sand.flux))
+
+    max_daily <- left_join(select(sites_df, csc, x, y, dca),
+                           prelim_max_daily, by="csc")
+    max_daily[is.na(max_daily$max.daily.flux), "max.daily.flux"] <- 0
 
     flux_grobs <- vector(mode="list", length=length(unique(max_daily$dca)))
     names(flux_grobs) <- unique(max_daily$dca)
@@ -43,13 +40,13 @@ daily_flux <- flux_df %>%
         if (area=="channel"){
             p1 <- plot_csc_site_label_nocolor(background, max_daily, i, 
                                               legend_title=legend_flux, 
-                                              value_index=2, 
+                                              value_index=5, 
                                               value_max=5,
                                               plot_title="Daily Flux")
         } else{
             p1 <- plot_csc_site(background, max_daily, i, 
                                         legend_title=legend_flux, 
-                                        value_index=2, 
+                                        value_index=5, 
                                         value_max=5,
                                         plot_title="Daily Flux")
         }

@@ -1,14 +1,13 @@
-load_all()
-library(lubridate)
-rm(list=ls())
 
-area <- "dwm" # c("brine", "channel", "dwm", "sfwcrft", "twb2", "t1a1)
+library(lubridate)
+area <- "brine" # c("brine", "channel", "dwm", "sfwcrft", "twb2", "t1a1)
 
 start_date <- mdy("11-01-2016") # date to start reporting period
 end_date <- start_date %m+% months(1) %m-% days(1)
 report_date <- format(Sys.Date(), "%m-%d-%Y")
 file_name <- paste0("~/code/owensReports/output/", area, "_", 
                     month(start_date, label=TRUE), year(start_date))
+load_all()
 
 # render HTML file from markdown document
 if (area %in% c("brine", "dwm", "channel", "t1a1")){
