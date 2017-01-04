@@ -12,16 +12,17 @@ panderOptions('knitr.auto.asis', FALSE)
 panderOptions('keep.line.breaks', TRUE)
 panderOptions('table.alignment.rownames', 'left')
 ```
+
 ```{r load_data, include=FALSE}
-flux_df <- load_sandflux(area, start_date, end_date)
+#flux_df <- load_sandflux(area, start_date, end_date)
 ```
 
 ```{r sandmass, include=FALSE}
-source("~/code/owensReports/scripts/twb2_sandmass.R")
+#source("~/code/owensReports/scripts/twb2_sandmass.R")
 ```
 
 ```{r sandflux, include=FALSE}
-source("~/code/owensReports/scripts/twb2_sandflux.R")
+#source("~/code/owensReports/scripts/twb2_sandflux.R")
 ```
 
 ```{r pairs, include=FALSE}
@@ -29,7 +30,7 @@ source("~/code/owensReports/scripts/twb2_pairs.R")
 ```
 
 ```{r surface, include=FALSE}
-source("~/code/owensReports/scripts/twb2_surface.R")
+#source("~/code/owensReports/scripts/twb2_surface.R")
 ```
 
 ```{r plot_image, include=FALSE}
@@ -61,14 +62,14 @@ for (i in unique(csc_mass$group)){
 #    colnames(tbl_mass) <- c("DCA", "CSC Site", "Sand Mass (g)") 
 #    pandoc.table(tbl_mass)
     cat(" \n\n## Daily Sand Flux \n")
-    cat(" \n(5 highest days with recorded sand flux > 0.1 g/cm^2/day) \n")
-    tbl_flux <- full_daily %>% filter(group==i, sand.flux>0.1) %>% 
+    tbl_flux <- full_daily %>% filter(group==i, sand.flux>0.5) %>% 
         select(dca, csc, date, sand.flux) %>% arrange(desc(sand.flux))
     if (nrow(tbl_flux)==0){
-        cat(" \nNo days with measurable sand flux. \n")
+        cat(" \nNo days with measured sand flux > 0.5 g/cm<sup>2</sup>/day. \n")
     } else{
+        cat(" \n(days with recorded sand flux > 0.5 g/cm<sup>2</sup>/day) \n")
         colnames(tbl_flux) <- c("DCA", "CSC Site", "Date", 
-                                "Sand Flux\\\n(g/cm^2/day)") 
+                                "Sand Flux\\\n(g/cm<sup>2</sup>/day)") 
         pandoc.table(tbl_flux, split.table=Inf)
     }
     cat(" \n\n## Comments \n")
@@ -89,10 +90,11 @@ for (i in unique(csc_mass$group)){
         cat(" \n\n\n\n")
         tbl_pair <- daily_summary %>% filter(dca.group==i, pm10.delta>0) %>% 
             arrange(desc(pm10.delta)) %>% select(-dca.group, -status)
-        colnames(tbl_pair) <- c("Date", "Upwind PM10\\\n(micrograms/m^3)", 
-                                "Downwind PM10\\\n(micrograms/m^3)", 
-                                "PM10 Increase\\\n(micrograms/m^3)", 
-                                "Windspeed at Max\\\nPM10 Increase (m/s)")
+        colnames(tbl_pair) <- c("Date", 
+                                "Upwind 24-hour Avg.\\\nPM10 (micrograms/m<sup>3</sup>)", 
+                                "Downwind 24-hour Avg.\\\nPM10 (micrograms/m<sup>3</sup>)", 
+                                "Increase in 24-hour Avg. \\\n PM10 (micrograms/m<sup>3</sup>)", 
+                                "Avg. Hourly Windspeed at\\\nMax Hourly PM10 Increase (m/s)")
         pandoc.table(tbl_pair, split.table=Inf)
         cat("<p style=\"page-break-after:always;\"></p> \n")
     }

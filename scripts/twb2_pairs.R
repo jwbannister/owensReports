@@ -47,8 +47,8 @@ clean_events <- clean_events[complete.cases(clean_events), ]
 # summarize pm10 differnce between matched teom pairs by day.
 clean_events2 <- clean_events %>% group_by(date, dca.group) %>%
   mutate(delta=pm10.dw - pm10.uw) %>%
-  do(., max.delta.ws=mean(.[.$delta==max(.$delta), ]$ws.uw, 
-                          .[.$delta==max(.$delta), ]$ws.dw)) %>%
+  do(., max.delta.ws=mean(c(.[.$delta==max(.$delta), ]$ws.uw, 
+                          .[.$delta==max(.$delta), ]$ws.dw))) %>%
   ungroup() 
 clean_events2$max.delta.ws <- unlist(clean_events2$max.delta.ws)
 clean_events <- inner_join(clean_events, clean_events2, 
