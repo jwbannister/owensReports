@@ -13,6 +13,8 @@ csc_mass$objectid <- apply(cbind(csc_mass$x, csc_mass$y), 1,
                            owensMaps::point_in_dca, poly_df=twb2$polygons)
 csc_mass <- csc_mass %>% 
     left_join(select(twb2$data, objectid, dca, group), by="objectid")
+csc_mass$sand.mass <- sapply(csc_mass$sand.mass, 
+                             function(x) ifelse(is.na(x), 0, x))
 
 mass_grobs <- vector(mode="list", length=length(unique(csc_mass$group)))
 names(mass_grobs) <- unique(csc_mass$group)

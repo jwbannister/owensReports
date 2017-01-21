@@ -19,6 +19,8 @@ csc_mass$objectid <- apply(cbind(csc_mass$x, csc_mass$y), 1,
                            owensMaps::point_in_dca, poly_df=sfwcrft$polygons)
 csc_mass <- csc_mass %>% 
     left_join(select(sfwcrft$data, objectid, dca, treatment), by="objectid")
+csc_mass$sand.mass <- sapply(csc_mass$sand.mass, 
+                             function(x) ifelse(is.na(x), 0, x))
 mass_ce <- calc_mass_ce_sfwcrft(csc_mass)
 
 mass_grobs <- vector(mode="list", length=length(unique(csc_mass$dca)))

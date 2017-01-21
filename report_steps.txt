@@ -1,0 +1,22 @@
+SSH into my machine. Once you're there...
+
+1) go to /home/john/code/owensReports/
+2) command: Rscript scripts/build_report.R "area" "date"
+    where   area = sfwcrft, twb2, channel, dwm, brine
+            date = date in format mm-dd-yyyy, first day of month for report
+    example: Rscript scripts/build_report.R "sfwcrft" "12-01-2016"
+3) should see report progress readout. Report will automaticall generate in 
+    /home/john/code/owensReports/output/, under file name: 
+    "area_MonYear.pdf", for example "sfwcrft_Nov2016.pdf" for the example 
+    command above.
+4) now you need to get the report from my machine to your machine.
+    Do it this way:
+    a) on jbshuttle: (all on one line) "scp /home/john/code/owensReports/output/sfwcrft_Nov2016.pdf 
+        john@70.103.27.116:~/"
+    b) now exit out of jbshuttle and pdxmod1.
+    c) open FileZilla on your windows machine, connect to john@70.103.27.116 
+        (you know the password).
+    d) should see the report pdf in the home directory ("cd ~") of my account
+        on pdxmod1. Just transfer it over to your machine.
+ 
+        

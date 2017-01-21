@@ -51,5 +51,5 @@ load_sites <- function(area, start_date, end_date){
 
     sites_df <- sites_df %>% 
         left_join(select(owens$data, objectid, dca), by="objectid")
-    sites_df
+    sites_df <- sites_df[!duplicated(sites_df), ]
 }

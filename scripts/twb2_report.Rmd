@@ -26,11 +26,11 @@ panderOptions('table.alignment.rownames', 'left')
 ```
 
 ```{r pairs, include=FALSE}
-source("~/code/owensReports/scripts/twb2_pairs.R")
+#source("~/code/owensReports/scripts/twb2_pairs.R")
 ```
 
 ```{r surface, include=FALSE}
-#source("~/code/owensReports/scripts/twb2_surface.R")
+source("~/code/owensReports/scripts/twb2_surface.R")
 ```
 
 ```{r plot_image, include=FALSE}
@@ -67,15 +67,15 @@ for (i in unique(csc_mass$group)){
     if (nrow(tbl_flux)==0){
         cat(" \nNo days with measured sand flux > 0.5 g/cm<sup>2</sup>/day. \n")
     } else{
-        cat(" \n(days with recorded sand flux > 0.5 g/cm<sup>2</sup>/day) \n")
+        cat(" \nDays with recorded sand flux > 0.5 g/cm<sup>2</sup>/day: \n")
         colnames(tbl_flux) <- c("DCA", "CSC Site", "Date", 
                                 "Sand Flux\\\n(g/cm<sup>2</sup>/day)") 
         pandoc.table(tbl_flux, split.table=Inf)
     }
     cat(" \n\n## Comments \n")
-        cat(" \nErosion threshold to trigger BACM Shallow Flooding is sand flux 
-            of 1.0 grams per square centimeter per day (Rule 433, paragraph 
-                                                        h.*i*.) \n")
+    cat(" \nThe sand flux threshold for maintenance is 0.5 
+        g/cm<sup>2</sup>/day. The reflood threshold is 1.0 
+        g/cm<sup>2</sup>/day (Rule 433, paragraph h.i.).\n")
     comment_file <- paste0("~/code/owensReports/data/", area, month(start_date), 
                            year(start_date), i, ".txt")
     if (file.exists(comment_file)){
@@ -102,7 +102,7 @@ for (i in unique(csc_mass$group)){
     cat(paste0(" \n# ", i, " TwB2 \n"))
     cat(" \n## Surface Survey Data\n")
     tbl_surface <- surface_df %>% filter(group==i) %>% 
-        select(dca, site, rs, rh, rs.rh, clods)
+        select(dca, site, rs_avg, rh_avg, rs_rh, clods)
     colnames(tbl_surface) <- c("DCA", "Site", "Row Spacing (cm)", 
                             "Row Height (cm)", "RS/RH", 
                             "Clod Coverage (%)")

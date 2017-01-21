@@ -6,6 +6,7 @@ library(lubridate)
 if (area=="dwm") owens$labels <- move_dwm_labels()
 if (area=="brine") owens$labels <- move_brine_labels()
 if (area=="channel") owens$labels <- move_channel_labels()
+if (area=="t1a1") owens$labels <- move_t1a1_labels()
 
 daily_flux <- flux_df %>% 
     group_by(csc, date=date(datetime)) %>% 
@@ -28,16 +29,23 @@ daily_flux <- flux_df %>%
 
     flux_grobs <- vector(mode="list", length=length(unique(max_daily$dca)))
     names(flux_grobs) <- unique(max_daily$dca)
+    titles <- c("C1"="Channel Area North", "C2"="Channel Area South")
     for (i in unique(max_daily$dca)){
         print(i)
         tmp_polys <- filter(owens$polygons, dca==i) %>%
             select(x, y, id=objectid)
-        tmp_labels <- filter(owens$labels, dca==i) %>%
-            select(x, y, id=dca)
+        if (area=="channel"){ 
+            tmp_labels <- filter(owens$labels, dca==i) %>% 
+                mutate(id=titles[[dca]]) %>%
+                select(x, y, id) 
+        } else{
+            tmp_labels <- filter(owens$labels, dca==i) %>% 
+                select(x, y, id=dca)
+        }
         background <- plot_dca_background(tmp_polys, tmp_labels)
         legend_flux='Max. Daily Flux\n(g/cm^2/day)'
         max_flux <- round(max(filter(max_daily, dca==i)$max.daily.flux), 0)
-        if (area=="channel"){
+        if (area %in% c("channel", "t1a1")){
             p1 <- plot_csc_site_label_nocolor(background, max_daily, i, 
                                               legend_title=legend_flux, 
                                               value_index=5, 

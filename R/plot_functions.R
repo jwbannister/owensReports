@@ -27,7 +27,8 @@ plot_dca_background <- function(polys_df, labels_df,
   scale_y_continuous(breaks=range(map_df$y)*c(0.99, 1.01), 
                      labels=range(map_df$y), expand = c(0,0)) +
   theme(panel.grid=element_blank(), 
-        axis.title=element_blank())
+        axis.title=element_blank(), 
+        plot.title=element_text(hjust=0.5))
 p1
 }
 
@@ -38,8 +39,8 @@ plot_csc_site_nolabel <- function(background, sand_df, area_txt,
   catches <- sand_df %>% filter(dca==area_txt)
   value.range <- 
       range(catches[ , value_index])[2] - range(catches[ , value_index])[1]
-  x_range <- diff(ggplot_build(background)[[2]]$ranges[[1]]$x.range)
-  y_range <- diff(ggplot_build(background)[[2]]$ranges[[1]]$y.range)
+  x_range <- diff(ggplot_build(background)[[2]]$panel_ranges[[1]]$x.range)
+  y_range <- diff(ggplot_build(background)[[2]]$panel_ranges[[1]]$y.range)
   catches[ , value_index] <- 
       sapply(catches[ , value_index], 
              function(x) ifelse(x>value_max, value_max, x))
@@ -61,7 +62,7 @@ plot_csc_site_nolabel <- function(background, sand_df, area_txt,
           axis.ticks.y=element_blank(),
           axis.text.y=element_blank(),
           axis.title.y=element_blank(),
-          plot.title=element_text(size=12),
+          plot.title=element_text(size=12, hjust=0.5),
           legend.position=leg_pos[[area_txt]], 
           legend.background=element_rect(linetype="solid", color="black"), 
           legend.justification=leg_pos[[area_txt]])
@@ -98,8 +99,8 @@ plot_csc_site <- function(background, sand_df, area_txt,
   catches <- sand_df %>% filter(dca==area_txt)
   value.range <- 
       range(catches[ , value_index])[2] - range(catches[ , value_index])[1]
-  x_range <- diff(ggplot_build(background)[[2]]$ranges[[1]]$x.range)
-  y_range <- diff(ggplot_build(background)[[2]]$ranges[[1]]$y.range)
+  x_range <- diff(ggplot_build(background)[[2]]$panel_ranges[[1]]$x.range)
+  y_range <- diff(ggplot_build(background)[[2]]$panel_ranges[[1]]$y.range)
   catches[ , value_index] <- 
       sapply(catches[ , value_index], 
              function(x) ifelse(x>value_max, value_max, x))
@@ -123,7 +124,7 @@ plot_csc_site <- function(background, sand_df, area_txt,
           axis.ticks.y=element_blank(),
           axis.text.y=element_blank(),
           axis.title.y=element_blank(),
-          plot.title=element_text(size=12),
+          plot.title=element_text(size=12, hjust=0.5),
           legend.position=leg_pos[[area_txt]], 
           legend.background=element_rect(linetype="solid", color="black"), 
           legend.justification=leg_pos[[area_txt]])

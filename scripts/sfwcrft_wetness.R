@@ -77,8 +77,8 @@ if (!is.na(swir_fl)){
         tmp_labels <- filter(sfwcrft$labels, dca==nm) %>%
             select(x, y, id=treatment)
         background <- plot_dca_background_noboundaries(tmp_polys)
-        x_range <- ggplot_build(background)[[2]]$ranges[[1]]$x.range
-        y_range <- ggplot_build(background)[[2]]$ranges[[1]]$y.range
+        x_range <- ggplot_build(background)[[2]]$panel_ranges[[1]]$x.range
+        y_range <- ggplot_build(background)[[2]]$panel_ranges[[1]]$y.range
         backgrob <- ggplotGrob(background)
         dcas[[i]]$wet_plot <- ggplot(dcas[[i]]$wet_df, aes(x=x, y=y)) +
             annotation_custom(backgrob, xmin=x_range[1], xmax=x_range[2], 
@@ -96,9 +96,10 @@ if (!is.na(swir_fl)){
                   axis.text=element_blank(),
                   axis.ticks=element_blank(), 
                   panel.background=NULL, 
+                  plot.title=element_text(hjust=0.5), 
                   legend.position=leg_pos[[nm]],
                   legend.background=element_rect(linetype="solid", color="black"), 
-                  legend.justification=leg_jus[[nm]]) +
+                  legend.justification=leg_pos[[nm]]) +
             ggtitle("Wetness Classification")
         dcas[[i]]$reflect_plot <- ggplot(dcas[[i]]$reflect_df, aes(x=x, y=y)) +
             annotation_custom(backgrob, xmin=x_range[1], xmax=x_range[2], 
@@ -116,10 +117,11 @@ if (!is.na(swir_fl)){
             theme(axis.title=element_blank(), 
                   axis.text=element_blank(),
                   axis.ticks=element_blank(), 
+                  plot.title=element_text(hjust=0.5), 
                   panel.background=NULL, 
                   legend.position=leg_pos[[nm]],
                   legend.background=element_rect(linetype="solid", color="black"), 
-                  legend.justification=leg_jus[[nm]]) +
+                  legend.justification=leg_pos[[nm]]) +
             ggtitle("SWIR Reflectance")
         fl1 <- paste0(tempfile(), ".png")
         png(filename=fl1, width=8, height=8, units="in", res=300)

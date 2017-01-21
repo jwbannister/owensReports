@@ -265,8 +265,8 @@ teom_pair_plot <- function(teom_locs, df1, background, start_date, end_date){
     a$centers[[j]] <- c(teom_locs$x[j], teom_locs$y[j])
   }
   info <- ggplot_build(background)
-  xrange <- info[[2]]$ranges[[1]]$x.range
-  yrange <- info[[2]]$ranges[[1]]$y.range
+  xrange <- info[[2]]$panel_ranges[[1]]$x.range
+  yrange <- info[[2]]$panel_ranges[[1]]$y.range
   buffer <- (xrange[2] - xrange[1])/10
   coll.start <- format(as.Date(start_date), "%m/%d")
   coll.end <- format(as.Date(end_date), "%m/%d/%Y")

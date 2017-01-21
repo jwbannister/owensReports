@@ -24,7 +24,7 @@ plot_csc_site_label_nocolor <- function(background, sand_df, area_txt,
           axis.ticks.y=element_blank(),
           axis.text.y=element_blank(),
           axis.title.y=element_blank(),
-          plot.title=element_text(size=12),
+          plot.title=element_text(size=12, hjust=0.5),
           legend.position=leg_pos[[area_txt]], 
           legend.background=element_rect(linetype="solid", color="black"), 
           legend.justification=leg_pos[[area_txt]])
@@ -55,5 +55,12 @@ move_channel_labels <- function(){
     df[df$dca=="C2", ]$y <- 4020800
     df[df$dca=="C1", ]$x <- 411665
     df[df$dca=="C1", ]$y <- 4022961
+    df
+}
+
+move_t1a1_labels <- function(){
+    df <- filter(owens$labels, dca %in% unique(csc_mass$dca)) %>%
+        arrange(dca)
+    df[1, ]$x <- df[1, ]$x + 150
     df
 }
