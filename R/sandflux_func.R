@@ -61,7 +61,7 @@ rank_flux_cells <- function(df_in){
 
 calc_flux_ce_sfwcrft <- function(df1){
     df2 <- df1 %>% group_by(dca, treatment, date) %>% 
-        summarize(sand=mean(sand.flux)) %>% ungroup()
+        summarize(sand=round(mean(sand.flux), 2)) %>% ungroup()
     control <- filter(df2, treatment=="0%") %>%
         select(dca, date, control.sand=sand)
     # calculated control efficiency for treatment areas, only if average daily 
@@ -69,12 +69,16 @@ calc_flux_ce_sfwcrft <- function(df1){
     control_sum <- df2 %>% 
         inner_join(control, by=c("dca", "date")) %>%
         mutate(control.eff=round(1-(sand/control.sand), 2)*100) %>%
-        select(-sand)
-    control_sum[control_sum$treatment=="0%", ]$control.eff <- NA
-    control_sum <- filter(control_sum, control.sand>1)
+        filter(treatment!='0%') %>%
+        filter(control.sand>1)
     if (nrow(control_sum)>0){
-        df_out <- spread(control_sum, treatment, control.eff) %>%
-            filter(!is.na('45%')) %>% select(-4) %>% group_by(dca) %>%
+    df_a <- control_sum %>% select(-control.eff) %>% 
+        spread(treatment, sand)
+    names(df_a)[4:5] <- c('sand_55', 'sand_65')
+    df_b <- control_sum %>% select(-sand) %>% 
+        spread(treatment, control.eff)
+    names(df_b)[4:5] <- c('eff_55', 'eff_65')
+        df_out <- inner_join(df_a, df_b, by=c('dca', 'date', 'control.sand')) %>%
             arrange(desc(control.sand))
     } else{
         df_out <- control_sum

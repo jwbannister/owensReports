@@ -97,8 +97,8 @@ plot_csc_site <- function(background, sand_df, area_txt,
                             legend_title="", value_index, value_max, 
                             plot_title=""){
   catches <- sand_df %>% filter(dca==area_txt)
-  value.range <- 
-      range(catches[ , value_index])[2] - range(catches[ , value_index])[1]
+#  value.range <- 
+#      range(catches[ , value_index])[2] - range(catches[ , value_index])[1]
   x_range <- diff(ggplot_build(background)[[2]]$panel_ranges[[1]]$x.range)
   y_range <- diff(ggplot_build(background)[[2]]$panel_ranges[[1]]$y.range)
   catches[ , value_index] <- 
@@ -108,7 +108,7 @@ plot_csc_site <- function(background, sand_df, area_txt,
     geom_point(data=catches, size=4,  
                mapping=aes_string(x='x', y='y', 
                                   color=names(sand_df)[value_index])) +
-    scale_color_gradientn(name=legend_title,  
+    scale_color_gradientn(name=legend_title, 
                           colors=c("green", "yellow", "red"), 
                           limits=c(-0.001, value_max+0.001), 
                           breaks=c(0, value_max/2, value_max), 
@@ -152,7 +152,6 @@ leg_pos[['T1-1']] <- c(1, 0)
 leg_pos[['T5-3']] <- c(1, 0)
 leg_pos[['T5-3 Addition']] <- c(1, 0)
 leg_pos[['T9']] <- c(1, 0)
-leg_pos[['T10-1']] <- c(0, 0)
 leg_pos[['T10-2S']] <- c(1, 0)
 leg_pos[['T10-2N']] <- c(1, 0)
 leg_pos[['T10-3E']] <- c(1, 0)

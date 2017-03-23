@@ -29,7 +29,7 @@ if (area %in% c("brine", "dwm", "channel", "t1a1")){
                       output_file=paste0(file_name, ".html"))
 }
 # convert HTML to PDF 
-convert_command <- paste0("xvfb-run wkhtmltopdf  --page-size letter ", 
+convert_command <- paste0("xvfb-run wkhtmltopdf  --page-size letter ",
                           file_name, ".html ", file_name, ".pdf") 
 system(convert_command)
 

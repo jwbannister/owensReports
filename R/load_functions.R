@@ -1,3 +1,5 @@
+load_all("~/code/owensData")
+
 csc_list <- list("brine"=seq(1700, 1799, 1), 
                  "channel"=seq(1300, 1399, 1),
                  "dwm"=seq(1900, 1999, 1), 
@@ -33,16 +35,13 @@ load_sandflux <- function(area, start_date, end_date){
 }
 
 load_sites <- function(area, start_date, end_date){
-    query1 <- paste0("SELECT i.deployment AS csc, ",
+    query1 <- paste0("SELECT DISTINCT i.deployment AS csc, ",
                      "st_y(st_transform(i.geom, 26911)) AS y, ",
                      "st_x(st_transform(i.geom, 26911)) AS x ",
                      "FROM sandcatch.csc_summary s ",
-                     "JOIN instruments.deployments i ",
+                     "LEFT JOIN instruments.deployments i ",
                      "ON s.csc_deployment_id=i.deployment_id ",
-                     "WHERE s.collection_datetime ", 
-                     "BETWEEN '", start_date, "'::date ",
-                     "AND '", end_date, "'::date ",
-                     "AND i.deployment ",
+                     "WHERE i.deployment ",
                      "IN ('", paste0(csc_list[[area]], collapse="', '"), "');")
     sites_df <- owensData::query_owens(query1)
     sites_df <- arrange(sites_df, csc)

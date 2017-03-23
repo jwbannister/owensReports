@@ -6,6 +6,7 @@ output:
 
 ```{r setup, include=FALSE}
 load_all()
+load_all("~/code/owensData")
 library(pander)
 library(tidyverse)
 panderOptions('knitr.auto.asis', FALSE)
@@ -14,6 +15,9 @@ panderOptions('table.alignment.rownames', 'left')
 ```
 ```{r load_data, include=FALSE}
 flux_df <- load_sandflux(area, start_date, end_date)
+if (sum(flux_df$sand_flux<0)){
+    flux_df[flux_df$sand_flux<0, ]$sand_flux <- 0
+}
 ```
 
 ```{r sandmass, include=FALSE}
@@ -47,6 +51,9 @@ for (i in unique(csc_mass$dca)){
     cat("(Area label indicates wetness cover target.) \n")
     cat(paste0("![](", img_files[[i]], ")"))
     cat(" \n\n## Monthly Sand Reduction Control Efficiency \n")
+    cat(" \n Monthly sand reduction control efficiency is only calculated 
+        if area average sand mass in the control area is more than 10 grams 
+        for the month. \n")
     tbl_mass <- mass_ce %>% filter(dca==i) 
     colnames(tbl_mass) <- c("DCA", "Target\nWetness", 
                             "Area Average\nSand Mass\\\n(g/month)", 
@@ -58,8 +65,15 @@ for (i in unique(csc_mass$dca)){
         cat(" \n\nNo days with average daily flux in control area 
             > 1 g/cm^2/day. \n")
     } else{
+    cat(" \n Daily sand flux reduction control efficiency is only reported 
+        for days when the area average sand flux in the control area is more 
+        than 1 g/cm^2/day. \n")
+    tbl_flux$eff_55 <- paste0(tbl_flux$eff_55, '%')
+    tbl_flux$eff_65 <- paste0(tbl_flux$eff_65, '%')
     colnames(tbl_flux) <- c("DCA", "Date", 
                             "0% Target\\\nAvg. Daily Flux\\\n(g/cm^2/day)", 
+                            "55% Target\\\nAvg. Daily Flux\\\n(g/cm^2/day)", 
+                            "65% Target\\\nAvg. Daily Flux\\\n(g/cm^2/day)", 
                             "CE\\\n(55% Target)",
                             "CE\\\n(65% Target)") 
     pandoc.table(tbl_flux, split.table=Inf)
@@ -68,18 +82,13 @@ for (i in unique(csc_mass$dca)){
     comment_file <- paste0("~/code/owensReports/data/", area, month(start_date), 
                            year(start_date), i, ".txt")
     if (file.exists(comment_file)){
-        cat(" \n ", readLines(comment_file), " \n")
+        for (k in 1:length(readLines(comment_file))){
+            cat(" \n ", readLines(comment_file)[k], " \n")
+        }
     }
     if (is.na(swir_fl)){
         cat(" \n No SWIR image available for this report period. \n")
     }
-    cat(" \n\n## De Minimis Filtering Criteria \n")
-    cat(" \n **Monthly sand reduction control efficiency** is only calculated 
-        if area average sand mass in the control area is more than 10 grams 
-        for the month. \n")
-    cat(" \n **Daily sand flux reduction control efficiency** is only reported 
-        for days when the area average sand flux in the control area is more 
-        than 1 g/cm^2/day. \n")
     cat("<p style=\"page-break-after:always;\"></p> \n")
     if (!is.na(swir_fl)){
         report_header(start_date, end_date, report_date, area)
@@ -91,14 +100,25 @@ for (i in unique(csc_mass$dca)){
         tbl_wet <- wetness %>% filter(dca==i)
         colnames(tbl_wet) <- c("DCA", "Target Wetness", "SWIR Estimated\nWetness")
         pandoc.table(tbl_wet)
+        cat(" \n## Recorded Daily Precipitation in 30 Days Prior to SWIR Image \n")
+        tbl_precip <- met_df %>% filter(dca==i, pre>0) %>%
+		select(date, pre)
+	tbl_precip$date <- format(tbl_precip$date, "%m-%d-%Y")
+        colnames(tbl_precip) <- c("Date", "Precip (mm)")
+        pandoc.table(tbl_precip)
     cat(" \n\n## Comments \n")
     cat(paste0(" \n SWIR image collected on ", 
                month(swir_date, label=T, abbr=F), " ", day(swir_date), ", ", 
                year(swir_date), ". \n"))
+    cat(paste0(" \n Recorded daily precipitation collected from ",
+               "Meteorological Station ", filter(met_index, dca==i)$deployment, 
+               ". \n"))
     comment_file <- paste0("~/code/owensReports/data/", area, month(start_date), 
                            year(start_date), i, "_wet.txt")
     if (file.exists(comment_file)){
-        cat(" \n ", readLines(comment_file), " \n")
+        for (l in 1:length(readLines(comment_file))){
+            cat(" \n ", readLines(comment_file)[l], " \n")
+        }
     }
         cat("<p style=\"page-break-after:always;\"></p> \n")
     }

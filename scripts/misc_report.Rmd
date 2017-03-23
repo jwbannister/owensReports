@@ -6,6 +6,7 @@ output:
 
 ```{r setup, include=FALSE}
 load_all()
+load_all("~/code/owensData")
 library(pander)
 library(tidyverse)
 panderOptions('knitr.auto.asis', FALSE)
@@ -15,9 +16,9 @@ panderOptions('table.alignment.rownames', 'left')
 ```{r load_data, include=FALSE}
 flux_df <- load_sandflux(area, start_date, end_date)
 sites_df <- load_sites(area, start_date, end_date)
-# TEMPORARY CHANGE FOR NOVEMBER REPORT
-# REMOVE AFTER NOVEMBER 2016 REPORT
-#flux_df <- dplyr::filter(flux_df, sand_flux>=0)
+if (nrow(flux_df[flux_df$sand_flux<0, ])>0){
+    flux_df[flux_df$sand_flux<0, ]$sand_flux <- 0
+}
 ```
 
 ```{r sandmass, include=FALSE}
@@ -40,9 +41,9 @@ for (i in unique(csc_mass$dca)){
 ```
 
 ```{r output, echo=F, results='asis'}
-# TEMPORARY CHANGE FOR NOVEMBER REPORT ONLY
-# REMOVE AFTER NOVEMBER 2016 REPORT
-#csc_mass[csc_mass$csc %in% c('1901', '1905', '1906'), ]$sand.mass <- "Flooded"
+# TEMPORARY CHANGE FOR JANUARY BRINE REPORT ONLY
+# csc_mass[csc_mass$csc %in% c('1703', '1708', '1710', '1713'), ]$sand.mass <- "Flooded"
+# csc_mass[csc_mass$csc %in% c('1701'), ]$sand.mass <- "Site Removed"
 
 for (i in unique(csc_mass$dca)){
     titles <- c("C1"="Channel Area North", "C2"="Channel Area South")

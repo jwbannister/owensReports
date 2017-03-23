@@ -6,8 +6,8 @@ plot_csc_site_label_nocolor <- function(background, sand_df, area_txt,
   catches <- sand_df %>% filter(dca==area_txt)
   value.range <- 
       range(catches[ , value_index])[2] - range(catches[ , value_index])[1]
-  x_range <- diff(ggplot_build(background)[[2]]$ranges[[1]]$x.range)
-  y_range <- diff(ggplot_build(background)[[2]]$ranges[[1]]$y.range)
+  x_range <- diff(ggplot_build(background)[[2]]$panel_ranges[[1]]$x.range)
+  y_range <- diff(ggplot_build(background)[[2]]$panel_ranges[[1]]$y.range)
   catches[ , value_index] <- 
       sapply(catches[ , value_index], 
              function(x) ifelse(x>value_max, value_max, x))

@@ -11,10 +11,16 @@ twb2$labels[twb2$labels$dca=="T2-2", ]$y[2] <- 4020386
 twb2$labels[twb2$labels$dca=="T5-4", ]$x <- 414060
 twb2$labels[twb2$labels$dca=="T5-4", ]$y <- 4021851
 
+# met station locations
+met_loc <- NULL
+#met_loc <- data.frame(group=c('North', 'South'), deployment=c('1552', '1150'), 
+#                        x=c(415077.3, 409413.6), y=c(4041263.2, 4019839.6))
+
 daily_flux <- flux_df %>% 
     group_by(csc, date=date(datetime)) %>% 
     summarize(sand.flux=round(sum(sand_flux), 2), 
-              x=unique(easting_utm), y=unique(northing_utm)) %>% ungroup() 
+              x=unique(easting_utm), y=unique(northing_utm),
+              bad_coll=any(bad_coll)) %>% ungroup() 
     csc_locs <- daily_flux[!duplicated(daily_flux$csc), ] %>%
         select(csc, x, y)
     csc_locs$objectid <- apply(cbind(csc_locs$x, csc_locs$y), 1, 
@@ -28,6 +34,15 @@ daily_flux <- flux_df %>%
         left_join(select(daily_flux, -x, -y), by=c("csc", "date")) %>%
         left_join(csc_locs, by="csc")
     full_daily[is.na(full_daily$sand.flux), "sand.flux"] <- 0
+    bad_collections <- daily_flux %>% group_by(csc) %>%
+              summarize(x=unique(x), y=unique(y),
+                        bad_count=sum(bad_coll), good_count=sum(!bad_coll)) %>%
+              filter(bad_count>0) %>%
+              left_join(select(csc_locs, csc, dca, group), by="csc")
+    bad_collections$flag <- sapply(bad_collections$good_count, function(x) 
+                                   if_else(x==0, "No Data Collected", 
+                                           "Partial Data Collected"))
+    bad_collections$flag <- factor(bad_collections$flag)
 
     max_daily <- full_daily %>% group_by(csc) %>%
         summarize(max.daily.flux = max(sand.flux), x=unique(x), y=unique(y),
@@ -43,13 +58,35 @@ daily_flux <- flux_df %>%
             select(x, y, id=dca)
     tmp_flux <- filter(max_daily, group==i)
     tmp_flux$dca <- tmp_flux$group
-        background <- plot_dca_background(tmp_polys, tmp_labels)
+    tmp_bad <- filter(bad_collections, group==i & flag=="No Data Collected")
+    tmp_partial <- filter(bad_collections, 
+                          group==i & flag=="Partial Data Collected")
+    if (is.null(met_loc)){
+        met_pts <- NULL
+    } else{
+        filter(met_loc, group==i)
+    }
+        background <- plot_dca_background(tmp_polys, tmp_labels,
+                                          external_points=met_pts)
         legend_flux='Max. Daily Flux\n(g/cm^2/day)'
          p1 <- plot_csc_site(background, tmp_flux, i, 
                                     legend_title=legend_flux, 
                                     value_index=2, 
                                     value_max=1,
-                                    plot_title="Daily Flux")
+                                    plot_title="Daily Flux") +
+            geom_point(data=tmp_partial, mapping=aes(x=x, y=y, shape=flag), 
+                       color="cyan", size=6) +
+            scale_shape_manual(name=NULL, values=c(21)) +
+            geom_point(data=tmp_bad, mapping=aes(x=x, y=y, size=flag), 
+                       color="black") +
+            scale_size_manual(name=NULL, values=c(4))
+         if (!is.null(met_pts)){
+             p1 <- p1 + geom_point(data=met_pts, 
+                                   aes(shape=deployment, x=x, y=y), 
+                                   color="blue", size=6) +
+                    scale_shape_manual(name='Met Station', values=c(17), 
+                                       labels=c('1552')) 
+         }
         fl <- tempfile()
         png(filename=fl, width=8, height=8, units="in", res=300)
         print(p1)

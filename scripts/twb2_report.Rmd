@@ -6,6 +6,7 @@ output:
 
 ```{r setup, include=FALSE}
 load_all()
+load_all("~/code/owensData")
 library(pander)
 library(tidyverse)
 panderOptions('knitr.auto.asis', FALSE)
@@ -14,23 +15,26 @@ panderOptions('table.alignment.rownames', 'left')
 ```
 
 ```{r load_data, include=FALSE}
-#flux_df <- load_sandflux(area, start_date, end_date)
+flux_df <- load_sandflux(area, start_date, end_date)
+flux_df$bad_coll <- sapply(flux_df$sand_flux, function(x) 
+                           if_else(x<0, TRUE, FALSE))
+flux_df[flux_df$sand_flux<0, ]$sand_flux <- 0
 ```
 
 ```{r sandmass, include=FALSE}
-#source("~/code/owensReports/scripts/twb2_sandmass.R")
+source("~/code/owensReports/scripts/twb2_sandmass.R")
 ```
 
 ```{r sandflux, include=FALSE}
-#source("~/code/owensReports/scripts/twb2_sandflux.R")
+source("~/code/owensReports/scripts/twb2_sandflux.R")
 ```
 
 ```{r pairs, include=FALSE}
-#source("~/code/owensReports/scripts/twb2_pairs.R")
+source("~/code/owensReports/scripts/twb2_pairs.R")
 ```
 
 ```{r surface, include=FALSE}
-source("~/code/owensReports/scripts/twb2_surface.R")
+#source("~/code/owensReports/scripts/twb2_surface.R")
 ```
 
 ```{r plot_image, include=FALSE}
@@ -76,10 +80,14 @@ for (i in unique(csc_mass$group)){
     cat(" \nThe sand flux threshold for maintenance is 0.5 
         g/cm<sup>2</sup>/day. The reflood threshold is 1.0 
         g/cm<sup>2</sup>/day (Rule 433, paragraph h.i.).\n")
+    cat(" \nNo surface surveys conducted during February 2017 due to
+        heavy rains and inaccessible conditions. \n")
     comment_file <- paste0("~/code/owensReports/data/", area, month(start_date), 
                            year(start_date), i, ".txt")
     if (file.exists(comment_file)){
-        cat(" \n ", readLines(comment_file), " \n")
+        for (m in 1:length(readLines(comment_file))){
+            cat(" \n ", readLines(comment_file)[m], " \n")
+        }
     }
     cat("<p style=\"page-break-after:always;\"></p> \n")
     if (i!="East"){
@@ -98,18 +106,18 @@ for (i in unique(csc_mass$group)){
         pandoc.table(tbl_pair, split.table=Inf)
         cat("<p style=\"page-break-after:always;\"></p> \n")
     }
-    report_header(start_date, end_date, report_date, area)
-    cat(paste0(" \n# ", i, " TwB2 \n"))
-    cat(" \n## Surface Survey Data\n")
-    tbl_surface <- surface_df %>% filter(group==i) %>% 
-        select(dca, site, rs_avg, rh_avg, rs_rh, clods)
-    colnames(tbl_surface) <- c("DCA", "Site", "Row Spacing (cm)", 
-                            "Row Height (cm)", "RS/RH", 
-                            "Clod Coverage (%)")
-    cat("<h6> \n")
-    pandoc.table(tbl_surface, split.table=Inf)
-    cat("</h6> \n")
-    cat("<p style=\"page-break-after:always;\"></p> \n")
+#    report_header(start_date, end_date, report_date, area)
+#    cat(paste0(" \n# ", i, " TwB2 \n"))
+#    cat(" \n## Surface Survey Data\n")
+#    tbl_surface <- surface_df %>% filter(group==i) %>% 
+#        select(dca, site, rs_avg, rh_avg, rs_rh, clods)
+#    colnames(tbl_surface) <- c("DCA", "Site", "Row Spacing (cm)", 
+#                            "Row Height (cm)", "RS/RH", 
+#                            "Clod Coverage (%)")
+#    cat("<h6> \n")
+#    pandoc.table(tbl_surface, split.table=Inf)
+#    cat("</h6> \n")
+#    cat("<p style=\"page-break-after:always;\"></p> \n")
 }
 ```
 

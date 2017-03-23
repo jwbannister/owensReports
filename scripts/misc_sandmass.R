@@ -4,7 +4,7 @@ library(lubridate)
 
 geom_adj <- 1.2 #sandcatch geometry adjustment for sandflux calculation
 prelim_mass <- flux_df %>% group_by(csc) %>% 
-    summarize(sand.mass=round(sum(sand_flux)*geom_adj, 2), 
+    summarize(sand.mass=round(sum(sand_flux)*geom_adj, 1), 
               x=unique(easting_utm), y=unique(northing_utm)) %>% ungroup()
 csc_mass <- left_join(sites_df, select(prelim_mass, csc, sand.mass), by="csc") 
 csc_mass$sand.mass <- sapply(csc_mass$sand.mass, 
