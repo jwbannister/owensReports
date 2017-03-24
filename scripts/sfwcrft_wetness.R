@@ -92,6 +92,13 @@ if (!is.na(swir_fl)){
         temp <- raster::crop(dca_ras, 
                              sfwcrft$spdf[sfwcrft$spdf@data$dca==nm, ])
         temp[ , ] <- sapply(temp[ , ], function(x) ifelse(x==i, 1, NA))
+        ras_df <- as.data.frame(raster::rasterToPoints(ras_swir))
+        colnames(ras_df)[3] <- "value"
+        wet_ras <- class_wet(ras_swir)
+        wet_df <- as.data.frame(raster::rasterToPoints(wet_ras))
+        colnames(wet_df)[3] <- "value"
+        wet_df$value <- ordered(wet_df$value, levels=c(1, 0), 
+                                          labels=c("Wet", "Dry"))
         reflect_ras <- ras_swir * temp
         dcas[[i]]$reflect_df <- as.data.frame(raster::rasterToPoints(reflect_ras))
         colnames(dcas[[i]]$reflect_df)[3] <- "value"
@@ -117,7 +124,7 @@ if (!is.na(swir_fl)){
             background[[l]]$grob <- ggplotGrob(tmp)
         }
 
-        dcas[[i]]$wet_plot <- ggplot(dcas[[i]]$wet_df, aes(x=x, y=y)) +
+        dcas[[i]]$wet_plot <- ggplot(wet_df, aes(x=x, y=y)) +
             annotation_custom(background[[1]]$grob, 
                               xmin=background[[1]]$x_range[1], 
                               xmax=background[[1]]$x_range[2], 
@@ -125,7 +132,7 @@ if (!is.na(swir_fl)){
                               ymax=background[[1]]$y_range[2]) +
 geom_tile(aes(fill=value)) + 
 geom_path(data=filter(sfwcrft$polygons, dca==nm),
-          mapping=aes(x=x, y=y, group=objectid)) +
+          mapping=aes(x=x, y=y, group=objectid), color="darkorange") +
 geom_label(data=filter(sfwcrft$labels, dca==nm), 
            mapping=aes(x=x, y=y, label=treatment)) +
 coord_fixed() + xlim(background[[1]]$x_range) + ylim(background[[1]]$y_range) + 
@@ -142,7 +149,7 @@ theme(axis.title=element_blank(),
       legend.justification=leg_pos[[nm]]) +
 ggtitle("Wetness Classification")
 
-        dcas[[i]]$reflect_plot <- ggplot(dcas[[i]]$reflect_df, aes(x=x, y=y)) +
+        dcas[[i]]$reflect_plot <- ggplot(ras_df, aes(x=x, y=y)) +
             annotation_custom(background[[2]]$grob, 
                               xmin=background[[2]]$x_range[1], 
                               xmax=background[[2]]$x_range[2], 
@@ -150,7 +157,7 @@ ggtitle("Wetness Classification")
                               ymax=background[[2]]$y_range[2]) +
 geom_tile(aes(fill=value)) + 
 geom_path(data=filter(sfwcrft$polygons, dca==nm),
-          mapping=aes(x=x, y=y, group=objectid)) +
+          mapping=aes(x=x, y=y, group=objectid), color="darkorange") +
 geom_label(data=filter(sfwcrft$labels, dca==nm), 
            mapping=aes(x=x, y=y, label=treatment)) +
 coord_fixed() + xlim(background[[2]]$x_range) + ylim(background[[2]]$y_range) + 

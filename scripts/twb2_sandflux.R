@@ -40,9 +40,11 @@ daily_flux <- flux_df %>%
               filter(bad_count>0) %>%
               left_join(select(csc_locs, csc, dca, group), by="csc")
     bad_collections$flag <- sapply(bad_collections$good_count, function(x) 
-                                   if_else(x==0, "No Data Collected", 
-                                           "Partial Data Collected"))
+                                   if_else(x==0, "No Data For Month", 
+                                           "Partial Data For Month"))
     bad_collections$flag <- factor(bad_collections$flag)
+    # manual change to 1606, only zeros (no neg) although no good collection
+    bad_collections[bad_collections$csc=='1606', ]$flag <- "No Data For Month"
 
     max_daily <- full_daily %>% group_by(csc) %>%
         summarize(max.daily.flux = max(sand.flux), x=unique(x), y=unique(y),
@@ -58,16 +60,18 @@ daily_flux <- flux_df %>%
             select(x, y, id=dca)
     tmp_flux <- filter(max_daily, group==i)
     tmp_flux$dca <- tmp_flux$group
-    tmp_bad <- filter(bad_collections, group==i & flag=="No Data Collected")
+    tmp_bad <- filter(bad_collections, group==i & flag=="No Data For Month")
     tmp_partial <- filter(bad_collections, 
-                          group==i & flag=="Partial Data Collected")
+                          group==i & flag=="Partial Data For Month")
     if (is.null(met_loc)){
         met_pts <- NULL
     } else{
         filter(met_loc, group==i)
     }
         background <- plot_dca_background(tmp_polys, tmp_labels,
-                                          external_points=met_pts)
+                                          external_points=met_pts) +
+            geom_point(data=tmp_partial, mapping=aes(x=x, y=y), size=8, 
+                       color="black")
         legend_flux='Max. Daily Flux\n(g/cm^2/day)'
          p1 <- plot_csc_site(background, tmp_flux, i, 
                                     legend_title=legend_flux, 
@@ -75,11 +79,13 @@ daily_flux <- flux_df %>%
                                     value_max=1,
                                     plot_title="Daily Flux") +
             geom_point(data=tmp_partial, mapping=aes(x=x, y=y, shape=flag), 
-                       color="cyan", size=6) +
+                       color="black", size=6) +
             scale_shape_manual(name=NULL, values=c(21)) +
             geom_point(data=tmp_bad, mapping=aes(x=x, y=y, size=flag), 
                        color="black") +
-            scale_size_manual(name=NULL, values=c(4))
+            scale_size_manual(name=NULL, values=c(4)) +
+            guides(color=guide_colorbar(order=1), shape=guide_legend(order=2), 
+                   size=guide_legend(order=3))
          if (!is.null(met_pts)){
              p1 <- p1 + geom_point(data=met_pts, 
                                    aes(shape=deployment, x=x, y=y), 
