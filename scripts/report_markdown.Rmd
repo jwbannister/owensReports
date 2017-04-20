@@ -1,0 +1,283 @@
+---
+output: 
+    html_document:
+        css: style.css
+---
+
+```{r setup, include=FALSE}
+load_all()
+load_all("~/code/owensData")
+library(pander)
+library(tidyverse)
+panderOptions('knitr.auto.asis', FALSE)
+panderOptions('keep.line.breaks', TRUE)
+panderOptions('table.alignment.rownames', 'left')
+```
+
+```{r load_data, include=FALSE}
+flux_df <- load_sandflux(area, start_date, end_date)
+flux_df$bad_coll <- sapply(flux_df$sand_flux, function(x) 
+                           if_else(x<0, TRUE, FALSE))
+flux_df[flux_df$sand_flux<=0, ]$sand_flux <- 0
+```
+
+```{r sandmass, include=FALSE}
+source("~/code/owensReports/scripts/sandmass.R")
+```
+
+```{r sandflux, include=FALSE}
+source("~/code/owensReports/scripts/sandflux.R")
+```
+
+```{r pairs, include=FALSE}
+if (area=='twb2') source("~/code/owensReports/scripts/twb2_pairs.R")
+```
+
+```{r surface, include=FALSE}
+if (area=='twb2') source("~/code/owensReports/scripts/twb2_surface.R")
+```
+
+```{r wetness, include=FALSE}
+if (area=='sfwcrft') source("~/code/owensReports/scripts/sfwcrft_wetness.R")
+```
+
+```{r plot_image, include=FALSE}
+index <- unique(max_daily$id3)
+img_files <- vector(mode="character", length=length(index))
+names(img_files) <- index
+for (i in index){
+    img_files[[i]] <- paste0(tempfile(), ".png")
+    if (area=='sfwcrft'){
+        # sfwcrft reports show both mass and flux site maps
+        png(filename=img_files[[i]], width=8, height=4, units="in", res=300)
+        gridExtra::grid.arrange(mass_grobs[[i]], flux_grobs[[i]], ncol=2)
+        dev.off()
+    } else{
+        # all other reports show only flux map
+        png(filename=img_files[[i]], width=8, height=4, units="in", res=300)
+        gridExtra::grid.arrange(flux_grobs[[i]], ncol=2)
+        dev.off()
+        if (area=='twb2' & i!='East'){
+            # twb2 report also shows TEOM pair maps
+            pair_img_files <- img_files
+            pair_img_files[[i]] <- paste0(tempfile(), ".png")
+            png(filename=pair_img_files[[i]], width=8, height=4, units="in", res=300)
+            gridExtra::grid.arrange(pair_grobs[[i]], ncol=2)
+            dev.off()
+        }
+    }
+}
+```
+
+```{r output, echo=F, results='asis'}
+for (i in index){
+    # build page titles
+    if (area=='twb2'){
+        ttle <- paste0(" \n# ", i, " TwB2 \n")
+    } else{ 
+        ch_areas <- c("C1"="Channel Area North", "C2"="Channel Area South")
+        ttle <- ifelse(i %in% names(ch_areas), 
+                       paste0(" \n# ", ch_areas[i], " \n"), 
+                       paste0(" \n# ", i, " \n"))
+    }
+    report_header(start_date, end_date, report_date, area)
+    cat(ttle)
+    # site maps on top of page
+    cat(" \n## Monitoring Site Results \n")
+    if (area=='sfwcrft') cat("(Area label indicates wetness cover target.) \n")
+    cat(paste0("![](", img_files[[i]], ")"))
+    if (area=='sfwcrft'){
+        # tables for sfwcrft reports
+        cat(" \n\n## Monthly Sand Reduction Control Efficiency \n")
+        cat(" \n Monthly sand reduction control efficiency is only calculated 
+            if area average sand mass in the control area is more than 10 grams 
+            for the month. \n")
+            tbl_mass <- mass_ce %>% filter(id2==i) 
+            colnames(tbl_mass) <- c("DCA", "Target\nWetness", 
+                                    "Area Average\nSand Mass\\\n(g/month)", 
+                                    "Control Efficiency")
+            pandoc.table(tbl_mass)
+            cat(" \n\n## Daily Sand Flux Reduction Control Efficiency \n")
+            tbl_flux <- flux_ce %>% filter(id2==i) 
+            if (nrow(tbl_flux)==0){
+                cat(" \n\nNo days with average daily flux in control area 
+                    > 1 g/cm^2/day. \n")
+            } else{
+                cat(" \n Daily sand flux reduction control efficiency is only reported 
+                    for days when the area average sand flux in the control area is more 
+                    than 1 g/cm^2/day. \n")
+                    colnames(tbl_flux) <- c("DCA", "Date", 
+                                            "0% Target\\\nAvg. Daily Flux\\\n(g/cm^2/day)", 
+                                            "55% Target\\\nAvg. Daily Flux\\\n(g/cm^2/day)", 
+                                            "65% Target\\\nAvg. Daily Flux\\\n(g/cm^2/day)", 
+                                            "CE\\\n(55% Target)",
+                                            "CE\\\n(65% Target)") 
+                    pandoc.table(tbl_flux, split.table=Inf)
+            }
+    } else{
+        # tables for all other reports
+        cat(" \n\n## Daily Sand Flux \n")
+        if (area=='twb2'){
+            # twb2 is broken up into regions
+            tbl_flux <- full_daily %>% filter(id3==i, sand.flux>0.5) %>% 
+                select(id2, csc, date, sand.flux) %>% arrange(desc(sand.flux))
+            if (nrow(tbl_flux)==0){
+                cat(" \nNo days with measured sand flux > 0.5 g/cm<sup>2</sup>/day. \n")
+            } else{
+                cat(" \nDays with recorded sand flux > 0.5 g/cm<sup>2</sup>/day: \n")
+                colnames(tbl_flux) <- c("DCA", "CSC Site", "Date", 
+                                        "Sand Flux\\\n(g/cm<sup>2</sup>/day)") 
+                pandoc.table(tbl_flux, split.table=Inf)
+            }
+        } else{
+            # all other reports are broken up by DCA
+            tbl_flux <- full_daily %>% filter(id2==i, sand.flux>1) %>% 
+                arrange(desc(sand.flux)) %>% select(csc, date, sand.flux)
+            if (nrow(tbl_flux)==0){
+                cat(" \nNo days with measured sand flux > 1.0 g/cm<sup>2</sup>/day. \n")
+            } else{
+                cat(" \nDays with recorded sand flux > 1.0 g/cm<sup>2</sup>/day: \n")
+                colnames(tbl_flux) <- c("CSC Site", "Date", 
+                                        "Sand Flux\\\n(g/cm<sup>2</sup>/day)") 
+                pandoc.table(tbl_flux, split.table=Inf)
+            }
+            if (area %in% c("channel", "t1a1")){
+                area_index <- c('channel'='Channel Areas are', 't1a1'='T1A-1 is')
+                cat(paste0("\n\nNote that the ", areas_index[area], " not subject to a 
+                           specific sand flux threshold. However, this report includes dates 
+                           when sand flux was observed in excess of 
+                           1.0 g/cm<sup>2</sup>/day; the most conservative sand flux 
+                           threshold applied to the approved Best Approved Control Measures.\n"))
+            }
+            if (area=='twb2'){
+                cat(" \nThe sand flux threshold for maintenance is 0.5 
+                    g/cm<sup>2</sup>/day. The reflood threshold is 1.0 
+                    g/cm<sup>2</sup>/day (Rule 433, paragraph h.i.).\n")
+            }
+            if (area %in% c("brine", "dwm")){
+                cat(" \nErosion threshold to trigger BACM Shallow Flooding is sand flux 
+                    of 5.0 grams per square centimeter per day (Rule 433, paragraph 
+                                                                h.*i*.) \n")
+            } 
+        }
+        if (area!='tbw2'){
+            # brine, t1a1, dwm and channel areas also display monthly mass 
+            # display is formatted below
+            tbl_mass <- csc_mass %>% filter(id2==i) %>% select(csc, sand.mass)
+            colnames(tbl_mass) <- c("CSC Site", "Sand Mass (g)") 
+        } 
+    }
+    # check for comment file and see how long
+    comment_file <- paste0("~/code/owensReports/data/comments/", area, month(start_date), 
+                           year(start_date), i, ".txt")
+    if (file.exists(comment_file)){ 
+        comment_length <- 1 + length(readLines(comment_file))
+    } else{
+        comment_length <- 1
+    }
+    if (area=='tbw2'){
+        # twb2 formatting
+        if (nrow(tbl_flux) + comment_length > 12){
+            cat("<p style=\"page-break-after:always;\"></p> \n")
+            report_header(start_date, end_date, report_date, area)
+            cat(ttle)
+        }
+    } else if (area!='sfwcrft'){
+        # other reports formatting
+        newpage_flag <- FALSE
+        if (nrow(tbl_flux) + nrow(tbl_mass) > 12){
+            cat("<p style=\"page-break-after:always;\"></p> \n")
+            report_header(start_date, end_date, report_date, area)
+            cat(ttle)
+            newpage_flag <- TRUE
+        }
+        cat(" \n\n## Monthly Sand Mass \n")
+        pandoc.table(tbl_mass)
+        if (!newpage_flag & (nrow(tbl_flux) + nrow(tbl_mass) + comment_length> 12)){
+            cat("<p style=\"page-break-after:always;\"></p> \n")
+            report_header(start_date, end_date, report_date, area)
+            cat(ttle)
+        }
+    }
+    cat(" \n\n## Comments \n")
+    if (area=='sfwcrft'){
+        if (is.na(swir_fl)){
+            cat(" \n No SWIR image available for this report period. \n")
+        }
+    }
+    if (file.exists(comment_file)){
+        for (m in 1:length(readLines(comment_file))){
+            cat(" \n ", readLines(comment_file)[m], " \n")
+        }
+    }
+    cat("<p style=\"page-break-after:always;\"></p> \n")
+
+    if (area=='sfwcrft'){
+        if (!is.na(swir_fl)){
+            report_header(start_date, end_date, report_date, area)
+            cat(ttle)
+            cat(" \n\n## SWIR Wet/Dry Image \n")
+            cat(paste0("![](", dcas[[i]]$img_file, ")"))
+            cat(" \n")
+            cat(" \n## SWIR Estimated Wetness \n")
+            tbl_wet <- wetness %>% filter(id2==i)
+            colnames(tbl_wet) <- c("DCA", "Target Wetness", 
+                                   "SWIR Estimated\nWetness")
+            pandoc.table(tbl_wet)
+            cat(" \n## Recorded Daily Precipitation in 30 Days Prior to SWIR Image \n")
+            tbl_precip <- met_df %>% filter(id2==i, pre>0) %>%
+                select(date, pre)
+            tbl_precip$date <- format(tbl_precip$date, "%m-%d-%Y")
+            colnames(tbl_precip) <- c("Date", "Precip (mm)")
+            pandoc.table(tbl_precip)
+            cat(" \n\n## Comments \n")
+            cat(paste0(" \n SWIR image collected on ", 
+                       month(swir_date, label=T, abbr=F), " ", day(swir_date), 
+                       ", ", year(swir_date), ". \n"))
+            cat(paste0(" \n Recorded daily precipitation collected from ",
+                       "Meteorological Station ", 
+                       filter(met_index, id2==i)$deployment, ". \n"))
+            comment_file <- paste0("~/code/owensReports/data/comments/", area, 
+                                   month(start_date), year(start_date), i, 
+                                   "_wet.txt")
+            if (file.exists(comment_file)){
+                for (l in 1:length(readLines(comment_file))){
+                    cat(" \n ", readLines(comment_file)[l], " \n")
+                }
+            }
+            cat("<p style=\"page-break-after:always;\"></p> \n")
+        }
+    }
+    if (area=='twb2' & i!="East"){
+        report_header(start_date, end_date, report_date, area)
+        cat(ttle)
+        cat(" \n## Paired TEOM PM10 Results\n")
+        cat(paste0("![](", pair_img_files[[i]], ")"))
+        cat(" \n\n\n\n")
+        tbl_pair <- daily_summary %>% filter(dca.group==i, pm10.delta>0) %>% 
+            arrange(desc(pm10.delta)) %>% select(-dca.group, -status)
+        colnames(tbl_pair) <- c("Date", 
+                                "Upwind 24-hour Avg.\\\nPM10 (micrograms/m<sup>3</sup>)", 
+                                "Downwind 24-hour Avg.\\\nPM10 (micrograms/m<sup>3</sup>)", 
+                                "Increase in 24-hour Avg. \\\n PM10 (micrograms/m<sup>3</sup>)", 
+                                "Avg. Hourly Windspeed at\\\nMax Hourly PM10 Increase (m/s)")
+        pandoc.table(tbl_pair, split.table=Inf)
+        cat("<p style=\"page-break-after:always;\"></p> \n")
+    }
+    if (area=='twb2'& exists('surface_df')){
+        report_header(start_date, end_date, report_date, area)
+        cat(ttle)
+        cat(" \n## Surface Survey Data\n")
+        tbl_surface <- surface_df %>% filter(id3==i) %>% 
+            select(id2, site, rs_avg, rh_avg, rs_rh, clods)
+        colnames(tbl_surface) <- c("DCA", "Site", "Row Spacing (cm)", 
+                                   "Row Height (cm)", "RS/RH", 
+                                   "Clod Coverage (%)")
+        cat("<h6> \n")
+        pandoc.table(tbl_surface, split.table=Inf)
+        cat("</h6> \n")
+        cat("<p style=\"page-break-after:always;\"></p> \n")
+    }
+}
+```
+

@@ -3,20 +3,20 @@ load_all("~/code/owensMaps")
 library(tidyverse)
 library(lubridate)
 
-twb2 <- group_twb2_areas()
-
 yr.mo <- paste0(substr(year(start_date), 3, 4), "_", 
                 sprintf("%02i", month(start_date)))
 query1 <- paste0("SELECT site, area AS dca, rs_avg, rh_avg, rs_rh, clods ", 
                  "FROM field_data.twb2_qa_survey ", 
                  "WHERE yr_mo='", yr.mo, "';")
 df1 <- owensData::query_owens(query1)
-dca_rename <- c("T12"="T12-1", "T3-SW"="T3SW", "T3-SE"="T3SE", "T3-NE"="T3NE", 
-                "T24-Add"="T24 Addition", "T29"="T29-4")
-for (i in names(dca_rename)){
-    df1[df1$dca==i, ]$dca <- dca_rename[[i]]
+if (nrow(df1)>0){
+    dca_rename <- c("T12"="T12-1", "T3-SW"="T3SW", "T3-SE"="T3SE", "T3-NE"="T3NE", 
+                    "T24-Add"="T24 Addition", "T29"="T29-4")
+    for (i in names(dca_rename)){
+        df1[df1$dca==i, ]$dca <- dca_rename[[i]]
+    }
+    surface_df <- df1 %>% left_join(select(twb2$data, dca, group), by="dca") %>%
+        arrange(site)
+    surface_df <- surface_df[!duplicated(surface_df), ]
 }
-surface_df <- df1 %>% left_join(select(twb2$data, dca, group), by="dca") %>%
-    arrange(site)
-surface_df <- surface_df[!duplicated(surface_df), ]
 
