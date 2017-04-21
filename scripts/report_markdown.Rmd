@@ -45,6 +45,7 @@ if (area=='sfwcrft') source("~/code/owensReports/scripts/sfwcrft_wetness.R")
 index <- unique(max_daily$id3)
 img_files <- vector(mode="character", length=length(index))
 names(img_files) <- index
+pair_img_files <- img_files
 for (i in index){
     img_files[[i]] <- paste0(tempfile(), ".png")
     if (area=='sfwcrft'){
@@ -57,14 +58,13 @@ for (i in index){
         png(filename=img_files[[i]], width=8, height=4, units="in", res=300)
         gridExtra::grid.arrange(flux_grobs[[i]], ncol=2)
         dev.off()
-        if (area=='twb2' & i!='East'){
-            # twb2 report also shows TEOM pair maps
-            pair_img_files <- img_files
-            pair_img_files[[i]] <- paste0(tempfile(), ".png")
-            png(filename=pair_img_files[[i]], width=8, height=4, units="in", res=300)
-            gridExtra::grid.arrange(pair_grobs[[i]], ncol=2)
-            dev.off()
-        }
+    }
+    if (area=='twb2' & i!='East'){
+        # twb2 report also shows TEOM pair maps
+        pair_img_files[[i]] <- paste0(tempfile(), ".png")
+        png(filename=pair_img_files[[i]], width=8, height=4, units="in", res=300)
+        gridExtra::grid.arrange(pair_grobs[[i]], ncol=2)
+        dev.off()
     }
 }
 ```
@@ -129,6 +129,8 @@ for (i in index){
                                         "Sand Flux\\\n(g/cm<sup>2</sup>/day)") 
                 pandoc.table(tbl_flux, split.table=Inf)
             }
+            tbl_mass <- csc_mass %>% filter(id3==i) %>% select(csc, sand.mass)
+            colnames(tbl_mass) <- c("CSC Site", "Sand Mass (g)") 
         } else{
             # all other reports are broken up by DCA
             tbl_flux <- full_daily %>% filter(id2==i, sand.flux>1) %>% 
@@ -159,13 +161,9 @@ for (i in index){
                     of 5.0 grams per square centimeter per day (Rule 433, paragraph 
                                                                 h.*i*.) \n")
             } 
-        }
-        if (area!='tbw2'){
-            # brine, t1a1, dwm and channel areas also display monthly mass 
-            # display is formatted below
             tbl_mass <- csc_mass %>% filter(id2==i) %>% select(csc, sand.mass)
             colnames(tbl_mass) <- c("CSC Site", "Sand Mass (g)") 
-        } 
+        }
     }
     # check for comment file and see how long
     comment_file <- paste0("~/code/owensReports/data/comments/", area, month(start_date), 
@@ -175,14 +173,7 @@ for (i in index){
     } else{
         comment_length <- 1
     }
-    if (area=='tbw2'){
-        # twb2 formatting
-        if (nrow(tbl_flux) + comment_length > 12){
-            cat("<p style=\"page-break-after:always;\"></p> \n")
-            report_header(start_date, end_date, report_date, area)
-            cat(ttle)
-        }
-    } else if (area!='sfwcrft'){
+    if (area!='sfwcrft'){
         # other reports formatting
         newpage_flag <- FALSE
         if (nrow(tbl_flux) + nrow(tbl_mass) > 12){
@@ -254,8 +245,8 @@ for (i in index){
         cat(" \n## Paired TEOM PM10 Results\n")
         cat(paste0("![](", pair_img_files[[i]], ")"))
         cat(" \n\n\n\n")
-        tbl_pair <- daily_summary %>% filter(dca.group==i, pm10.delta>0) %>% 
-            arrange(desc(pm10.delta)) %>% select(-dca.group, -status)
+        tbl_pair <- daily_summary %>% filter(id3==i, pm10.delta>0) %>% 
+            arrange(desc(pm10.delta)) %>% select(-id3, -status)
         colnames(tbl_pair) <- c("Date", 
                                 "Upwind 24-hour Avg.\\\nPM10 (micrograms/m<sup>3</sup>)", 
                                 "Downwind 24-hour Avg.\\\nPM10 (micrograms/m<sup>3</sup>)", 

@@ -32,7 +32,7 @@ plot_csc_site_label_nocolor <- function(background, sand_df, area_txt,
 }  
 
 move_brine_labels <- function(df1){
-    df1[df1$dca=='T23NE', ]$x <- df1[df1$dca=='T23NE', ]$x - 150
+    df1[df1$id2=='T23NE', ]$x <- df1[df1$id2=='T23NE', ]$x - 150
     df1
 }
 
@@ -41,10 +41,10 @@ move_dwm_labels <- function(df1){
 }
 
 move_channel_labels <- function(df1){
-    df1[df1$dca=="C2", ]$x <- 410100 
-    df1[df1$dca=="C2", ]$y <- 4020800
-    df1[df1$dca=="C1", ]$x <- 411665
-    df1[df1$dca=="C1", ]$y <- 4022961
+    df1[df1$id2=="C2", ]$x <- 410100 
+    df1[df1$id2=="C2", ]$y <- 4020800
+    df1[df1$id2=="C1", ]$x <- 411665
+    df1[df1$id2=="C1", ]$y <- 4022961
     df1
 }
 

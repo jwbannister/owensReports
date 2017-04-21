@@ -92,7 +92,8 @@ if (!is.na(swir_fl)){
         colnames(wet_df)[3] <- "value"
         wet_df$value <- ordered(wet_df$value, levels=c(1, 0), 
                                 labels=c("Wet", "Dry"))
-        reflect_ras <- ras_swir * temp
+        #reflect_ras <- ras_swir * temp
+        reflect_ras <- ras_swir
         dcas[[i]]$reflect_df <- as.data.frame(raster::rasterToPoints(reflect_ras))
         colnames(dcas[[i]]$reflect_df)[3] <- "value"
         dcas[[i]]$wet_ras <- class_wet(reflect_ras)

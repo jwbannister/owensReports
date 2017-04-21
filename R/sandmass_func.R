@@ -13,8 +13,8 @@ calc_mass_ce_sfwcrft <- function(df_in){
     dplyr::select(-control.mass)
   treat_sum[treat_sum$id1=="0%", ]$control.eff <- NA
   treat_sum$control.eff <- 
-      sapply(treat_sum$control.eff, 
-             function(x) ifelse(is.na(x), "-", paste0(round(x, 2) * 100, "%")))
+      sapply(treat_sum$control.eff, function(x) 
+             ifelse((is.na(x) | x<0), "-", paste0(round(x, 2) * 100, "%")))
   treat_sum$avg.sand.mass <- round(treat_sum$avg.sand.mass, 2)
   treat_sum
 }

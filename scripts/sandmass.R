@@ -12,7 +12,8 @@ if (area=='sfwcrft'){
         mutate(id3=id2)
 } else if (area=='twb2'){
     twb2 <- group_twb2_areas()
-    area_polys <- twb2$polygons
+    area_polys <- twb2$polygons %>% rename(id2=dca, id3=group) %>%
+        mutate(id1=id2)
     area_data <- twb2$data %>% rename(id2=dca, id3=group) %>%
         mutate(id1=id2)
     area_labels <- twb2$labels %>% rename(id2=dca, id3=group) %>%
@@ -56,6 +57,7 @@ bad_collections$flag <- sapply(bad_collections$good_count, function(x)
 if (nrow(bad_collections)>0){
     bad_collections$flag <- factor(bad_collections$flag)
 }
+if (nrow(bad_collections)==0) bad_collections[1, 1:ncol(bad_collections)] <- 0
 
 geom_adj <- 1.2 #sandcatch geometry adjustment for sandflux calculation
 csc_mass <- flux_df %>% group_by(csc) %>% 

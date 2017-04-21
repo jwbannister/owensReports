@@ -25,6 +25,7 @@ rmarkdown::render("~/code/owensReports/scripts/report_markdown.Rmd",
                   output_file=paste0(file_name, ".html"))
 # convert HTML to PDF 
 convert_command <- paste0("xvfb-run wkhtmltopdf  --page-size letter ",
+                          "--javascript-delay 2000 ", 
                           file_name, ".html ", file_name, ".pdf") 
 system(convert_command)
 

@@ -152,16 +152,16 @@ mround <- function(x, base){
 #' @return Input data frame with added column listing relevant DCA for paired 
 #' TEOMS. 
 pair_teoms <- function(df1){
-  df1$dca.group <- rep(NA, nrow(df1))
+  df1$id3 <- rep(NA, nrow(df1))
   for (i in 1:nrow(df1)){
     if (df1$deployment[i] == "T7" | df1$deployment[i] == "T2-1"){
-      df1$dca.group[i] <- "South"
+      df1$id3[i] <- "South"
     }
     if (df1$deployment[i] == "T11" | df1$deployment[i] == "T16"){
-      df1$dca.group[i] <- "Central"
+      df1$id3[i] <- "Central"
     }
     if (df1$deployment[i] == "T29-4S" | df1$deployment[i] == "T29-4N"){
-      df1$dca.group[i] <- "North"
+      df1$id3[i] <- "North"
     }
   }
   df1
@@ -171,13 +171,13 @@ pair_teoms <- function(df1){
 #' 
 #' @import dplyr
 #' @param df1 Data frame containing TEOM pairs. Locations or each TEOM in *x* & 
-#' *y* columns, matched pairs assigned group in *dca.group* column, each TEOM  
+#' *y* columns, matched pairs assigned group in *id3* column, each TEOM  
 #' has unique identifier in *deployment.id* column, "N" or "S" position in 
 #' *position* column. 
 #' @return Original data frame with *upwind.angle* and *downwind.angle* columns 
 #' addded.
 assign_wind_angle <- function(df1){
-  df1 <- group_by(df1, dca.group) %>% 
+  df1 <- group_by(df1, id3) %>% 
     mutate(position = ifelse(y==max(y), "N", "S")) %>%
     arrange(desc(position)) %>%
     mutate(alpha = atan(diff(x)/diff(y))) %>% 
@@ -242,13 +242,13 @@ filter_by_angle <- function(df1, id, angle, tag){
 
 #' Plot paired TEOMS with wind roses.
 #' 
-#' @param teom_locs Data frame. TEOMS with pairs grouping in *dca.group* column.
+#' @param teom_locs Data frame. TEOMS with pairs grouping in *id3* column.
 #' @param df1 Data frame. Hourly PM10 data.
 #' @param background GGplot object. Background onwhich to lay roses.
 teom_pair_plot <- function(teom_locs, df1, background, start_date, end_date){
   a <- list(grobs=c(), centers=c())
   valueseq <- c(10, 50, 150, 500)
-  legend.plot <- df1 %>% filter(dca.group==teom_locs$dca.group[1]) %>%
+  legend.plot <- df1 %>% filter(id3==teom_locs$id3[1]) %>%
     plot_rose(., value='pm10_avg', dir='wd', valueseq=valueseq,
               legend.title="PM10")
   legnd <- g_legend(legend.plot)
@@ -270,7 +270,7 @@ teom_pair_plot <- function(teom_locs, df1, background, start_date, end_date){
   buffer <- (xrange[2] - xrange[1])/10
   coll.start <- format(as.Date(start_date), "%m/%d")
   coll.end <- format(as.Date(end_date), "%m/%d/%Y")
-  plot.title <- paste0("TwB2 ", teom_locs$dca.group[1], 
+  plot.title <- paste0("TwB2 ", teom_locs$id3[1], 
                        " PM10/Wind Roses (", coll.start, " - ", coll.end, ")")
   p3 <- background + 
     annotation_custom(a$grobs[[1]], xmin=a$centers[[1]][1] - 2*buffer,
