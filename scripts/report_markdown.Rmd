@@ -69,7 +69,7 @@ for (i in index){
 }
 ```
 
-```{r output, echo=F, results='asis'}
+```{r output, echo=F, results='asis', warning=FALSE}
 for (i in index){
     # build page titles
     if (area=='twb2'){
@@ -117,16 +117,35 @@ for (i in index){
     } else{
         # tables for all other reports
         cat(" \n\n## Daily Sand Flux \n")
+        if (area %in% c("channel", "t1a1")){
+            area_index <- c('channel'='Channel Areas are', 't1a1'='T1A-1 is')
+            cat(paste0("\n\nNote that the ", area_index[area], " not subject to a 
+                       specific sand flux threshold. However, this report includes dates 
+                       when sand flux was observed in excess of 
+                       1.0 g/cm<sup>2</sup>/day; the most conservative sand flux 
+                       threshold applied to the approved Best Approved 
+                       Control Measures.\n"))
+        }
+        if (area=='twb2'){
+            cat(" \nThe sand flux threshold for maintenance is 0.5 
+                g/cm<sup>2</sup>/day. The reflood threshold is 1.0 
+                g/cm<sup>2</sup>/day (Rule 433, paragraph h.i.).\n")
+        }
+        if (area %in% c("brine", "dwm")){
+            cat(" \nErosion threshold to trigger BACM Shallow Flooding is sand flux 
+                of 5.0 grams per square centimeter per day (Rule 433, paragraph 
+                                                            h.*i*.) \n")
+        } 
         if (area=='twb2'){
             # twb2 is broken up into regions
             tbl_flux <- full_daily %>% filter(id3==i, sand.flux>0.5) %>% 
                 select(id2, csc, date, sand.flux) %>% arrange(desc(sand.flux))
+            colnames(tbl_flux) <- c("DCA", "CSC Site", "Date", 
+                                    "Sand Flux\\\n(g/cm<sup>2</sup>/day)") 
             if (nrow(tbl_flux)==0){
                 cat(" \nNo days with measured sand flux > 0.5 g/cm<sup>2</sup>/day. \n")
             } else{
                 cat(" \nDays with recorded sand flux > 0.5 g/cm<sup>2</sup>/day: \n")
-                colnames(tbl_flux) <- c("DCA", "CSC Site", "Date", 
-                                        "Sand Flux\\\n(g/cm<sup>2</sup>/day)") 
                 pandoc.table(tbl_flux, split.table=Inf)
             }
             tbl_mass <- csc_mass %>% filter(id3==i) %>% select(csc, sand.mass)
@@ -135,32 +154,34 @@ for (i in index){
             # all other reports are broken up by DCA
             tbl_flux <- full_daily %>% filter(id2==i, sand.flux>1) %>% 
                 arrange(desc(sand.flux)) %>% select(csc, date, sand.flux)
+            colnames(tbl_flux) <- c("CSC Site", "Date", 
+                                    "Sand Flux\\\n(g/cm<sup>2</sup>/day)") 
+            split_size <- 1
             if (nrow(tbl_flux)==0){
                 cat(" \nNo days with measured sand flux > 1.0 g/cm<sup>2</sup>/day. \n")
-            } else{
+            } else if (nrow(tbl_flux)<16){
                 cat(" \nDays with recorded sand flux > 1.0 g/cm<sup>2</sup>/day: \n")
-                colnames(tbl_flux) <- c("CSC Site", "Date", 
-                                        "Sand Flux\\\n(g/cm<sup>2</sup>/day)") 
                 pandoc.table(tbl_flux, split.table=Inf)
+            } else{
+                # if flux table is too large, break into sections
+                split_size <- 2 + (nrow(tbl_flux[-(1:17), ]) %/% 35)
+                split_factors <- rep(1, 17) 
+                for (k in 2:split_size){
+                    split_factors <- c(split_factors, rep(k, 35))
+                }
+                tbl_flux_list <- split(tbl_flux, split_factors)
+                for (j in 1:split_size){
+                    if (j > 1){
+                        report_header(start_date, end_date, report_date, area)
+                        cat(" \n\n## Daily Sand Flux - Continued\n")
+                    }
+                    row.names(tbl_flux_list[[j]]) <- 1:nrow(tbl_flux_list[[j]])
+                    pandoc.table(tbl_flux_list[[j]], split.table=Inf)
+                    if (j < split_size){
+                        cat("<p style=\"page-break-after:always;\"></p> \n")
+                    }
+                }
             }
-            if (area %in% c("channel", "t1a1")){
-                area_index <- c('channel'='Channel Areas are', 't1a1'='T1A-1 is')
-                cat(paste0("\n\nNote that the ", areas_index[area], " not subject to a 
-                           specific sand flux threshold. However, this report includes dates 
-                           when sand flux was observed in excess of 
-                           1.0 g/cm<sup>2</sup>/day; the most conservative sand flux 
-                           threshold applied to the approved Best Approved Control Measures.\n"))
-            }
-            if (area=='twb2'){
-                cat(" \nThe sand flux threshold for maintenance is 0.5 
-                    g/cm<sup>2</sup>/day. The reflood threshold is 1.0 
-                    g/cm<sup>2</sup>/day (Rule 433, paragraph h.i.).\n")
-            }
-            if (area %in% c("brine", "dwm")){
-                cat(" \nErosion threshold to trigger BACM Shallow Flooding is sand flux 
-                    of 5.0 grams per square centimeter per day (Rule 433, paragraph 
-                                                                h.*i*.) \n")
-            } 
             tbl_mass <- csc_mass %>% filter(id2==i) %>% select(csc, sand.mass)
             colnames(tbl_mass) <- c("CSC Site", "Sand Mass (g)") 
         }
@@ -175,19 +196,22 @@ for (i in index){
     }
     if (area!='sfwcrft'){
         # other reports formatting
-        newpage_flag <- FALSE
-        if (nrow(tbl_flux) + nrow(tbl_mass) > 12){
+        if (nrow(tbl_flux_list[[split_size]]) + nrow(tbl_mass) + 
+            comment_length < 35){
+            cat(" \n\n## Monthly Sand Mass \n")
+            pandoc.table(tbl_mass)
+        } else if (nrow(tbl_flux_list[[split_size]]) + nrow(tbl_mass) < 35){
+            cat(" \n\n## Monthly Sand Mass \n")
+            pandoc.table(tbl_mass)
             cat("<p style=\"page-break-after:always;\"></p> \n")
             report_header(start_date, end_date, report_date, area)
             cat(ttle)
-            newpage_flag <- TRUE
-        }
-        cat(" \n\n## Monthly Sand Mass \n")
-        pandoc.table(tbl_mass)
-        if (!newpage_flag & (nrow(tbl_flux) + nrow(tbl_mass) + comment_length> 12)){
+        } else{
             cat("<p style=\"page-break-after:always;\"></p> \n")
             report_header(start_date, end_date, report_date, area)
             cat(ttle)
+            cat(" \n\n## Monthly Sand Mass \n")
+            pandoc.table(tbl_mass)
         }
     }
     cat(" \n\n## Comments \n")

@@ -47,6 +47,17 @@ for (i in names(flux_grobs)){
                    color="black")
     legend_flux='Max. Daily Flux\n(g/cm^2/day)'
     top_flux <- if_else(area=='twb2', 1, 10)
+    if (area %in% c('channel', 't1a1')){
+    p1 <- plot_csc_site_label_nocolor(background, tmp_flux, i,  value_index=2, 
+                                      value_max=top_flux, 
+                                      plot_title="Monitoring Sites") +
+        scale_shape_manual(name=NULL, values=c(21)) +
+        geom_point(data=tmp_bad, mapping=aes(x=x, y=y, size=flag), 
+                   color="black") +
+        scale_size_manual(name=NULL, values=c(4)) +
+        guides(color=guide_colorbar(order=1), shape=guide_legend(order=2), 
+               size=guide_legend(order=3))
+    } else{
     p1 <- plot_csc_site(background, tmp_flux, i, legend_title=legend_flux, 
                         value_index=2, value_max=top_flux, plot_title="Daily Flux") +
         scale_shape_manual(name=NULL, values=c(21)) +
@@ -55,6 +66,7 @@ for (i in names(flux_grobs)){
         scale_size_manual(name=NULL, values=c(4)) +
         guides(color=guide_colorbar(order=1), shape=guide_legend(order=2), 
                size=guide_legend(order=3))
+    }
      if (!is.null(met_pts)){
          p1 <- p1 + geom_point(data=met_pts, 
                                aes(shape=deployment, x=x, y=y), 

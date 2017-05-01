@@ -3,18 +3,17 @@ plot_csc_site_label_nocolor <- function(background, sand_df, area_txt,
                             begin=start_date, ending=end_date, 
                             legend_title="", value_index, value_max, 
                             plot_title=""){
-  catches <- sand_df %>% filter(dca==area_txt)
   value.range <- 
-      range(catches[ , value_index])[2] - range(catches[ , value_index])[1]
+      range(sand_df[ , value_index])[2] - range(sand_df[ , value_index])[1]
   x_range <- diff(ggplot_build(background)[[2]]$panel_ranges[[1]]$x.range)
   y_range <- diff(ggplot_build(background)[[2]]$panel_ranges[[1]]$y.range)
-  catches[ , value_index] <- 
-      sapply(catches[ , value_index], 
+  sand_df[ , value_index] <- 
+      sapply(sand_df[ , value_index], 
              function(x) ifelse(x>value_max, value_max, x))
   p1 <- background +
-    geom_point(data=catches, size=4, color="lightblue", 
+    geom_point(data=sand_df, size=4, color="lightblue", 
                mapping=aes_string(x='x', y='y')) +
-    geom_label(data=catches, mapping=aes(x=x, y=y, label=csc), 
+    geom_label(data=sand_df, mapping=aes(x=x, y=y, label=csc), 
                nudge_x=x_range/25, nudge_y=y_range/45) +
     coord_fixed() +
     ggtitle(plot_title) +
