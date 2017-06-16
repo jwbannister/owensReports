@@ -21,7 +21,7 @@ pull_teom_wind <- function(date1, date2){
                      "BETWEEN '", date1, "'::date ", 
                      "AND '", date2, "'::date ",  
                      "AND NOT t.deployment_id = 8")
-    wind_df <- owensData::query_owens(query1)
+    wind_df <- query_db("owenslake", query1)
     wind_df$wd <- round(wind_df$wd, 2)
     wind_df
 }
@@ -34,7 +34,7 @@ pull_mfile <- function(date1, date2){
                      "BETWEEN '", date1, "'::date ", 
                      "AND '", date2, "'::date ",  
                      "AND site = 'T7'")
-    mfile_df <- owensData::query_owens_local(query1)
+    mfile_df <- query_db("owenslake", query1)
     mfile_df$wd <- round(mfile_df$wd, 2)
     mfile_df$pm10_avg <- round(mfile_df$pm10_avg, 2)
     mfile_df
@@ -56,7 +56,7 @@ pull_locations <- function(deploys){
                      northing_utm AS y
                      FROM instruments.deployments 
                      WHERE deployment IN ", deploys)
-     station_locs <- owensData::query_owens(query1)
+     station_locs <- query_db("owenslake", query1)
      station_locs
 }
 
@@ -80,7 +80,7 @@ pull_pm10 <- function(date1, date2, deploys){
                      "BETWEEN '", date1, "'::date ", 
                      "AND '", date2, "'::date ",  
                      "AND deployment IN ", deploys) 
-    pm10_df <- owensData::query_owens(query1)
+    pm10_df <- query_db("owenslake", query1)
 #    pm10_df <- filter(pm10_df, pm10_avg > -35)
     pm10_df$pm10_avg <- round(pm10_df$pm10_avg, 2)
     pm10_df

@@ -8,6 +8,7 @@ met_loc <- NULL
 #met_loc <- data.frame(group=c('North', 'South'), deployment=c('1552', '1150'), 
 #                        x=c(415077.3, 409413.6), y=c(4041263.2, 4019839.6))
 
+
 expand_daily <- expand.grid(csc=unique(daily_flux$csc), 
                             date=seq(start_date, end_date, "days"), 
                             stringsAsFactors=FALSE)
@@ -22,13 +23,9 @@ max_daily <- full_daily %>% group_by(csc) %>%
     summarize(max.daily.flux = max(sand.flux), x=unique(x), y=unique(y),
               id2=unique(id2), id3=unique(id3), id1=unique(id1)) 
 
-# One-off adjustments specific to report
-# change file location defined in sandmass script
-if (file.exists(change_file)) source(change_file)
-
 flux_grobs <- vector(mode="list", length=length(unique(max_daily$id3)))
 names(flux_grobs) <- unique(max_daily$id3)
-for (i in names(flux_grobs)){
+for (i in names(flux_grobs)[!is.na(names(flux_grobs))]){
     print(i)
         tmp_bad <- filter(bad_collections, id3==i & flag=="No Data For Month")
         tmp_partial <- filter(bad_collections, 
@@ -60,6 +57,8 @@ for (i in names(flux_grobs)){
     } else{
     p1 <- plot_csc_site(background, tmp_flux, i, legend_title=legend_flux, 
                         value_index=2, value_max=top_flux, plot_title="Daily Flux") +
+        geom_point(data=tmp_partial, mapping=aes(x=x, y=y, shape=flag), 
+                   color="black", size=6) +
         scale_shape_manual(name=NULL, values=c(21)) +
         geom_point(data=tmp_bad, mapping=aes(x=x, y=y, size=flag), 
                    color="black") +

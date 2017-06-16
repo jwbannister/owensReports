@@ -5,8 +5,11 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+load_all("~/code/aiRsci")
+load_all("~/code/owensMaps")
+load_all("~/code/Roses")
+load("~/code/owensMaps/data/map_data.RData")
 load_all()
-load_all("~/code/owensData")
 library(pander)
 library(tidyverse)
 panderOptions('knitr.auto.asis', FALSE)
@@ -19,6 +22,35 @@ flux_df <- load_sandflux(area, start_date, end_date)
 flux_df$bad_coll <- sapply(flux_df$sand_flux, function(x) 
                            if_else(x<0, TRUE, FALSE))
 flux_df[flux_df$sand_flux<=0, ]$sand_flux <- 0
+if (area=='sfwcrft'){
+    area_polys <- sfwcrft$polygons %>% rename(id1=treatment, id2=dca) %>%
+        mutate(id3=id2)
+    area_data <- sfwcrft$data %>% rename(id1=treatment, id2=dca) %>%
+        mutate(id3=id2)
+    area_labels <- sfwcrft$labels %>% rename(id1=treatment, id2=dca) %>%
+        mutate(id3=id2)
+} else if (area=='twb2'){
+    twb2 <- group_twb2_areas()
+    area_polys <- twb2$polygons %>% rename(id2=dca, id3=group) %>%
+        mutate(id1=id2)
+    area_data <- twb2$data %>% rename(id2=dca, id3=group) %>%
+        mutate(id1=id2)
+    area_labels <- twb2$labels %>% rename(id2=dca, id3=group) %>%
+        mutate(id1=id2)
+} else{
+    area_polys <- owens$polygons %>% rename(id2=dca) %>%
+        mutate(id1=id2, id3=id2)
+    area_data <- owens$data %>% rename(id2=dca) %>%
+        mutate(id1=id2, id3=id2)
+}
+full_locs <- load_sites(area)
+csc_locs <- select(full_locs, csc, x, y)
+csc_locs$objectid <- apply(cbind(csc_locs$x, csc_locs$y), 1, 
+                           owensMaps::point_in_dca, poly_df=area_polys)
+csc_locs$objectid <- sapply(csc_locs$objectid, function(x) ifelse(is.null(x), 
+                                                                  NA, x))
+csc_locs <- csc_locs %>% 
+    left_join(select(area_data, objectid, id1, id2, id3), by="objectid")
 ```
 
 ```{r sandmass, include=FALSE}
@@ -42,7 +74,7 @@ if (area=='sfwcrft') source("~/code/owensReports/scripts/sfwcrft_wetness.R")
 ```
 
 ```{r plot_image, include=FALSE}
-index <- unique(max_daily$id3)
+index <- unique(max_daily$id3)[!is.na(unique(max_daily$id3))]
 img_files <- vector(mode="character", length=length(index))
 names(img_files) <- index
 pair_img_files <- img_files
@@ -89,52 +121,52 @@ for (i in index){
     if (area=='sfwcrft'){
         # tables for sfwcrft reports
         cat(" \n\n## Monthly Sand Reduction Control Efficiency \n")
-        cat(" \n Monthly sand reduction control efficiency is only calculated 
-            if area average sand mass in the control area is more than 10 grams 
-            for the month. \n")
-            tbl_mass <- mass_ce %>% filter(id2==i) 
-            colnames(tbl_mass) <- c("DCA", "Target\nWetness", 
-                                    "Area Average\nSand Mass\\\n(g/month)", 
-                                    "Control Efficiency")
-            pandoc.table(tbl_mass)
-            cat(" \n\n## Daily Sand Flux Reduction Control Efficiency \n")
-            tbl_flux <- flux_ce %>% filter(id2==i) 
-            if (nrow(tbl_flux)==0){
-                cat(" \n\nNo days with average daily flux in control area 
-                    > 1 g/cm^2/day. \n")
-            } else{
-                cat(" \n Daily sand flux reduction control efficiency is only reported 
-                    for days when the area average sand flux in the control area is more 
-                    than 1 g/cm^2/day. \n")
-                    colnames(tbl_flux) <- c("DCA", "Date", 
-                                            "0% Target\\\nAvg. Daily Flux\\\n(g/cm^2/day)", 
-                                            "55% Target\\\nAvg. Daily Flux\\\n(g/cm^2/day)", 
-                                            "65% Target\\\nAvg. Daily Flux\\\n(g/cm^2/day)", 
-                                            "CE\\\n(55% Target)",
-                                            "CE\\\n(65% Target)") 
-                    pandoc.table(tbl_flux, split.table=Inf)
-            }
+        cat(paste0(" \n Monthly sand reduction control efficiency is only ", 
+                   "calculated if area average sand mass in the control area ",
+                   "is more than 10 grams for the month. \n"))
+        tbl_mass <- mass_ce %>% filter(id2==i) 
+        colnames(tbl_mass) <- c("DCA", "Target\nWetness", 
+                                "Area Average\nSand Mass\\\n(g/month)", 
+                                "Control Efficiency")
+        pandoc.table(tbl_mass)
+        cat(" \n\n## Daily Sand Flux Reduction Control Efficiency \n")
+        tbl_flux <- flux_ce %>% filter(id2==i) 
+        if (nrow(tbl_flux)==0){
+            cat(" \n\nNo days with average daily flux in control area 
+                > 1 g/cm^2/day. \n")
+        } else{
+            cat(paste0(" \n Daily sand flux reduction control efficiency is ",
+                       "only reported for days when the area average sand flux ",
+                       "in the control area is more than 1 g/cm^2/day. \n"))
+            colnames(tbl_flux) <- c("DCA", "Date", 
+                                    "0% Target\\\nAvg. Daily Flux\\\n(g/cm^2/day)", 
+                                    "55% Target\\\nAvg. Daily Flux\\\n(g/cm^2/day)", 
+                                    "65% Target\\\nAvg. Daily Flux\\\n(g/cm^2/day)", 
+                                    "CE\\\n(55% Target)",
+                                    "CE\\\n(65% Target)") 
+            pandoc.table(tbl_flux, split.table=Inf)
+        }
     } else{
         # tables for all other reports
         cat(" \n\n## Daily Sand Flux \n")
         if (area %in% c("channel", "t1a1")){
             area_index <- c('channel'='Channel Areas are', 't1a1'='T1A-1 is')
-            cat(paste0("\n\nNote that the ", area_index[area], " not subject to a 
-                       specific sand flux threshold. However, this report includes dates 
-                       when sand flux was observed in excess of 
-                       1.0 g/cm<sup>2</sup>/day; the most conservative sand flux 
-                       threshold applied to the approved Best Approved 
-                       Control Measures.\n"))
+            cat(paste0("\n\nNote that the ", area_index[area], " not subject ", 
+                       "to a specific sand flux threshold. However, this report ",
+                       "includes dates when sand flux was observed in excess of ",
+                       "1.0 g/cm<sup>2</sup>/day; the most conservative sand flux ",
+                       "threshold applied to the approved Best Approved ",
+                       "Control Measures.\n"))
         }
         if (area=='twb2'){
-            cat(" \nThe sand flux threshold for maintenance is 0.5 
-                g/cm<sup>2</sup>/day. The reflood threshold is 1.0 
-                g/cm<sup>2</sup>/day (Rule 433, paragraph h.i.).\n")
+            cat(paste0(" \nThe sand flux threshold for maintenance is 0.5 ",
+                       "g/cm<sup>2</sup>/day. The reflood threshold is 1.0 ",
+                       "g/cm<sup>2</sup>/day (Rule 433, paragraph h.i.).\n"))
         }
         if (area %in% c("brine", "dwm")){
-            cat(" \nErosion threshold to trigger BACM Shallow Flooding is sand flux 
-                of 5.0 grams per square centimeter per day (Rule 433, paragraph 
-                                                            h.*i*.) \n")
+            cat(paste0(" \nErosion threshold to trigger BACM Shallow Flooding ", 
+                       "is sand flux of 5.0 grams per square centimeter per day ", 
+                       "(Rule 433, paragraph h.*i*.) \n"))
         } 
         if (area=='twb2'){
             # twb2 is broken up into regions
@@ -142,26 +174,31 @@ for (i in index){
                 select(id2, csc, date, sand.flux) %>% arrange(desc(sand.flux))
             colnames(tbl_flux) <- c("DCA", "CSC Site", "Date", 
                                     "Sand Flux\\\n(g/cm<sup>2</sup>/day)") 
-            if (nrow(tbl_flux)==0){
-                cat(" \nNo days with measured sand flux > 0.5 g/cm<sup>2</sup>/day. \n")
-            } else{
-                cat(" \nDays with recorded sand flux > 0.5 g/cm<sup>2</sup>/day: \n")
-                pandoc.table(tbl_flux, split.table=Inf)
-            }
             tbl_mass <- csc_mass %>% filter(id3==i) %>% select(csc, sand.mass)
             colnames(tbl_mass) <- c("CSC Site", "Sand Mass (g)") 
         } else{
             # all other reports are broken up by DCA
             tbl_flux <- full_daily %>% filter(id2==i, sand.flux>1) %>% 
-                arrange(desc(sand.flux)) %>% select(csc, date, sand.flux)
+                arrange(date, sand.flux) %>% select(csc, date, sand.flux)
+            tbl_flux <- tbl_flux[!duplicated(tbl_flux), ]
             colnames(tbl_flux) <- c("CSC Site", "Date", 
                                     "Sand Flux\\\n(g/cm<sup>2</sup>/day)") 
-            split_size <- 1
-            if (nrow(tbl_flux)==0){
-                cat(" \nNo days with measured sand flux > 1.0 g/cm<sup>2</sup>/day. \n")
-            } else if (nrow(tbl_flux)<16){
+            tbl_mass <- csc_mass %>% filter(id2==i) %>% select(csc, sand.mass)
+            colnames(tbl_mass) <- c("CSC Site", "Sand Mass (g)") 
+        }
+        split_size <- 1
+        if (nrow(tbl_flux)==0){
+            cat(" \nNo days with measured sand flux > 1.0 g/cm<sup>2</sup>/day. \n")
+        } else{
+            if (area=='tbw2'){
+                cat(" \nDays with recorded sand flux > 0.5 g/cm<sup>2</sup>/day: \n")
+            } else{
                 cat(" \nDays with recorded sand flux > 1.0 g/cm<sup>2</sup>/day: \n")
-                pandoc.table(tbl_flux, split.table=Inf)
+            }
+            if (nrow(tbl_flux)<16){
+                tbl_flux_list <- vector(mode='list', length=1)
+                tbl_flux_list[[1]] <- tbl_flux
+                pandoc.table(tbl_flux_list[[1]], split.table=Inf)
             } else{
                 # if flux table is too large, break into sections
                 split_size <- 2 + (nrow(tbl_flux[-(1:17), ]) %/% 35)
@@ -182,8 +219,6 @@ for (i in index){
                     }
                 }
             }
-            tbl_mass <- csc_mass %>% filter(id2==i) %>% select(csc, sand.mass)
-            colnames(tbl_mass) <- c("CSC Site", "Sand Mass (g)") 
         }
     }
     # check for comment file and see how long
@@ -196,11 +231,13 @@ for (i in index){
     }
     if (area!='sfwcrft'){
         # other reports formatting
-        if (nrow(tbl_flux_list[[split_size]]) + nrow(tbl_mass) + 
-            comment_length < 35){
+        row_limit <- if_else(split_size==1, 19, 38)
+        flux_length <- ifelse(exists("tbl_flux_list"), 
+                              nrow(tbl_flux_list[[split_size]]), 0)
+        if (flux_length + nrow(tbl_mass) + comment_length < row_limit){
             cat(" \n\n## Monthly Sand Mass \n")
             pandoc.table(tbl_mass)
-        } else if (nrow(tbl_flux_list[[split_size]]) + nrow(tbl_mass) < 35){
+        } else if (flux_length + nrow(tbl_mass) < row_limit){
             cat(" \n\n## Monthly Sand Mass \n")
             pandoc.table(tbl_mass)
             cat("<p style=\"page-break-after:always;\"></p> \n")
@@ -272,10 +309,10 @@ for (i in index){
         tbl_pair <- daily_summary %>% filter(id3==i, pm10.delta>0) %>% 
             arrange(desc(pm10.delta)) %>% select(-id3, -status)
         colnames(tbl_pair) <- c("Date", 
-                                "Upwind 24-hour Avg.\\\nPM10 (micrograms/m<sup>3</sup>)", 
-                                "Downwind 24-hour Avg.\\\nPM10 (micrograms/m<sup>3</sup>)", 
-                                "Increase in 24-hour Avg. \\\n PM10 (micrograms/m<sup>3</sup>)", 
-                                "Avg. Hourly Windspeed at\\\nMax Hourly PM10 Increase (m/s)")
+                                "Upwind Cross-Tillage\\\nAvg. PM10 (micrograms/m<sup>3</sup>)", 
+                                "Downwind Cross-Tillage\\\nAvg. PM10 (micrograms/m<sup>3</sup>)", 
+                                "Increase in Avg.\\\n PM10 (micrograms/m<sup>3</sup>)", 
+                                "Windspeed at Max Hourly\\\nPM10 Increase (m/s)")
         pandoc.table(tbl_pair, split.table=Inf)
         cat("<p style=\"page-break-after:always;\"></p> \n")
     }

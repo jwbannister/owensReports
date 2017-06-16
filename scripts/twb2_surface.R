@@ -1,14 +1,9 @@
-load_all()
-load_all("~/code/owensMaps")
-library(tidyverse)
-library(lubridate)
-
 yr.mo <- paste0(substr(year(start_date), 3, 4), "_", 
                 sprintf("%02i", month(start_date)))
 query1 <- paste0("SELECT site, area AS id2, rs_avg, rh_avg, rs_rh, clods ", 
                  "FROM field_data.twb2_qa_survey ", 
                  "WHERE yr_mo='", yr.mo, "';")
-df1 <- owensData::query_owens(query1)
+df1 <-query_db("owenslake", query1)
 if (nrow(df1)>0){
     dca_rename <- c("T12"="T12-1", "T3-SW"="T3SW", "T3-SE"="T3SE", "T3-NE"="T3NE", 
                     "T24-Add"="T24 Addition", "T29"="T29-4")

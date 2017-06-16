@@ -48,5 +48,7 @@ move_channel_labels <- function(df1){
 }
 
 move_t1a1_labels <- function(df1){
+    df1[df1$id2=='T1A-1', ]$x <- df1[df1$id2=='T1A-1', ]$x + 150
+    df1[df1$id2=='T1A-1', ]$y <- df1[df1$id2=='T1A-1', ]$y - 50
     df1
 }

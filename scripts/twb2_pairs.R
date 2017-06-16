@@ -1,8 +1,3 @@
-load_all()
-load_all("~/code/owensData")
-load_all("~/code/owensMaps")
-load_all("~/code/Roses")
-library(tidyverse)
 
 # pull data from portable teoms, keep wind direction and speed
 teom_wind <- pull_teom_wind(start_date, end_date)
@@ -39,7 +34,7 @@ clean_events <- joined_events %>%
   mutate(ws.avg.mps=mean(c(ws.uw, ws.dw))) %>%
   filter(ws.uw!=0,  ws.dw!=0) %>% 
   arrange(datetime) 
-clean_events$date <- format(clean_events$datetime, "%m-%d-%y")
+clean_events$date <- format(clean_events$datetime %m-% seconds(1), "%m-%d-%y")
 clean_events <- clean_events[complete.cases(clean_events), ]
 
 # summarize pm10 differnce between matched teom pairs by day.
@@ -52,7 +47,8 @@ clean_events2$max.delta.ws <- unlist(clean_events2$max.delta.ws)
 clean_events <- inner_join(clean_events, clean_events2, 
                            by=c("date", "id3"))
 daily_summary <- clean_events %>% group_by(date, id3) %>%
-  summarize(daily.pm10.uw=sum(pm10.uw)/24, daily.pm10.dw=sum(pm10.dw)/24,
+  summarize(daily.pm10.uw=sum(pm10.uw)/length(pm10.uw), uw.n=length(pm10.uw),  
+            daily.pm10.dw=sum(pm10.dw)/length(pm10.dw), dw.n=length(pm10.dw), 
             max.delta.ws=unique(max.delta.ws)) %>%
 mutate(pm10.delta=daily.pm10.dw - daily.pm10.uw) %>%
 ungroup() %>% select(date, id3, daily.pm10.uw, daily.pm10.dw, pm10.delta,

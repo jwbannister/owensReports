@@ -17,20 +17,19 @@ if (is.na(args[3])){
     end_date <- mdy(args[3])
 }
 report_date <- format(Sys.Date(), "%m-%d-%Y")
-file_name <- paste0("~/code/owensReports/output/", area, "_", 
-                    month(start_date, label=TRUE), year(start_date))
+file_name <- paste0(area, "_", month(start_date, label=TRUE), year(start_date))
+fl1 <- tempfile(fileext=".html")
+fl2 <- tempfile(fileext=".pdf")
 
 # render HTML file from markdown document
-rmarkdown::render("~/code/owensReports/scripts/report_markdown.Rmd", 
-                  output_file=paste0(file_name, ".html"))
+rmarkdown::render("./scripts/report_markdown.Rmd", output_file=fl1)
 # convert HTML to PDF 
-convert_command <- paste0("xvfb-run wkhtmltopdf  --page-size letter ",
-                          "--javascript-delay 2000 ", 
-                          file_name, ".html ", file_name, ".pdf") 
-system(convert_command)
-
-# notify on finish
-system(paste0("notify-send \"", args[1], " report is finished\""))
+system(paste0("xvfb-run wkhtmltopdf  --page-size letter ", 
+              "--javascript-delay 2000 ", fl1, " ", fl2))
+system(paste0("gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 ",
+              "-dPDFSETTINGS=/default -dNOPAUSE -dQUIET -dBATCH ",
+              "-dDetectDuplicateImages -dCompressFonts=true -r150 ",
+              "-sOutputFile=", output_path, file_name, ".pdf ", fl2))
 
 # save workspace if needed for debugging
 img_fl <- paste0("/tmp/", area, "_report_image.RData")

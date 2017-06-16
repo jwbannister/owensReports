@@ -3,48 +3,11 @@ load("~/code/owensMaps/data/map_data.RData")
 library(tidyverse)
 library(lubridate)
 
-if (area=='sfwcrft'){
-    area_polys <- sfwcrft$polygons %>% rename(id1=treatment, id2=dca) %>%
-        mutate(id3=id2)
-    area_data <- sfwcrft$data %>% rename(id1=treatment, id2=dca) %>%
-        mutate(id3=id2)
-    area_labels <- sfwcrft$labels %>% rename(id1=treatment, id2=dca) %>%
-        mutate(id3=id2)
-} else if (area=='twb2'){
-    twb2 <- group_twb2_areas()
-    area_polys <- twb2$polygons %>% rename(id2=dca, id3=group) %>%
-        mutate(id1=id2)
-    area_data <- twb2$data %>% rename(id2=dca, id3=group) %>%
-        mutate(id1=id2)
-    area_labels <- twb2$labels %>% rename(id2=dca, id3=group) %>%
-        mutate(id1=id2)
-} else{
-    area_polys <- owens$polygons %>% rename(id2=dca) %>%
-        mutate(id1=id2, id3=id2)
-    area_data <- owens$data %>% rename(id2=dca) %>%
-        mutate(id1=id2, id3=id2)
-}
-
 daily_flux <- flux_df %>% 
     group_by(csc, date=date(datetime)) %>% 
     summarize(sand.flux=round(sum(sand_flux), 2), 
               x=unique(easting_utm), y=unique(northing_utm),
               bad_coll=any(bad_coll)) %>% ungroup() 
-csc_locs <- daily_flux[!duplicated(daily_flux$csc), ] %>%
-    select(csc, x, y)
-csc_locs$objectid <- apply(cbind(csc_locs$x, csc_locs$y), 1, 
-                           owensMaps::point_in_dca, poly_df=area_polys)
-csc_locs <- csc_locs %>% 
-    left_join(select(area_data, objectid, id1, id2, id3), by="objectid")
-
-if (!(area %in% c('twb2', 'sfwcrft'))){
-    area_labels <- owens$labels %>% filter(objectid %in% csc_locs$objectid) %>% 
-        rename(id2=dca) %>% mutate(id1=id2, id3=id2)
-    if (area=="dwm") area_labels <- move_dwm_labels(area_labels)
-    if (area=="brine") area_labels <- move_brine_labels(area_labels)
-    if (area=="channel") area_labels <- move_channel_labels(area_labels)
-    if (area=="t1a1") area_labels <- move_t1a1_labels(area_labels)
-}
 
 bad_collections <- daily_flux %>% group_by(csc) %>%
     summarize(x=unique(x), y=unique(y),
@@ -75,8 +38,16 @@ if (area=='sfwcrft') mass_ce <- calc_mass_ce_sfwcrft(csc_mass)
 # CHECK EACH MONTH AND CHANGE IF NECESSARY
 change_file <- paste0("~/code/owensReports/data/changes/", area, 
                       month(start_date), year(start_date), ".R")
-
 if (file.exists(change_file)) source(change_file)
+
+if (!(area %in% c('twb2', 'sfwcrft'))){
+    area_labels <- owens$labels %>% filter(objectid %in% csc_locs$objectid) %>% 
+        rename(id2=dca) %>% mutate(id1=id2, id3=id2)
+    if (area=="dwm") area_labels <- move_dwm_labels(area_labels)
+    if (area=="brine") area_labels <- move_brine_labels(area_labels)
+    if (area=="channel") area_labels <- move_channel_labels(area_labels)
+    if (area=="t1a1") area_labels <- move_t1a1_labels(area_labels)
+}
 
 if (area=='sfwcrft'){
     mass_grobs <- vector(mode="list", length=length(unique(csc_mass$id2)))
