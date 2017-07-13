@@ -3,7 +3,7 @@ load("~/code/owensMaps/data/map_data.RData")
 library(tidyverse)
 library(lubridate)
 
-daily_flux <- flux_df %>% 
+daily_flux <- flux_df %>% filter(!invalid) %>%
     group_by(csc, date=date(datetime)) %>% 
     summarize(sand.flux=round(sum(sand_flux), 2), 
               x=unique(easting_utm), y=unique(northing_utm),
@@ -23,7 +23,7 @@ if (nrow(bad_collections)>0){
 if (nrow(bad_collections)==0) bad_collections[1, 1:ncol(bad_collections)] <- 0
 
 geom_adj <- 1.2 #sandcatch geometry adjustment for sandflux calculation
-csc_mass <- flux_df %>% group_by(csc) %>% 
+csc_mass <- flux_df %>% filter(!invalid) %>% group_by(csc) %>% 
     summarize(sand.mass=round(sum(sand_flux)*geom_adj, 1), 
               x=unique(easting_utm), y=unique(northing_utm)) %>% ungroup()
 csc_mass$objectid <- apply(cbind(csc_mass$x, csc_mass$y), 1, 

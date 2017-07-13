@@ -174,7 +174,8 @@ for (i in index){
                 select(id2, csc, date, sand.flux) %>% arrange(desc(sand.flux))
             colnames(tbl_flux) <- c("DCA", "CSC Site", "Date", 
                                     "Sand Flux\\\n(g/cm<sup>2</sup>/day)") 
-            tbl_mass <- csc_mass %>% filter(id3==i) %>% select(csc, sand.mass)
+            tbl_mass <- csc_mass %>% filter(id3==i) %>% 
+                select(csc, sand.mass) %>% arrange(csc)
             colnames(tbl_mass) <- c("CSC Site", "Sand Mass (g)") 
         } else{
             # all other reports are broken up by DCA
@@ -231,7 +232,7 @@ for (i in index){
     }
     if (area!='sfwcrft'){
         # other reports formatting
-        row_limit <- if_else(split_size==1, 19, 38)
+        row_limit <- if_else(split_size==1, 17, 36)
         flux_length <- ifelse(exists("tbl_flux_list"), 
                               nrow(tbl_flux_list[[split_size]]), 0)
         if (flux_length + nrow(tbl_mass) + comment_length < row_limit){
@@ -328,6 +329,9 @@ for (i in index){
         cat("<h6> \n")
         pandoc.table(tbl_surface, split.table=Inf)
         cat("</h6> \n")
+        cat(" \n\n## Comments \n")
+        cat(" \n Sites not listed were not accessible due to flooding or were 
+            undergoing tillage maintenance.\n")
         cat("<p style=\"page-break-after:always;\"></p> \n")
     }
 }
