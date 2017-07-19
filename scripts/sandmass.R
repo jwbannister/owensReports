@@ -36,9 +36,18 @@ if (area=='sfwcrft') mass_ce <- calc_mass_ce_sfwcrft(csc_mass)
 
 # One-off adjustments specific to report
 # CHECK EACH MONTH AND CHANGE IF NECESSARY
-change_file <- paste0("~/code/owensReports/data/changes/", area, 
-                      month(start_date), year(start_date), ".R")
-if (file.exists(change_file)) source(change_file)
+change_file <- paste0(area, month(start_date), year(start_date), ".R")
+gdrive_change <- system(paste0(getwd(), "/gdrive list ", 
+                  "-q \"'0B8qHESXOhs-DX29FTnVIa0xielU' in parents\""), intern=T)  
+change_fl <- tempfile()
+write.table(gdrive_change, file=change_fl, quote=F, row.names=F, col.names=F)
+change_list <- read.table(change_fl, header=F, skip=1)
+if (change_file %in% change_list[ , 2]){
+    index <- which(change_list[ , 2]==change_file)
+    system(paste0(getwd(), "/gdrive download --path ", tempdir(), " ", 
+                  change_list[ , 1][index]))
+    source(paste0(tempdir(), "/", change_file))
+}
 
 if (!(area %in% c('twb2', 'sfwcrft'))){
     area_labels <- owens$labels %>% filter(objectid %in% csc_locs$objectid) %>% 

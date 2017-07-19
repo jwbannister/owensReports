@@ -14,4 +14,3 @@ if (start_date < "2016-08-01"){
     csc_list$sfwcrft <- c(seq(1800, 1899, 1))
 }
 
-output_path <- path.expand("~/dropbox/owens/'Owens Field Operations'/'0_Owens Lake Reporting'/'Draft Reports'/")

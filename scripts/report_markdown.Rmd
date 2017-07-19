@@ -223,13 +223,18 @@ for (i in index){
         }
     }
     # check for comment file and see how long
-    comment_file <- paste0("~/code/owensReports/data/comments/", area, month(start_date), 
-                           year(start_date), i, ".txt")
-    if (file.exists(comment_file)){ 
-        comment_length <- 1 + length(readLines(comment_file))
+    gdrive_comments <- system(paste0(getwd(), "/gdrive list ", 
+                      "-q \"'0B8qHESXOhs-DXzJfRXdmUXoyWGs' in parents\""), intern=T)  
+    cmnt_fl <- tempfile()
+    write.table(gdrive_comments, file=cmnt_fl, quote=F, row.names=F, col.names=F)
+    comment_list <- read.table(cmnt_fl, header=F, skip=1)
+    comment_file <- paste0(area, month(start_date), year(start_date), i, ".txt")
+    if (comment_file %in% comment_list[ , 2]){
+        comment_length <- 1 + length(readLines(paste0(tempdir(), "/", comment_file)))
     } else{
         comment_length <- 1
     }
+
     if (area!='sfwcrft'){
         # other reports formatting
         row_limit <- if_else(split_size==1, 17, 36)
@@ -258,9 +263,13 @@ for (i in index){
             cat(" \n No SWIR image available for this report period. \n")
         }
     }
-    if (file.exists(comment_file)){
-        for (m in 1:length(readLines(comment_file))){
-            cat(" \n ", readLines(comment_file)[m], " \n")
+    if (comment_file %in% comment_list[ , 2]){
+        index <- which(comment_list[ , 2]==comment_file)
+        system(paste0(getwd(), "/gdrive download --path ", tempdir(), " ", 
+                      comment_list[ , 1][index]))
+        for (i in 1:length(readLines(paste0(tempdir(), "/", comment_file)))){
+            cat(" \n", readLines(paste0(tempdir(), "/", comment_file))[i], 
+                " \n", sep="")
         }
     }
     cat("<p style=\"page-break-after:always;\"></p> \n")
@@ -290,12 +299,15 @@ for (i in index){
             cat(paste0(" \n Recorded daily precipitation collected from ",
                        "Meteorological Station ", 
                        filter(met_index, id2==i)$deployment, ". \n"))
-            comment_file <- paste0("~/code/owensReports/data/comments/", area, 
-                                   month(start_date), year(start_date), i, 
+            comment_file <- paste0(area, month(start_date), year(start_date), i, 
                                    "_wet.txt")
-            if (file.exists(comment_file)){
-                for (l in 1:length(readLines(comment_file))){
-                    cat(" \n ", readLines(comment_file)[l], " \n")
+            if (comment_file %in% comment_list[ , 2]){
+                index <- which(comment_list[ , 2]==comment_file)
+                system(paste0(getwd(), "/gdrive download --path ", tempdir(), " ", 
+                              comment_list[ , 1][index]))
+                for (i in 1:length(readLines(paste0(tempdir(), "/", comment_file)))){
+                    cat(" \n", readLines(paste0(tempdir(), "/", comment_file))[i], 
+                        " \n", sep="")
                 }
             }
             cat("<p style=\"page-break-after:always;\"></p> \n")
@@ -307,6 +319,12 @@ for (i in index){
         cat(" \n## Paired TEOM PM10 Results\n")
         cat(paste0("![](", pair_img_files[[i]], ")"))
         cat(" \n\n\n\n")
+        # COMMENT FOR NORTH TWB2 JUNE REPORT ONLY - REMOVE AFTER
+        if (start_date=='2017-06-01' & i=='North'){
+            cat(" \n\n## Comments \n")
+            cat(" \n T29-4 sand flux sites were removed in May 2017 for area 
+                maintenance.\n")
+        }
         tbl_pair <- daily_summary %>% filter(id3==i, pm10.delta>0) %>% 
             arrange(desc(pm10.delta)) %>% select(-id3, -status)
         colnames(tbl_pair) <- c("Date", 
@@ -314,6 +332,12 @@ for (i in index){
                                 "Downwind Cross-Tillage\\\nAvg. PM10 (micrograms/m<sup>3</sup>)", 
                                 "Increase in Avg.\\\n PM10 (micrograms/m<sup>3</sup>)", 
                                 "Windspeed at Max Hourly\\\nPM10 Increase (m/s)")
+        if (nrow(tbl_pair)>20){
+            cat("<p style=\"page-break-after:always;\"></p> \n")
+            report_header(start_date, end_date, report_date, area)
+            cat(ttle)
+            cat(" \n## Paired TEOM PM10 Results\n")
+        }
         pandoc.table(tbl_pair, split.table=Inf)
         cat("<p style=\"page-break-after:always;\"></p> \n")
     }
