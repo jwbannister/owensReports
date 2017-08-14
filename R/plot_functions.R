@@ -8,7 +8,7 @@
 plot_dca_background <- function(polys_df, labels_df, 
                                 external_points=NULL){
   plot.range <- owensMaps::get_plot_range(polys_df, external_points)
-  map <- raster::stack("~/gis/owens/pleiades/20161101_pleiades_owens.tif")
+  map <- raster::stack("~/gis/owens/report_background.tif")
   ext <- sp::SpatialPointsDataFrame(coords=cbind(x=plot.range$x, y=plot.range$y), 
                                 data=data.frame(id=1:2), 
                                 proj4string=raster::crs(map))
@@ -68,7 +68,7 @@ plot_csc_site_nolabel <- function(background, sand_df, area_txt,
 
 plot_dca_background_noboundaries <- function(polys_df, external_points=NULL){
   plot.range <- owensMaps::get_plot_range(polys_df, external_points)
-  map <- raster::stack("~/gis/owens/pleiades/20161101_pleiades_owens.tif")
+  map <- raster::stack("~/gis/owens/report_background.tif")
   ext <- sp::SpatialPointsDataFrame(coords=cbind(x=plot.range$x, y=plot.range$y), 
                                 data=data.frame(id=1:2), 
                                 proj4string=raster::crs(map))
