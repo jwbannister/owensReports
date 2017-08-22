@@ -1,6 +1,4 @@
 load_all()
-load("~/code/owensMaps/data/map_data.RData")
-load_all("~/code/owensData")
 library(tidyverse)
 library(lubridate)
 raster::rasterOptions(tolerance = 1)
@@ -41,7 +39,7 @@ if (!is.na(swir_fl)){
     "AND '", swir_date, "'::date ",
     "AND i.deployment IN ('1552', '1551', '1451', '1350') ",
     "ORDER BY i.deployment, datetime;")
-    met_df <- query_owens(query2) %>%
+    met_df <- query_db("owenslake", query2) %>%
         left_join(met_index, by="deployment") %>%
         filter(!invalid) %>% group_by(date, id2) %>%
         summarize(pre=sum(precip), x=unique(easting_utm), y=unique(northing_utm)) %>%

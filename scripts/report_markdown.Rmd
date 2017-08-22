@@ -38,13 +38,10 @@ if (area=='sfwcrft'){
     }
 }
 csc_locs <- load_sites(area, area_polys)
-id_col <- ifelse(area=='sfwcrft', 'id1', 'id2')
-csc_locs$objectid <- apply(cbind(csc_locs$x, csc_locs$y), 1, 
-                           point_in_dca, poly_df=area_polys)
-csc_locs$objectid <- sapply(csc_locs$objectid, function(x) ifelse(is.null(x), 
-                                                                  NA, x))
+csc_locs <- filter(csc_locs, objectid!='NULL')
+csc_locs$objectid <- unlist(csc_locs$objectid)
 csc_locs <- csc_locs %>% 
-    left_join(select(area_data, objectid, id1, id2, id3), by="objectid")
+    left_join(select(area_polys, objectid, id1, id2, id3), by="objectid")
 ```
 
 ```{r sandmass, include=FALSE}

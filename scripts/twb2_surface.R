@@ -10,7 +10,7 @@ if (nrow(df1)>0){
     for (i in names(dca_rename)){
         df1[df1$id2==i, ]$id2 <- dca_rename[[i]]
     }
-    surface_df <- df1 %>% left_join(select(area_data, id2, id3), by="id2") %>%
+    surface_df <- df1 %>% left_join(select(area_polys, id2, id3), by="id2") %>%
         arrange(site)
     surface_df <- surface_df[!duplicated(surface_df), ]
 }

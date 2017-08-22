@@ -1,36 +1,3 @@
-#' Plot DCA areas with background
-#' 
-#' @import dplyr
-#' @import ggplot2
-#' @param polys_df 
-#' @param labels_df 
-#' @param external_points 
-plot_dca_background <- function(polys_df, labels_df, 
-                                external_points=NULL){
-  plot.range <- owensMaps::get_plot_range(polys_df, external_points)
-  map <- raster::stack("~/gis/owens/report_background.tif")
-  ext <- sp::SpatialPointsDataFrame(coords=cbind(x=plot.range$x, y=plot.range$y), 
-                                data=data.frame(id=1:2), 
-                                proj4string=raster::crs(map))
-  map_sub <- raster::crop(map, raster::extent(ext))
-  map_sub <- raster::aggregate(map_sub, 4)
-  map_df <- raster::as.data.frame(map_sub, xy=T)
-  map_df <- data.frame(x=map_df$x, y=map_df$y, r=map_df[ , 3], g=map_df[ , 4], 
-                       b=map_df[ , 5])
-  p1 <- ggplot(data=map_df) + coord_fixed() + theme_bw() +
-  geom_tile(aes(x=x, y=y, fill=rgb(r,g,b, maxColorValue = 255)), alpha=0.75) + 
-  geom_path(data=polys_df, mapping=aes(x=x, y=y, group=objectid), color="black") +
-  geom_text(data=labels_df, aes(x=x, y=y, label=id1), color="black") +
-  scale_fill_identity() + 
-  scale_x_continuous(breaks=range(map_df$x)*c(1.01, 0.99), 
-                     labels=range(map_df$x), expand = c(0,0)) +
-  scale_y_continuous(breaks=range(map_df$y)*c(0.99, 1.01), 
-                     labels=range(map_df$y), expand = c(0,0)) +
-  theme(panel.grid=element_blank(), 
-        axis.title=element_blank(), 
-        plot.title=element_text(hjust=0.5))
-p1
-}
 
 plot_csc_site_nolabel <- function(background, sand_df, area_txt,
                             begin=start_date, ending=end_date, 
@@ -65,29 +32,6 @@ plot_csc_site_nolabel <- function(background, sand_df, area_txt,
           legend.justification=leg_pos[[area_txt]])
   p1
 }  
-
-plot_dca_background_noboundaries <- function(polys_df, external_points=NULL){
-  plot.range <- owensMaps::get_plot_range(polys_df, external_points)
-  map <- raster::stack("~/gis/owens/report_background.tif")
-  ext <- sp::SpatialPointsDataFrame(coords=cbind(x=plot.range$x, y=plot.range$y), 
-                                data=data.frame(id=1:2), 
-                                proj4string=raster::crs(map))
-  map_sub <- raster::crop(map, raster::extent(ext))
-  map_sub <- raster::aggregate(map_sub, 4)
-  map_df <- raster::as.data.frame(map_sub, xy=T)
-  map_df <- data.frame(x=map_df$x, y=map_df$y, r=map_df[ , 3], g=map_df[ , 4], 
-                       b=map_df[ , 5])
-  p1 <- ggplot(data=map_df) + coord_fixed() + theme_bw() +
-  geom_tile(aes(x=x, y=y, fill=rgb(r,g,b, maxColorValue = 255)), alpha=0.75) + 
-  scale_fill_identity() + 
-  scale_x_continuous(breaks=range(map_df$x)*c(1.01, 0.99), 
-                     labels=range(map_df$x), expand = c(0,0)) +
-  scale_y_continuous(breaks=range(map_df$y)*c(0.99, 1.01), 
-                     labels=range(map_df$y), expand = c(0,0)) +
-  theme(panel.grid=element_blank(), 
-        axis.title=element_blank())
-p1
-}
 
 plot_csc_site <- function(background, sand_df, area_txt,
                             begin=start_date, ending=end_date, 

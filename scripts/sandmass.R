@@ -26,9 +26,11 @@ csc_mass <- flux_df %>% filter(!invalid) %>% group_by(csc) %>%
     summarize(sand.mass=round(sum(sand_flux)*geom_adj, 1), 
               x=unique(easting_utm), y=unique(northing_utm)) %>% ungroup()
 csc_mass$objectid <- apply(cbind(csc_mass$x, csc_mass$y), 1, 
-                           owensMaps::point_in_dca, poly_df=area_polys)
+                           point_in_dca, poly_df=area_polys)
+csc_mass <- filter(csc_mass, objectid!='NULL')
+csc_mass$objectid <- unlist(csc_mass$objectid)
 csc_mass <- csc_mass %>% 
-    left_join(select(area_data, objectid, id1, id2, id3), by="objectid")
+    left_join(select(area_polys, objectid, id1, id2, id3), by="objectid")
 csc_mass$sand.mass <- sapply(csc_mass$sand.mass, 
                              function(x) ifelse(is.na(x), 0, x))
 if (area=='sfwcrft') mass_ce <- calc_mass_ce_sfwcrft(csc_mass)

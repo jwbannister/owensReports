@@ -66,17 +66,25 @@ highest.10 <- daily_summary %>% arrange(desc(pm10.delta))
 teom_groups <- unique(teom_locs$id3)
 pair_grobs <- vector(mode="list", length=length(teom_groups))
 names(pair_grobs) <- teom_groups
-for (i in teom_groups){
+(i in teom_groups){
     print(i)
-    sub_locs <- filter(teom_locs, id3==i)
-    extent_buffer <- expand.grid(data.frame(x=extendrange(r=sub_locs$x, f=0.2),
-                                            y=extendrange(r=sub_locs$y, f=0.2)))
-    sub_df <- filter(df1, id3==i)
     tmp_polys <- filter(area_polys, id3==i)
     tmp_labels <- filter(area_labels, id3==i) 
-    p1 <- plot_dca_background(tmp_polys, tmp_labels, extent_buffer)
+    p_range <- get_plot_range(tmp_polys)
+    sub_locs <- filter(teom_locs, id3==i)
+    plot_range_x <- range(c(p_range$x, sub_locs$x))
+    plot_range_y <- range(c(p_range$y, sub_locs$y))
+    extent <- data.frame(x=extendrange(r=plot_range_x, f=0.5),
+                         y=extendrange(r=plot_range_y, f=0.5))
+    background <- photo_background(extent$x[1], extent$x[2], 
+                                   extent$y[1], extent$y[2], 
+                                   zone="11N") +
+        geom_path(data=tmp_polys, mapping=aes(x=x, y=y, group=objectid), 
+                  color="black") +
+        geom_text(data=tmp_labels, aes(x=x, y=y, label=id1), color="black") 
+    sub_df <- filter(df1, id3==i)
     p2 <- teom_pair_plot(teom_locs=sub_locs, df1=df1[complete.cases(df1), ], 
-                         background=p1, start_date, end_date)
+                         background=background, start_date, end_date)
     fl <- tempfile()
     png(filename=fl, width=8, height=8, units="in", res=300)
     print(p2)

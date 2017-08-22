@@ -1,12 +1,11 @@
 load_all()
-# load("~/code/owensMaps/data/map_data.RData")
+load_all("~/code/aiRsci")
 library(tidyverse)
 library(lubridate)
-load_all("aiRsci")
 
 # add met station locations if needed for plot display
 met_loc <- NULL
-#met_loc <- data.frame(group=c('North', 'South'), deployment=c('1552', '1150'), 
+#met_loc <- data.frame(id3=c('North', 'South'), deployment=c('1552', '1150'), 
 #                        x=c(415077.3, 409413.6), y=c(4041263.2, 4019839.6))
 
 
@@ -39,11 +38,15 @@ for (i in names(flux_grobs)[!is.na(names(flux_grobs))]){
     } else{
         met_pts <- filter(met_loc, id3==i)
     }
-    p_range <- get_plot_range(tmp_polys)
-    background <- plot_dca_background(tmp_polys, tmp_labels,
-                                      external_points=met_pts) +
+    p_range <- get_plot_range(tmp_polys, external_points=met_pts)
+    background <- photo_background(p_range$x[1], p_range$x[2], 
+                                   p_range$y[1], p_range$y[2], 
+                                   zone="11N") +
         geom_point(data=tmp_partial, mapping=aes(x=x, y=y), size=8, 
-                   color="black")
+                   color="black") +
+        geom_path(data=tmp_polys, mapping=aes(x=x, y=y, group=objectid), 
+                  color="black") +
+        geom_text(data=tmp_labels, aes(x=x, y=y, label=id1), color="black") 
     legend_flux='Max. Daily Flux\n(g/cm^2/day)'
     top_flux <- if_else(area=='twb2', 1, 10)
     if (area %in% c('channel', 't1a1')){
