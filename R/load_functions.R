@@ -1,4 +1,14 @@
 
+csc_list <- list("brine"=seq(1700, 1799, 1), 
+                 "channel"=seq(1300, 1399, 1),
+                 "dwm"=seq(1900, 1999, 1), 
+                 "t1a1"=seq(1100, 1199, 1), 
+                 "twb2"=seq(1600, 1699, 1))
+if (start_date < "2016-08-01"){
+    csc_list$sfwcrft <- c(seq(1400, 1499, 1), seq(1500, 1599, 1)) 
+} else{
+    csc_list$sfwcrft <- c(seq(1800, 1899, 1))
+}
 
 load_sandflux <- function(area, start_date, end_date){
     query1 <- paste0("SELECT flux.datetime, idep.deployment AS csc, ",
@@ -21,7 +31,7 @@ load_sandflux <- function(area, start_date, end_date){
     flux_df
 }
 
-load_sites <- function(area){
+load_sites <- function(area, poly_df){
     query1 <- paste0("SELECT DISTINCT i.deployment AS csc, ",
                      "st_y(st_transform(i.geom, 26911)) AS y, ",
                      "st_x(st_transform(i.geom, 26911)) AS x ",
@@ -33,9 +43,6 @@ load_sites <- function(area){
     sites_df <- query_db("owenslake", query1)
     sites_df <- arrange(sites_df, csc)
     sites_df$objectid <- apply(cbind(sites_df$x, sites_df$y), 1, 
-                               owensMaps::point_in_dca, poly_df=owens$polygons)
-
-    sites_df <- sites_df %>% 
-        left_join(select(owens$data, objectid, dca), by="objectid")
+                               point_in_dca, poly_df=poly_df)
     sites_df <- sites_df[!duplicated(sites_df), ]
 }

@@ -1,5 +1,4 @@
 load_all()
-load("~/code/owensMaps/data/map_data.RData")
 library(tidyverse)
 library(lubridate)
 

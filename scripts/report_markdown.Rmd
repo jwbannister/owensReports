@@ -6,9 +6,6 @@ output:
 
 ```{r setup, include=FALSE}
 load_all("~/code/aiRsci")
-load_all("~/code/owensMaps")
-load_all("~/code/Roses")
-load("~/code/owensMaps/data/map_data.RData")
 load_all()
 library(pander)
 library(tidyverse)
@@ -23,30 +20,27 @@ flux_df$bad_coll <- sapply(flux_df$sand_flux, function(x)
                            if_else(x<0, TRUE, FALSE))
 flux_df[flux_df$sand_flux<=0, ]$sand_flux <- 0
 if (area=='sfwcrft'){
-    area_polys <- sfwcrft$polygons %>% rename(id1=treatment, id2=dca) %>%
+    area_polys <- pull_sfwcrft_polygons() %>% 
+        rename(id1=treatment, id2=dca) %>% 
         mutate(id3=id2)
-    area_data <- sfwcrft$data %>% rename(id1=treatment, id2=dca) %>%
+    area_labels <- pull_sfwcrft_labels() %>% 
+        rename(id1=treatment, id2=dca) %>%
         mutate(id3=id2)
-    area_labels <- sfwcrft$labels %>% rename(id1=treatment, id2=dca) %>%
-        mutate(id3=id2)
-} else if (area=='twb2'){
-    twb2 <- group_twb2_areas()
-    area_polys <- twb2$polygons %>% rename(id2=dca, id3=group) %>%
-        mutate(id1=id2)
-    area_data <- twb2$data %>% rename(id2=dca, id3=group) %>%
-        mutate(id1=id2)
-    area_labels <- twb2$labels %>% rename(id2=dca, id3=group) %>%
-        mutate(id1=id2)
 } else{
-    area_polys <- owens$polygons %>% rename(id2=dca) %>%
+    area_polys <- pull_onlake_polygons() %>% 
+        rename(id2=dca_name) %>%
         mutate(id1=id2, id3=id2)
-    area_data <- owens$data %>% rename(id2=dca) %>%
-        mutate(id1=id2, id3=id2)
+    area_labels <- pull_onlake_labels() %>% 
+        mutate(id2=label, id1=label, id3=label)
+    if (area=='twb2'){
+        area_polys <- group_twb2_areas(area_polys)
+        area_labels <- group_twb2_areas(area_labels)
+    }
 }
-full_locs <- load_sites(area)
-csc_locs <- select(full_locs, csc, x, y)
+csc_locs <- load_sites(area, area_polys)
+id_col <- ifelse(area=='sfwcrft', 'id1', 'id2')
 csc_locs$objectid <- apply(cbind(csc_locs$x, csc_locs$y), 1, 
-                           owensMaps::point_in_dca, poly_df=area_polys)
+                           point_in_dca, poly_df=area_polys)
 csc_locs$objectid <- sapply(csc_locs$objectid, function(x) ifelse(is.null(x), 
                                                                   NA, x))
 csc_locs <- csc_locs %>% 

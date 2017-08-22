@@ -1,7 +1,8 @@
 load_all()
-load("~/code/owensMaps/data/map_data.RData")
+# load("~/code/owensMaps/data/map_data.RData")
 library(tidyverse)
 library(lubridate)
+load_all("aiRsci")
 
 # add met station locations if needed for plot display
 met_loc <- NULL
@@ -38,6 +39,7 @@ for (i in names(flux_grobs)[!is.na(names(flux_grobs))]){
     } else{
         met_pts <- filter(met_loc, id3==i)
     }
+    p_range <- get_plot_range(tmp_polys)
     background <- plot_dca_background(tmp_polys, tmp_labels,
                                       external_points=met_pts) +
         geom_point(data=tmp_partial, mapping=aes(x=x, y=y), size=8, 
