@@ -66,7 +66,7 @@ highest.10 <- daily_summary %>% arrange(desc(pm10.delta))
 teom_groups <- unique(teom_locs$id3)
 pair_grobs <- vector(mode="list", length=length(teom_groups))
 names(pair_grobs) <- teom_groups
-(i in teom_groups){
+for (i in teom_groups){
     print(i)
     tmp_polys <- filter(area_polys, id3==i)
     tmp_labels <- filter(area_labels, id3==i) 
