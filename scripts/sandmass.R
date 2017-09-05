@@ -30,7 +30,7 @@ csc_mass$objectid <- apply(cbind(csc_mass$x, csc_mass$y), 1,
 csc_mass <- filter(csc_mass, objectid!='NULL')
 csc_mass$objectid <- unlist(csc_mass$objectid)
 csc_mass <- csc_mass %>% 
-    left_join(select(area_polys, objectid, id1, id2, id3), by="objectid")
+    left_join(distinct(select(area_polys, objectid, id1, id2, id3)), by="objectid")
 csc_mass$sand.mass <- sapply(csc_mass$sand.mass, 
                              function(x) ifelse(is.na(x), 0, x))
 if (area=='sfwcrft') mass_ce <- calc_mass_ce_sfwcrft(csc_mass)
@@ -51,8 +51,6 @@ if (change_file %in% change_list[ , 2]){
 }
 
 if (!(area %in% c('twb2', 'sfwcrft'))){
-    area_labels <- owens$labels %>% filter(objectid %in% csc_locs$objectid) %>% 
-        rename(id2=dca) %>% mutate(id1=id2, id3=id2)
     if (area=="dwm") area_labels <- move_dwm_labels(area_labels)
     if (area=="brine") area_labels <- move_brine_labels(area_labels)
     if (area=="channel") area_labels <- move_channel_labels(area_labels)
@@ -69,9 +67,16 @@ if (area=='sfwcrft'){
                               id2==i & flag=="Partial Data For Month")
         tmp_polys <- filter(area_polys, id2==i)
         tmp_labels <- filter(area_labels, id2==i)
-        background <- plot_dca_background(tmp_polys, tmp_labels) +
-            geom_point(data=tmp_partial, mapping=aes(x=x, y=y), size=8, 
-                       color="black")
+        plot_range_x <- range(tmp_polys$x)
+        plot_range_y <- range(tmp_polys$y)
+        extent <- data.frame(x=extendrange(r=plot_range_x, f=0.3),
+                             y=extendrange(r=plot_range_y, f=0.3))
+        background <- photo_background(extent$x[1], extent$x[2], 
+                                       extent$y[1], extent$y[2], 
+                                       zone="11N") +
+        geom_path(data=tmp_polys, mapping=aes(x=x, y=y, group=objectid), 
+                  color="black") +
+        geom_text(data=tmp_labels, aes(x=x, y=y, label=id1), color="black") 
         legend_mass='Total Mass (g)'
         tmp_mass <- filter(csc_mass, id2==i)
         p1 <- plot_csc_site(background, tmp_mass, i, 

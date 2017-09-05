@@ -119,7 +119,7 @@ for (i in index){
         colnames(tbl_mass) <- c("DCA", "Target\nWetness", 
                                 "Area Average\nSand Mass\\\n(g/month)", 
                                 "Control Efficiency")
-        pandoc.table(tbl_mass)
+        pandoc.table(as.data.frame(tbl_mass))
         cat(" \n\n## Daily Sand Flux Reduction Control Efficiency \n")
         tbl_flux <- flux_ce %>% filter(id2==i) 
         if (nrow(tbl_flux)==0){
@@ -135,7 +135,7 @@ for (i in index){
                                     "65% Target\\\nAvg. Daily Flux\\\n(g/cm^2/day)", 
                                     "CE\\\n(55% Target)",
                                     "CE\\\n(65% Target)") 
-            pandoc.table(tbl_flux, split.table=Inf)
+            pandoc.table(as.data.frame(tbl_flux), split.table=Inf)
         }
     } else{
         # tables for all other reports
@@ -190,7 +190,7 @@ for (i in index){
             if (nrow(tbl_flux)<16){
                 tbl_flux_list <- vector(mode='list', length=1)
                 tbl_flux_list[[1]] <- tbl_flux
-                pandoc.table(tbl_flux_list[[1]], split.table=Inf)
+                pandoc.table(as.data.frame(tbl_flux_list[[1]]), split.table=Inf)
             } else{
                 # if flux table is too large, break into sections
                 split_size <- 2 + (nrow(tbl_flux[-(1:17), ]) %/% 35)
@@ -205,7 +205,8 @@ for (i in index){
                         cat(" \n\n## Daily Sand Flux - Continued\n")
                     }
                     row.names(tbl_flux_list[[j]]) <- 1:nrow(tbl_flux_list[[j]])
-                    pandoc.table(tbl_flux_list[[j]], split.table=Inf)
+                    pandoc.table(as.data.frame(tbl_flux_list[[j]]), 
+                                 split.table=Inf)
                     if (j < split_size){
                         cat("<p style=\"page-break-after:always;\"></p> \n")
                     }
@@ -236,10 +237,10 @@ for (i in index){
                               nrow(tbl_flux_list[[split_size]]), 0)
         if (flux_length + nrow(tbl_mass) + comment_length < row_limit){
             cat(" \n\n## Monthly Sand Mass \n")
-            pandoc.table(tbl_mass)
+            pandoc.table(as.data.frame(tbl_mass))
         } else if (flux_length + nrow(tbl_mass) < row_limit){
             cat(" \n\n## Monthly Sand Mass \n")
-            pandoc.table(tbl_mass)
+            pandoc.table(as.data.frame(tbl_mass))
             cat("<p style=\"page-break-after:always;\"></p> \n")
             report_header(start_date, end_date, report_date, area)
             cat(ttle)
@@ -248,7 +249,7 @@ for (i in index){
             report_header(start_date, end_date, report_date, area)
             cat(ttle)
             cat(" \n\n## Monthly Sand Mass \n")
-            pandoc.table(tbl_mass)
+            pandoc.table(as.data.frame(tbl_mass))
         }
     }
     cat(" \n\n## Comments \n")
@@ -276,13 +277,13 @@ for (i in index){
             tbl_wet <- wetness %>% filter(id2==i)
             colnames(tbl_wet) <- c("DCA", "Target Wetness", 
                                    "SWIR Estimated\nWetness")
-            pandoc.table(tbl_wet)
+            pandoc.table(as.data.frame(tbl_wet))
             cat(" \n## Recorded Daily Precipitation in 30 Days Prior to SWIR Image \n")
             tbl_precip <- met_df %>% filter(id2==i, pre>0) %>%
                 select(date, pre)
             tbl_precip$date <- format(tbl_precip$date, "%m-%d-%Y")
             colnames(tbl_precip) <- c("Date", "Precip (mm)")
-            pandoc.table(tbl_precip)
+            pandoc.table(as.data.frame(tbl_precip))
             cat(" \n\n## Comments \n")
             cat(paste0(" \n SWIR image collected on ", 
                        month(swir_date, label=T, abbr=F), " ", day(swir_date), 
@@ -331,7 +332,7 @@ for (i in index){
             cat(ttle)
             cat(" \n## Paired TEOM PM10 Results\n")
         }
-        pandoc.table(tbl_pair, split.table=Inf)
+        pandoc.table(as.data.frame(tbl_pair), split.table=Inf)
         cat("<p style=\"page-break-after:always;\"></p> \n")
     }
     if (area=='twb2'& exists('surface_df')){
@@ -344,7 +345,7 @@ for (i in index){
                                    "Row Height (cm)", "RS/RH", 
                                    "Clod Coverage (%)")
         cat("<h6> \n")
-        pandoc.table(tbl_surface, split.table=Inf)
+        pandoc.table(as.data.frame(tbl_surface), split.table=Inf)
         cat("</h6> \n")
         cat(" \n\n## Comments \n")
         cat(" \n Sites not listed were not accessible due to flooding or were 

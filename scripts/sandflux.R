@@ -38,15 +38,18 @@ for (i in names(flux_grobs)[!is.na(names(flux_grobs))]){
     } else{
         met_pts <- filter(met_loc, id3==i)
     }
-    p_range <- get_plot_range(tmp_polys, external_points=met_pts)
-    background <- photo_background(p_range$x[1], p_range$x[2], 
-                                   p_range$y[1], p_range$y[2], 
-                                   zone="11N") +
-        geom_point(data=tmp_partial, mapping=aes(x=x, y=y), size=8, 
-                   color="black") +
+        plot_range_x <- range(c(met_pts$x, tmp_polys$x))
+        plot_range_y <- range(c(met_pts$y, tmp_polys$y))
+        extent <- data.frame(x=extendrange(r=plot_range_x, f=0.3),
+                             y=extendrange(r=plot_range_y, f=0.3))
+        background <- photo_background(extent$x[1], extent$x[2], 
+                                       extent$y[1], extent$y[2], 
+                                       zone="11N") +
         geom_path(data=tmp_polys, mapping=aes(x=x, y=y, group=objectid), 
                   color="black") +
         geom_text(data=tmp_labels, aes(x=x, y=y, label=id1), color="black") 
+        geom_point(data=tmp_partial, mapping=aes(x=x, y=y), size=8, 
+                   color="black") 
     legend_flux='Max. Daily Flux\n(g/cm^2/day)'
     top_flux <- if_else(area=='twb2', 1, 10)
     if (area %in% c('channel', 't1a1')){
