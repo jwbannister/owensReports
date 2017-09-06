@@ -98,10 +98,7 @@ for (i in index){
     if (area=='twb2'){
         ttle <- paste0(" \n# ", i, " TwB2 \n")
     } else{ 
-        ch_areas <- c("C1"="Channel Area North", "C2"="Channel Area South")
-        ttle <- ifelse(i %in% names(ch_areas), 
-                       paste0(" \n# ", ch_areas[i], " \n"), 
-                       paste0(" \n# ", i, " \n"))
+        ttle <- paste0(" \n# ", i, " \n")
     }
     report_header(start_date, end_date, report_date, area)
     cat(ttle)
@@ -171,12 +168,14 @@ for (i in index){
         } else{
             # all other reports are broken up by DCA
             tbl_flux <- full_daily %>% filter(id2==i, sand.flux>1) %>% 
-                arrange(date, sand.flux) %>% select(csc, date, sand.flux)
+                select(csc, date, sand.flux) %>% arrange(date, sand.flux) 
             tbl_flux <- tbl_flux[!duplicated(tbl_flux), ]
             colnames(tbl_flux) <- c("CSC Site", "Date", 
                                     "Sand Flux\\\n(g/cm<sup>2</sup>/day)") 
+            row.names(tbl_flux) <- NULL
             tbl_mass <- csc_mass %>% filter(id2==i) %>% select(csc, sand.mass)
             colnames(tbl_mass) <- c("CSC Site", "Sand Mass (g)") 
+            row.names(tbl_mass) <- NULL
         }
         split_size <- 1
         if (nrow(tbl_flux)==0){

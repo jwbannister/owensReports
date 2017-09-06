@@ -56,7 +56,7 @@ for (i in names(flux_grobs)[!is.na(names(flux_grobs))]){
     p1 <- plot_csc_site_label_nocolor(background, tmp_flux, i,  value_index=2, 
                                       value_max=top_flux, 
                                       plot_title="Monitoring Sites") +
-        scale_shape_manual(name=NULL, values=c(21)) +
+        scale_shape_manual(name=NULL, values=c(21))  +
         geom_point(data=tmp_bad, mapping=aes(x=x, y=y, size=flag), 
                    color="black") +
         scale_size_manual(name=NULL, values=c(4)) +

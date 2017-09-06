@@ -40,10 +40,10 @@ move_dwm_labels <- function(df1){
 }
 
 move_channel_labels <- function(df1){
-    df1[df1$id2=="C2", ]$x <- 410100 
-    df1[df1$id2=="C2", ]$y <- 4020800
-    df1[df1$id2=="C1", ]$x <- 411665
-    df1[df1$id2=="C1", ]$y <- 4022961
+    df1[df1$id2=="Channel South", ]$x <- 410100 
+    df1[df1$id2=="Channel South", ]$y <- 4020800
+    df1[df1$id2=="Channel North", ]$x <- 411665
+    df1[df1$id2=="Channel North", ]$y <- 4022961
     df1
 }
 
