@@ -13,6 +13,6 @@ if (nrow(df1)>0){
     surface_df <- df1 %>% left_join(select(area_polys, id2, id3), by="id2") %>%
         arrange(site)
     surface_df <- surface_df[!duplicated(surface_df), ]
+    surface_df <- surface_df[complete.cases(surface_df), ]
 }
-surface_df <- surface_df[complete.cases(surface_df), ]
 

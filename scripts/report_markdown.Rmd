@@ -16,7 +16,7 @@ panderOptions('table.alignment.rownames', 'left')
 
 ```{r load_data, include=FALSE}
 flux_df <- load_sandflux(area, start_date, end_date)
-flux_df$bad_coll <- sapply(flux_df$sand_flux, function(x) 
+flux_df$bad_coll <- sapply(flux_df$dwp_mass, function(x) 
                            if_else(x<0, TRUE, FALSE))
 flux_df[flux_df$sand_flux<=0, ]$sand_flux <- 0
 if (area=='sfwcrft'){

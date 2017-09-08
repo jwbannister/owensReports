@@ -12,7 +12,7 @@ if (start_date < "2016-08-01"){
 
 load_sandflux <- function(area, start_date, end_date){
     query1 <- paste0("SELECT flux.datetime, idep.deployment AS csc, ",
-                     "flux.sensit, flux.sand_flux, flux.ws_10m, ",
+                     "flux.sensit, flux.dwp_mass, flux.sand_flux, flux.ws_10m, ",
                      "COALESCE(flux.wd_10m, flux.resultant_wd_10m) ",
                      "AS wd_10m, st_y(st_transform(idep.geom, 26911)) ", 
                      "AS northing_utm, ",
@@ -21,7 +21,6 @@ load_sandflux <- function(area, start_date, end_date){
                      "FROM sandcatch.sandflux_5min flux ",
                      "JOIN instruments.deployments idep ",
                      "ON flux.csc_deployment_id=idep.deployment_id ",
-#                     "WHERE flux.invalid='FALSE' ",
                      "WHERE (datetime - '1 second'::interval)::date ",
                      "BETWEEN '", start_date, "'::date ",
                      "AND '", end_date, "'::date ",
