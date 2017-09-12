@@ -12,9 +12,6 @@ cross_walk <- data.frame(area_survey=c("T2-2", "T3-SW", "T3-SE", "T2-3", "T2-4",
                                        "T29-4", "T12-1"))
 df2 <- df1 %>% left_join(cross_walk, by="area_survey")
 if (nrow(df2)>0){
-    for (i in names(dca_rename)){
-        df2[df2$id2==i, ]$id2 <- dca_rename[[i]]
-    }
     surface_df <- df2 %>% left_join(select(area_polys, id2, id3), by="id2") %>%
         arrange(site)
     surface_df <- surface_df[!duplicated(surface_df), ]
