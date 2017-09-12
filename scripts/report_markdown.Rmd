@@ -41,7 +41,7 @@ csc_locs <- csc_locs %>%
     left_join(distinct(select(area_polys, objectid, id1, id2, id3)), by="objectid")
 csc_collections <- load_collections(area)
 index <- unique(csc_locs$id3)[!is.na(unique(csc_locs$id3))]
-if (area=='twb2' & month(start_date)==7) index <- c(index, "North")
+# if (area=='twb2' & month(start_date)==7) index <- c(index, "North")
 ```
 
 ```{r sandmass, include=FALSE}

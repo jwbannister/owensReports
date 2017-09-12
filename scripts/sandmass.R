@@ -35,8 +35,6 @@ csc_mass <- full_flux %>% filter(!invalid & !bad_coll) %>% group_by(csc) %>%
     left_join(csc_locs, by="csc") %>% ungroup()
 csc_mass <- filter(csc_mass, objectid!='NULL')
 csc_mass$objectid <- unlist(csc_mass$objectid)
-csc_mass <- csc_mass %>% 
-    left_join(distinct(select(area_polys, objectid, id1, id2, id3)), by="objectid")
 csc_mass$sand.mass <- sapply(csc_mass$sand.mass, 
                              function(x) ifelse(is.na(x), 0, x))
 if (area=='sfwcrft') mass_ce <- calc_mass_ce_sfwcrft(csc_mass)
