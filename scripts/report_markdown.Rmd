@@ -40,6 +40,8 @@ csc_locs <- load_sites(area, area_polys)
 csc_locs <- csc_locs %>% 
     left_join(distinct(select(area_polys, objectid, id1, id2, id3)), by="objectid")
 csc_collections <- load_collections(area)
+index <- unique(csc_locs$id3)[!is.na(unique(csc_locs$id3))]
+if (area=='twb2' & month(start_date)==7) index <- c(index, "North")
 ```
 
 ```{r sandmass, include=FALSE}
@@ -63,7 +65,6 @@ if (area=='sfwcrft') source("~/code/owensReports/scripts/sfwcrft_wetness.R")
 ```
 
 ```{r changes, include=FALSE}
-index <- unique(max_daily$id3)[!is.na(unique(max_daily$id3))]
 # One-off adjustments specific to report
 # CHECK EACH MONTH AND CHANGE IF NECESSARY
 change_file <- paste0(area, month(start_date), year(start_date), ".R")

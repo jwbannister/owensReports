@@ -16,9 +16,9 @@ max_daily <- daily_flux %>% group_by(csc) %>%
     summarize(max.daily.flux = round(max(sand.flux), 2), x=unique(x), y=unique(y),
               id2=unique(id2), id3=unique(id3), id1=unique(id1)) 
 
-flux_grobs <- vector(mode="list", length=length(unique(max_daily$id3)))
-names(flux_grobs) <- unique(max_daily$id3)
-for (i in names(flux_grobs)[!is.na(names(flux_grobs))]){
+flux_grobs <- vector(mode="list", length=length(index))
+names(flux_grobs) <- index
+for (i in index){
     print(i)
         tmp_bad <- filter(bad_collections, id3==i & flag=="No Data For Month")
         tmp_partial <- filter(bad_collections, 
