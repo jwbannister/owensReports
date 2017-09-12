@@ -174,7 +174,7 @@ for (i in index){
         } 
         if (area=='twb2'){
             # twb2 is broken up into regions
-            tbl_flux <- full_daily %>% filter(id3==i, sand.flux>0.5) %>% 
+            tbl_flux <- daily_flux %>% filter(id3==i, sand.flux>0.5) %>% 
                 select(id2, csc, date, sand.flux) %>% arrange(desc(sand.flux))
             colnames(tbl_flux) <- c("DCA", "CSC Site", "Date", 
                                     "Sand Flux\\\n(g/cm<sup>2</sup>/day)") 
@@ -183,7 +183,7 @@ for (i in index){
             colnames(tbl_mass) <- c("CSC Site", "Sand Mass (g)") 
         } else{
             # all other reports are broken up by DCA
-            tbl_flux <- full_daily %>% filter(id2==i, sand.flux>1) %>% 
+            tbl_flux <- daily_flux %>% filter(id2==i, sand.flux>1) %>% 
                 select(csc, date, sand.flux) %>% arrange(date, sand.flux) 
             tbl_flux <- tbl_flux[!duplicated(tbl_flux), ]
             colnames(tbl_flux) <- c("CSC Site", "Date", 
