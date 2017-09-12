@@ -1,26 +1,19 @@
-load_all()
-load_all("~/code/aiRsci")
-library(tidyverse)
-library(lubridate)
 
 # add met station locations if needed for plot display
 met_loc <- NULL
 #met_loc <- data.frame(id3=c('North', 'South'), deployment=c('1552', '1150'), 
 #                        x=c(415077.3, 409413.6), y=c(4041263.2, 4019839.6))
 
-
-expand_daily <- expand.grid(csc=unique(daily_flux$csc), 
-                            date=seq(start_date, end_date, "days"), 
-                            stringsAsFactors=FALSE)
-full_daily <- expand_daily %>%
-    left_join(select(daily_flux, -x, -y), by=c("csc", "date")) %>%
-    left_join(csc_locs, by="csc")
-full_daily[is.na(full_daily$sand.flux), "sand.flux"] <- 0
+daily_flux <- full_flux %>% filter(!(invalid | is.na(invalid)) & !bad_coll) %>%
+    group_by(csc, date=date(datetime)) %>% 
+    summarize(sand.flux=round(sum(sand_flux), 2)) %>%
+    left_join(csc_locs, by="csc") %>%
+    ungroup() 
 
 if (area=='sfwcrft') flux_ce <- calc_flux_ce_sfwcrft(full_daily)
 
-max_daily <- full_daily %>% group_by(csc) %>%
-    summarize(max.daily.flux = max(sand.flux), x=unique(x), y=unique(y),
+max_daily <- daily_flux %>% group_by(csc) %>%
+    summarize(max.daily.flux = round(max(sand.flux), 2), x=unique(x), y=unique(y),
               id2=unique(id2), id3=unique(id3), id1=unique(id1)) 
 
 flux_grobs <- vector(mode="list", length=length(unique(max_daily$id3)))

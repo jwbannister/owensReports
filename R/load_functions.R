@@ -40,8 +40,46 @@ load_sites <- function(area, poly_df){
                      "WHERE i.deployment ",
                      "IN ('", paste0(csc_list[[area]], collapse="', '"), "');")
     sites_df <- query_db("owenslake", query1)
-    sites_df <- arrange(sites_df, csc)
     sites_df$objectid <- apply(cbind(sites_df$x, sites_df$y), 1, 
                                point_in_dca, poly_df=poly_df)
     sites_df <- sites_df[!duplicated(sites_df), ]
+    sites_df <- filter(sites_df, objectid!='NULL')
+    sites_df$objectid <- unlist(sites_df$objectid)
+    sites_df
 }
+
+load_site_data <- function(area, start_date, end_date){
+    query1 <- paste0("SELECT sens.datetime, csc.csc_deployment_id, ", 
+           "csc.sensit_deployment_id, ic.deployment AS csc, ", 
+           "sens.sumpc, csc.dwp_mass, csc.sumpc_total, met.ws_10m, met.wd_10m, ",
+           "CASE ", 
+               "WHEN csc.sumpc_total > 0 ", 
+               "THEN (sens.sumpc / csc.sumpc_total) * (csc.dwp_mass / 1.2) ",
+               "ELSE 0 ",
+           "END AS sand_flux, ", 
+           "flags.is_tf_invalid(csc.sensit_deployment_id, 90, sens.datetime - '00:05:00'::interval, sens.datetime + '00:05:00'::interval) AS invalid ",
+           "FROM sensit.sensit_5min sens LEFT JOIN sandcatch.csc_summary csc ",
+           "ON csc.sensit_deployment_id = sens.deployment_id ", 
+           "AND sens.datetime > csc.start_datetime ", 
+           "AND sens.datetime <= csc.collection_datetime ", 
+           "JOIN instruments.deployments ic ",
+           "ON csc.csc_deployment_id=ic.deployment_id ",
+           "LEFT JOIN met.met_5min met ", 
+           "ON sens.datetime = met.datetime ", 
+           "AND met.deployment_id = csc.met_deployment_id ",
+           "WHERE ic.deployment IN ('", paste0(csc_list[[area]], collapse="', '"), "') ", 
+           "AND sens.datetime BETWEEN '", start_date, "'::date AND '", end_date, "'::date;")
+    query_db("owenslake", query1)
+}
+
+load_collections <- function(area){
+    query1 <- paste0("SELECT i.deployment, s.* FROM sandcatch.csc_summary s ", 
+                     "JOIN instruments.deployments i ",
+                     "ON s.csc_deployment_id=i.deployment_id ",
+                     "WHERE collection_datetime BETWEEN '", start_date, "'::date ", 
+                     "AND '", end_date %m+% months(1), "'::date ", 
+                     "AND i.deployment IN ('", 
+                     paste0(csc_list[[area]], collapse="', '"), "');") 
+    query_db("owenslake", query1)
+}
+

@@ -1,32 +1,38 @@
-load_all()
-library(tidyverse)
-library(lubridate)
 
-daily_flux <- flux_df %>% filter(!invalid) %>%
-    group_by(csc, date=date(datetime)) %>% 
-    summarize(sand.flux=round(sum(sand_flux), 2), 
-              x=unique(easting_utm), y=unique(northing_utm),
-              bad_coll=any(bad_coll)) %>% ungroup() 
+expand_flux <- expand.grid(csc=unique(flux_df$csc), 
+                   datetime=seq(as.POSIXct(paste0(start_date, "00:00:00")), 
+                            as.POSIXct(paste0(end_date, " 00:00:00")), 
+                                       as.difftime(5, units="mins"), 
+                   stringsAsFactors=FALSE))
+full_flux <- expand_flux %>%
+    left_join(flux_df, by=c("csc", "datetime"))
+full_flux[is.na(full_flux$sand_flux), "sand_flux"] <- 0
 
-bad_collections <- daily_flux %>% group_by(csc) %>%
-    summarize(x=unique(x), y=unique(y),
-              bad_count=sum(bad_coll), good_count=sum(!bad_coll)) %>%
+full_flux <- sqldf::sqldf(paste0("SELECT f.*, c.dwp_mass AS coll_mass ", 
+                           "FROM full_flux f ", 
+                           "LEFT JOIN csc_collections c ", 
+                           "ON f.csc=c.deployment ", 
+                           "AND f.datetime BETWEEN c.start_datetime ", 
+                           "AND c.collection_datetime"))
+full_flux$bad_coll <- sapply(full_flux$coll_mass, 
+                             function(x) ifelse(x<0, T, F))
+
+bad_collections <- full_flux %>% group_by(csc) %>%
+    summarize(bad_count=sum(bad_coll), good_count=sum(!bad_coll)) %>%
     filter(bad_count>0) %>%
-    left_join(select(csc_locs, csc, id1, id2, id3), by="csc")
+    left_join(csc_locs, by="csc")
 bad_collections$flag <- sapply(bad_collections$good_count, function(x) 
                                if_else(x==0, "No Data For Month", 
                                        "Partial Data For Month"))
+bad_collections <- bad_collections[!duplicated(bad_collections), ]
 if (nrow(bad_collections)>0){
-    bad_collections$flag <- factor(bad_collections$flag)
-}
+    bad_collections$flag <- factor(bad_collections$flag) }
 if (nrow(bad_collections)==0) bad_collections[1, 1:ncol(bad_collections)] <- 0
 
 geom_adj <- 1.2 #sandcatch geometry adjustment for sandflux calculation
-csc_mass <- flux_df %>% filter(!invalid) %>% group_by(csc) %>% 
-    summarize(sand.mass=round(sum(sand_flux)*geom_adj, 1), 
-              x=unique(easting_utm), y=unique(northing_utm)) %>% ungroup()
-csc_mass$objectid <- apply(cbind(csc_mass$x, csc_mass$y), 1, 
-                           point_in_dca, poly_df=area_polys)
+csc_mass <- full_flux %>% filter(!invalid & !bad_coll) %>% group_by(csc) %>% 
+    summarize(sand.mass=round(sum(sand_flux)*geom_adj, 1)) %>%
+    left_join(csc_locs, by="csc") %>% ungroup()
 csc_mass <- filter(csc_mass, objectid!='NULL')
 csc_mass$objectid <- unlist(csc_mass$objectid)
 csc_mass <- csc_mass %>% 
@@ -34,21 +40,6 @@ csc_mass <- csc_mass %>%
 csc_mass$sand.mass <- sapply(csc_mass$sand.mass, 
                              function(x) ifelse(is.na(x), 0, x))
 if (area=='sfwcrft') mass_ce <- calc_mass_ce_sfwcrft(csc_mass)
-
-# One-off adjustments specific to report
-# CHECK EACH MONTH AND CHANGE IF NECESSARY
-change_file <- paste0(area, month(start_date), year(start_date), ".R")
-gdrive_change <- system(paste0(getwd(), "/gdrive list ", 
-                  "-q \"'0B8qHESXOhs-DX29FTnVIa0xielU' in parents\""), intern=T)  
-change_fl <- tempfile()
-write.table(gdrive_change, file=change_fl, quote=F, row.names=F, col.names=F)
-change_list <- read.table(change_fl, header=F, skip=1)
-if (change_file %in% change_list[ , 2]){
-    index <- which(change_list[ , 2]==change_file)
-    system(paste0(getwd(), "/gdrive download --path ", tempdir(), " ", 
-                  change_list[ , 1][index]))
-    source(paste0(tempdir(), "/", change_file))
-}
 
 if (!(area %in% c('twb2', 'sfwcrft'))){
     if (area=="dwm") area_labels <- move_dwm_labels(area_labels)

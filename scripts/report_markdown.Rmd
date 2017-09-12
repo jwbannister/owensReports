@@ -9,15 +9,14 @@ load_all("~/code/aiRsci")
 load_all()
 library(pander)
 library(tidyverse)
+library(lubridate)
 panderOptions('knitr.auto.asis', FALSE)
 panderOptions('keep.line.breaks', TRUE)
 panderOptions('table.alignment.rownames', 'left')
 ```
 
 ```{r load_data, include=FALSE}
-flux_df <- load_sandflux(area, start_date, end_date)
-flux_df$bad_coll <- sapply(flux_df$dwp_mass, function(x) 
-                           if_else(x<0, TRUE, FALSE))
+flux_df <- load_site_data(area, start_date, end_date)
 flux_df[flux_df$sand_flux<=0, ]$sand_flux <- 0
 if (area=='sfwcrft'){
     area_polys <- pull_sfwcrft_polygons() %>% 
@@ -38,10 +37,9 @@ if (area=='sfwcrft'){
     }
 }
 csc_locs <- load_sites(area, area_polys)
-csc_locs <- filter(csc_locs, objectid!='NULL')
-csc_locs$objectid <- unlist(csc_locs$objectid)
 csc_locs <- csc_locs %>% 
-    left_join(select(area_polys, objectid, id1, id2, id3), by="objectid")
+    left_join(distinct(select(area_polys, objectid, id1, id2, id3)), by="objectid")
+csc_collections <- load_collections(area)
 ```
 
 ```{r sandmass, include=FALSE}
@@ -64,8 +62,25 @@ if (area=='twb2') source("~/code/owensReports/scripts/twb2_surface.R")
 if (area=='sfwcrft') source("~/code/owensReports/scripts/sfwcrft_wetness.R")
 ```
 
-```{r plot_image, include=FALSE}
+```{r changes, include=FALSE}
 index <- unique(max_daily$id3)[!is.na(unique(max_daily$id3))]
+# One-off adjustments specific to report
+# CHECK EACH MONTH AND CHANGE IF NECESSARY
+change_file <- paste0(area, month(start_date), year(start_date), ".R")
+gdrive_change <- system(paste0(getwd(), "/gdrive list ", 
+                  "-q \"'0B8qHESXOhs-DX29FTnVIa0xielU' in parents\""), intern=T)  
+change_fl <- tempfile()
+write.table(gdrive_change, file=change_fl, quote=F, row.names=F, col.names=F)
+change_list <- read.table(change_fl, header=F, skip=1)
+if (change_file %in% change_list[ , 2]){
+    ind <- which(change_list[ , 2]==change_file)
+    system(paste0(getwd(), "/gdrive download --path ", tempdir(), " ", 
+                  change_list[ , 1][ind]))
+    source(paste0(tempdir(), "/", change_file))
+}
+```
+
+```{r plot_image, include=FALSE}
 img_files <- vector(mode="character", length=length(index))
 names(img_files) <- index
 pair_img_files <- img_files
