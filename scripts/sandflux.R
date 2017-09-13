@@ -43,6 +43,10 @@ for (i in index){
         geom_text(data=tmp_labels, aes(x=x, y=y, label=id1), color="black") 
         geom_point(data=tmp_partial, mapping=aes(x=x, y=y), size=8, 
                    color="black") 
+        label_space_x <- 
+            diff(ggplot_build(background)[[2]]$panel_ranges[[1]]$x.range)
+        label_space_y <- 
+            diff(ggplot_build(background)[[2]]$panel_ranges[[1]]$y.range)
     legend_flux='Max. Daily Flux\n(g/cm^2/day)'
     top_flux <- if_else(area=='twb2', 1, 10)
     if (area %in% c('channel', 't1a1')){
@@ -63,6 +67,8 @@ for (i in index){
         scale_shape_manual(name=NULL, values=c(21)) +
         geom_point(data=tmp_bad, mapping=aes(x=x, y=y, size=flag), 
                    color="black") +
+        ggrepel::geom_label_repel(data=tmp_bad, mapping=aes(x=x, y=y, label=csc), 
+                   nudge_x=label_space_x/25, nudge_y=label_space_y/45) +
         scale_size_manual(name=NULL, values=c(4)) +
         guides(color=guide_colorbar(order=1), shape=guide_legend(order=2), 
                size=guide_legend(order=3))

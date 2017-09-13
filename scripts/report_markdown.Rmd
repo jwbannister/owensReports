@@ -41,7 +41,6 @@ csc_locs <- csc_locs %>%
     left_join(distinct(select(area_polys, objectid, id1, id2, id3)), by="objectid")
 csc_collections <- load_collections(area)
 index <- unique(csc_locs$id3)[!is.na(unique(csc_locs$id3))]
-# if (area=='twb2' & month(start_date)==7) index <- c(index, "North")
 ```
 
 ```{r sandmass, include=FALSE}
@@ -85,6 +84,7 @@ if (change_file %in% change_list[ , 2]){
 img_files <- vector(mode="character", length=length(index))
 names(img_files) <- index
 pair_img_files <- img_files
+surface_img_files <- img_files
 for (i in index){
     img_files[[i]] <- paste0(tempfile(), ".png")
     if (area=='sfwcrft'){
@@ -103,6 +103,15 @@ for (i in index){
         pair_img_files[[i]] <- paste0(tempfile(), ".png")
         png(filename=pair_img_files[[i]], width=8, height=4, units="in", res=300)
         gridExtra::grid.arrange(pair_grobs[[i]], ncol=2)
+        dev.off()
+    }
+    if (area=='twb2'){
+        # twb2 report also shows surface data trend plots
+        surface_img_files[[i]] <- paste0(tempfile(), ".png")
+        png(filename=surface_img_files[[i]], width=8, height=8, units="in", res=300)
+        gridExtra::grid.arrange(surface_grobs[[i]]$rh_plot, 
+                                surface_grobs[[i]]$rsrh_plot, 
+                                surface_grobs[[i]]$clods_plot, ncol=2)
         dev.off()
     }
 }
@@ -326,14 +335,6 @@ for (i in index){
         cat(" \n## Paired TEOM PM10 Results\n")
         cat(paste0("![](", pair_img_files[[i]], ")"))
         cat(" \n\n\n\n")
-        # COMMENT FOR NORTH TWB2 JUNE REPORT ONLY - REMOVE AFTER
-        if (start_date=='2017-06-01' & i=='North'){
-            cat(" \n\n## Comments \n")
-            cat(" \n Sites at T29-4 Dust Control Areas were previously removed 
-                due to tillage maintenance activities.\n")
-            cat(" \n No surface survey measurements were taken in June 2017 
-                because the area is undergoing tillage maintenance.\n")
-        }
         tbl_pair <- daily_summary %>% filter(id3==i, pm10.delta>0) %>% 
             arrange(desc(pm10.delta)) %>% select(-id3, -status)
         colnames(tbl_pair) <- c("Date", 
@@ -354,7 +355,7 @@ for (i in index){
         report_header(start_date, end_date, report_date, area)
         cat(ttle)
         cat(" \n## Surface Survey Data\n")
-        tbl_surface <- surface_df %>% filter(id3==i) %>% 
+        tbl_surface <- surface_df[[i]] %>% 
             select(id2, site, rs_avg, rh_avg, rs_rh, clods)
         colnames(tbl_surface) <- c("DCA", "Site", "Row Spacing (cm)", 
                                    "Row Height (cm)", "RS/RH", 
@@ -365,6 +366,11 @@ for (i in index){
         cat(" \n\n## Comments \n")
         cat(" \n Sites not listed were not accessible due to flooding or were 
             undergoing tillage maintenance.\n")
+        cat("<p style=\"page-break-after:always;\"></p> \n")
+        report_header(start_date, end_date, report_date, area)
+        cat(ttle)
+        cat(" \n## Surface Survey Data Trend Plots\n")
+        cat(paste0("![](", surface_img_files[[i]], ")"))
         cat("<p style=\"page-break-after:always;\"></p> \n")
     }
 }

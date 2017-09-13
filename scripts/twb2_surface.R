@@ -1,20 +1,118 @@
 yr.mo <- paste0(substr(year(start_date), 3, 4), "_", 
                 sprintf("%02i", month(start_date)))
-query1 <- paste0("SELECT site, area AS area_survey, rs_avg, rh_avg, rs_rh, clods ", 
-                 "FROM field_data.twb2_qa_survey ", 
-                 "WHERE yr_mo='", yr.mo, "';")
+query1 <- paste0("SELECT site, area AS area_survey, rs_avg, rh_avg, rs_rh, ",
+                 "clods, yr_mo ", 
+                 "FROM field_data.twb2_qa_survey;") 
 df1 <-query_db("owenslake", query1)
 cross_walk <- data.frame(area_survey=c("T2-2", "T3-SW", "T3-SE", "T2-3", "T2-4", 
-                                      "T3-NE", "T5-4", "T16", "T24-Add", "T29", 
-                                      "T12"), 
+                                       "T3-NE", "T5-4", "T16", "T24-Add", "T29", 
+                                       "T12"), 
                          id2=c("T2-2", "T3SW", "T3SE", "T2-3", "T2-4", 
-                                       "T3NE", "T5-4", "T16", "T24 Addition", 
-                                       "T29-4", "T12-1"))
-df2 <- df1 %>% left_join(cross_walk, by="area_survey")
+                               "T3NE", "T5-4", "T16", "T24 Addition", 
+                               "T29-4", "T12-1"))
+df2 <- df1 %>% left_join(cross_walk, by="area_survey") %>%
+    left_join(select(area_polys, id2, id3), by="id2") %>%
+    arrange(site)
+df2$index_date <- sapply(df2$yr_mo, 
+                         function(x) paste0("20", substr(x, 1, 2), "-", 
+                                            substr(x, 4, 5), "-01"))
+df2$index_date <- as.Date(df2$index_date)
+df2 <- df2[!duplicated(df2), ]
+df2 <- filter(df2, !(is.na(rs_avg) & is.na(rh_avg) & is.na(rs_rh) & is.na(clods)))
+
 if (nrow(df2)>0){
-    surface_df <- df2 %>% left_join(select(area_polys, id2, id3), by="id2") %>%
-        arrange(site)
-    surface_df <- surface_df[!duplicated(surface_df), ]
-    surface_df <- surface_df[complete.cases(surface_df), ]
+    surface_df <- vector(mode='list', length=length(index))
+    names(surface_df) <- index
+    surface_grobs <- vector(mode='list', length=length(index))
+    names(surface_grobs) <- index
+    for (i in index){
+        surface_df[[i]] <- filter(df2, id3==i & 
+                                  month(index_date)==month(start_date) &
+                                  year(index_date)==year(start_date))
+        plot_data <- filter(df2, id3==i) %>%
+            group_by(id2, id3, index_date) %>%
+            summarize(rs=mean(rs_avg, na.rm=T), rh=mean(rh_avg, na.rm=T), 
+                      rs_rh1=mean(rs_rh, na.rm=T), clods1=mean(clods, na.rm=T)) %>%
+            arrange(id2, index_date) %>% ungroup() 
+        comply_lines <- data.frame(x=rep(min(plot_data$index_date), 3), 
+                                   rh=c(29, 35, 41), rs_rh=c(9.5, 11, 12.5), 
+                                   clods=c(55, NA, 65), 
+                                   label=c("Reflood", "Maintain", "Compliance"))
+        label_data <- plot_data %>% group_by(id2) %>%
+            filter(index_date==max(index_date))
+        fl <- tempfile()
+        png(filename=fl, width=8, height=8, units="in", res=300)
+        print(
+              ggplot(plot_data, aes(x=index_date, y=rh)) + 
+                  geom_path(aes(color=id2)) +
+                  ggrepel::geom_label_repel(data=label_data, 
+                                            mapping=aes(x=index_date, y=rh, 
+                                                        label=id2), 
+                                            min.segment.length=unit(0, "lines"), 
+                                            nudge_x=5) +
+              ylab("Ridge Height (cm)") + xlab("") + 
+              geom_hline(yintercept=40, color="grey", linetype="longdash") +
+              geom_hline(yintercept=30, color="grey", linetype="longdash") +
+              geom_label(data=comply_lines, mapping=aes(x=x, y=rh, label=label, 
+                                                        fill=label), 
+                         hjust=0, alpha=0.5) +
+              scale_fill_manual(guide="none", values=c("darkgreen", "dodgerblue", 
+                                                       "firebrick")) +
+              ggtitle("Average Ridge Height") +
+              theme(plot.background=element_blank(), 
+                    legend.position="none")
+              )
+        dev.off()
+        tmp_plot <- png::readPNG(fl)
+        surface_grobs[[i]]$rh_plot <- grid::rasterGrob(tmp_plot, interpolate=TRUE)
+        png(filename=fl, width=8, height=8, units="in", res=300)
+        print(
+              ggplot(plot_data, aes(x=index_date, y=rs_rh1)) + 
+                  geom_path(aes(color=id2)) +
+                  ggrepel::geom_label_repel(data=label_data, 
+                                            mapping=aes(x=index_date, y=rs_rh1, 
+                                                        label=id2), 
+                                            min.segment.length=unit(0, "lines"), 
+                                            nudge_x=5) +
+              ylab("RS/RH Ratio") + xlab("") +
+              geom_hline(yintercept=10, color="grey", linetype="longdash") +
+              geom_hline(yintercept=12, color="grey", linetype="longdash") +
+              geom_label(data=comply_lines, mapping=aes(x=x, y=rs_rh, label=label, 
+                                                        fill=label), 
+                         hjust=0, alpha=0.5) +
+              scale_fill_manual(guide="none", values=c("darkgreen", "dodgerblue", 
+                                                       "firebrick")) +
+              ggtitle("Average Ridge Spacing / Ridge Height Ratio") +
+              theme(plot.background=element_blank(), 
+                    legend.position="none")
+              )
+        dev.off()
+        tmp_plot <- png::readPNG(fl)
+        surface_grobs[[i]]$rsrh_plot <- grid::rasterGrob(tmp_plot, interpolate=TRUE)
+        png(filename=fl, width=8, height=8, units="in", res=300)
+        print(
+              surface_grobs[[i]]$clods_plot <- ggplot(plot_data, 
+                                                      aes(x=index_date, y=clods1)) + 
+              geom_path(aes(color=id2)) +
+              ggrepel::geom_label_repel(data=label_data, 
+                                        mapping=aes(x=index_date, y=clods1, 
+                                                    label=id2), 
+                                        min.segment.length=unit(0, "lines"), 
+                                        nudge_x=5) +
+              ylab("Clod Cover (%)") + xlab("") +
+              geom_hline(yintercept=60, color="grey", linetype="longdash") +
+              geom_label(data=comply_lines, mapping=aes(x=x, y=clods, label=label, 
+                                                        fill=label), 
+                         hjust=0, alpha=0.5) +
+              scale_fill_manual(guide="none", values=c("darkgreen", "dodgerblue", 
+                                                       "firebrick")) +
+              ggtitle("Average Clod Coverage") +
+              theme(plot.background=element_blank(), 
+                    legend.position="none")
+              )
+        dev.off()
+        tmp_plot <- png::readPNG(fl)
+        surface_grobs[[i]]$clods_plot <- grid::rasterGrob(tmp_plot, interpolate=TRUE)
+    }
 }
 
