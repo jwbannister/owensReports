@@ -17,6 +17,14 @@ full_flux <- sqldf::sqldf(paste0("SELECT f.*, c.dwp_mass AS coll_mass ",
 full_flux$bad_coll <- sapply(full_flux$coll_mass, 
                              function(x) ifelse(x<0, T, F))
 
+last_coll <- csc_collections %>% group_by(deployment) %>%
+    filter(collection_datetime==max(collection_datetime)) %>%
+    select(csc=deployment, dwp_mass)
+last_coll$comment <- sapply(last_coll$dwp_mass, 
+                            function(x) ifelse(x==-999, "Flooded", 
+                                               ifelse(x==-888, 
+                                                      "No Sample Available", 
+                                                      NA)))
 bad_collections <- full_flux %>% group_by(csc) %>%
     summarize(bad_count=sum(bad_coll), good_count=sum(!bad_coll)) %>%
     filter(bad_count>0) %>%
@@ -28,15 +36,19 @@ bad_collections <- bad_collections[!duplicated(bad_collections), ]
 if (nrow(bad_collections)>0){
     bad_collections$flag <- factor(bad_collections$flag) }
 if (nrow(bad_collections)==0) bad_collections[1, 1:ncol(bad_collections)] <- 0
+bad_collections <- bad_collections %>% 
+    left_join(select(last_coll, -dwp_mass), by="csc")
 
 geom_adj <- 1.2 #sandcatch geometry adjustment for sandflux calculation
-csc_mass <- full_flux %>% filter(!invalid & !bad_coll) %>% group_by(csc) %>% 
+csc_mass <- full_flux %>% filter(!invalid) %>% group_by(csc) %>% 
     summarize(sand.mass=round(sum(sand_flux)*geom_adj, 1)) %>%
     left_join(csc_locs, by="csc") %>% ungroup()
 csc_mass <- filter(csc_mass, objectid!='NULL')
 csc_mass$objectid <- unlist(csc_mass$objectid)
 csc_mass$sand.mass <- sapply(csc_mass$sand.mass, 
                              function(x) ifelse(is.na(x), 0, x))
+csc_mass <- csc_mass %>% 
+    left_join(select(bad_collections, csc, flag, comment), by="csc")
 if (area=='sfwcrft') mass_ce <- calc_mass_ce_sfwcrft(csc_mass)
 
 if (!(area %in% c('twb2', 'sfwcrft'))){

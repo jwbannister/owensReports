@@ -188,8 +188,15 @@ for (i in index){
             colnames(tbl_flux) <- c("DCA", "CSC Site", "Date", 
                                     "Sand Flux\\\n(g/cm<sup>2</sup>/day)") 
             tbl_mass <- csc_mass %>% filter(id3==i) %>% 
-                select(csc, sand.mass) %>% arrange(csc)
+                select(csc, sand.mass, comment) %>% arrange(csc)
+            for (row_num in 1:nrow(tbl_mass)){
+                if(!is.na(tbl_mass$comment[row_num])){
+                    tbl_mass$sand.mass[row_num] <- tbl_mass$comment[row_num]
+                }
+            }
+            tbl_mass <- select(tbl_mass, -comment)
             colnames(tbl_mass) <- c("CSC Site", "Sand Mass (g)") 
+            row.names(tbl_mass) <- NULL
         } else{
             # all other reports are broken up by DCA
             tbl_flux <- daily_flux %>% filter(id2==i, sand.flux>1) %>% 
@@ -198,7 +205,14 @@ for (i in index){
             colnames(tbl_flux) <- c("CSC Site", "Date", 
                                     "Sand Flux\\\n(g/cm<sup>2</sup>/day)") 
             row.names(tbl_flux) <- NULL
-            tbl_mass <- csc_mass %>% filter(id2==i) %>% select(csc, sand.mass)
+            tbl_mass <- csc_mass %>% filter(id2==i) %>% 
+                select(csc, sand.mass, comment) %>% arrange(csc)
+            for (row_num in 1:nrow(tbl_mass)){
+                if(!is.na(tbl_mass$comment[row_num])){
+                    tbl_mass$sand.mass[row_num] <- tbl_mass$comment[row_num]
+                }
+            }
+            tbl_mass <- select(tbl_mass, -comment)
             colnames(tbl_mass) <- c("CSC Site", "Sand Mass (g)") 
             row.names(tbl_mass) <- NULL
         }
