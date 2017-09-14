@@ -189,9 +189,11 @@ for (i in index){
                                     "Sand Flux\\\n(g/cm<sup>2</sup>/day)") 
             tbl_mass <- csc_mass %>% filter(id3==i) %>% 
                 select(csc, sand.mass, comment) %>% arrange(csc)
-            for (row_num in 1:nrow(tbl_mass)){
-                if(!is.na(tbl_mass$comment[row_num])){
-                    tbl_mass$sand.mass[row_num] <- tbl_mass$comment[row_num]
+            if (nrow(tbl_mass)>0){
+                for (row_num in 1:nrow(tbl_mass)){
+                    if(!is.na(tbl_mass$comment[row_num])){
+                        tbl_mass$sand.mass[row_num] <- tbl_mass$comment[row_num]
+                    }
                 }
             }
             tbl_mass <- select(tbl_mass, -comment)
@@ -207,9 +209,11 @@ for (i in index){
             row.names(tbl_flux) <- NULL
             tbl_mass <- csc_mass %>% filter(id2==i) %>% 
                 select(csc, sand.mass, comment) %>% arrange(csc)
-            for (row_num in 1:nrow(tbl_mass)){
-                if(!is.na(tbl_mass$comment[row_num])){
-                    tbl_mass$sand.mass[row_num] <- tbl_mass$comment[row_num]
+            if (nrow(tbl_mass)>0){
+                for (row_num in 1:nrow(tbl_mass)){
+                    if(!is.na(tbl_mass$comment[row_num])){
+                        tbl_mass$sand.mass[row_num] <- tbl_mass$comment[row_num]
+                    }
                 }
             }
             tbl_mass <- select(tbl_mass, -comment)
