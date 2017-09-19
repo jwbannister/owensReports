@@ -1,7 +1,8 @@
 
 expand_flux <- expand.grid(csc=unique(flux_df$csc), 
-                   datetime=seq(as.POSIXct(paste0(start_date, "00:00:00")), 
-                            as.POSIXct(paste0(end_date, " 00:00:00")), 
+                   datetime=seq(as.POSIXct(paste0(start_date, "00:05:00")), 
+                            as.POSIXct(paste0(end_date %m+% days(1), 
+                                              " 00:00:00")), 
                                        as.difftime(5, units="mins"), 
                    stringsAsFactors=FALSE))
 full_flux <- expand_flux %>%

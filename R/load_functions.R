@@ -67,8 +67,10 @@ load_site_data <- function(area, start_date, end_date){
            "LEFT JOIN met.met_5min met ", 
            "ON sens.datetime = met.datetime ", 
            "AND met.deployment_id = csc.met_deployment_id ",
-           "WHERE ic.deployment IN ('", paste0(csc_list[[area]], collapse="', '"), "') ", 
-           "AND sens.datetime BETWEEN '", start_date, "'::date AND '", end_date, "'::date;")
+           "WHERE ic.deployment IN ('", 
+           paste0(csc_list[[area]], collapse="', '"), "') ", 
+           "AND sens.datetime >= '", start_date %m+% minutes(5), "'::timestamp ",
+           "AND sens.datetime <= '", end_date %m+% days(1), "'::timestamp;")
     query_db("owenslake", query1)
 }
 
