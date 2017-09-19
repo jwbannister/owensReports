@@ -20,6 +20,9 @@ df2$index_date <- as.Date(df2$index_date)
 df2 <- df2[!duplicated(df2), ]
 df2 <- filter(df2, !(is.na(rs_avg) & is.na(rh_avg) & is.na(rs_rh) & is.na(clods)))
 
+plot_end <- as.Date(paste0(year(start_date), "-", month(start_date), "-01"))
+plot_start <- plot_end %m-% years(1)
+
 if (nrow(df2)>0){
     surface_df <- vector(mode='list', length=length(index))
     names(surface_df) <- index
@@ -29,7 +32,7 @@ if (nrow(df2)>0){
         surface_df[[i]] <- filter(df2, id3==i & 
                                   month(index_date)==month(start_date) &
                                   year(index_date)==year(start_date))
-        plot_data <- filter(df2, id3==i) %>%
+        plot_data <- filter(df2, id3==i & index_date>=start_date %m-% years(1)) %>%
             group_by(id2, id3, index_date) %>%
             summarize(rs=mean(rs_avg, na.rm=T), rh=mean(rh_avg, na.rm=T), 
                       rs_rh1=mean(rs_rh, na.rm=T), clods1=mean(clods, na.rm=T)) %>%
@@ -51,6 +54,7 @@ if (nrow(df2)>0){
                                             min.segment.length=unit(0, "lines"), 
                                             nudge_x=5) +
               ylab("Ridge Height (cm)") + xlab("") + 
+              xlim(c(plot_start, plot_end)) +
               geom_hline(yintercept=40, color="grey", linetype="longdash") +
               geom_hline(yintercept=30, color="grey", linetype="longdash") +
               geom_label(data=comply_lines, mapping=aes(x=x, y=rh, label=label, 
@@ -75,6 +79,7 @@ if (nrow(df2)>0){
                                             min.segment.length=unit(0, "lines"), 
                                             nudge_x=5) +
               ylab("RS/RH Ratio") + xlab("") +
+              xlim(c(plot_start, plot_end)) +
               geom_hline(yintercept=10, color="grey", linetype="longdash") +
               geom_hline(yintercept=12, color="grey", linetype="longdash") +
               geom_label(data=comply_lines, mapping=aes(x=x, y=rs_rh, label=label, 
@@ -100,6 +105,7 @@ if (nrow(df2)>0){
                                         min.segment.length=unit(0, "lines"), 
                                         nudge_x=5) +
               ylab("Clod Cover (%)") + xlab("") +
+              xlim(c(plot_start, plot_end)) +
               geom_hline(yintercept=60, color="grey", linetype="longdash") +
               geom_label(data=comply_lines, mapping=aes(x=x, y=clods, label=label, 
                                                         fill=label), 
