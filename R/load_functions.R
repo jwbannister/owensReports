@@ -41,7 +41,7 @@ load_sites <- function(area, poly_df){
                      "IN ('", paste0(csc_list[[area]], collapse="', '"), "');")
     sites_df <- query_db("owenslake", query1)
     sites_df$objectid <- apply(cbind(sites_df$x, sites_df$y), 1, 
-                               point_in_dca, poly_df=poly_df)
+                               point_in_dca, poly_df=poly_df, return_dca=F)
     sites_df <- sites_df[!duplicated(sites_df), ]
     sites_df <- filter(sites_df, objectid!='NULL')
     sites_df$objectid <- unlist(sites_df$objectid)

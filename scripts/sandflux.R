@@ -4,8 +4,9 @@ met_loc <- NULL
 #met_loc <- data.frame(id3=c('North', 'South'), deployment=c('1552', '1150'), 
 #                        x=c(415077.3, 409413.6), y=c(4041263.2, 4019839.6))
 
-daily_flux <- full_flux %>% filter(!(invalid | is.na(invalid)) & !bad_coll) %>%
-    group_by(csc, date=date(datetime)) %>% 
+daily_flux <- full_flux %>% filter((!invalid | is.na(invalid)) & 
+                                   (!bad_coll | is.na(bad_coll))) %>%
+    group_by(csc, date=date(datetime %m-% seconds(1))) %>% 
     summarize(sand.flux=round(sum(sand_flux), 2)) %>%
     left_join(csc_locs, by="csc") %>%
     ungroup() 

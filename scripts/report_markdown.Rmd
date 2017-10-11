@@ -183,7 +183,7 @@ for (i in index){
         } 
         if (area=='twb2'){
             # twb2 is broken up into regions
-            tbl_flux <- daily_flux %>% filter(id3==i, sand.flux>0.5) %>% 
+            tbl_flux <- daily_flux %>% filter(id3==i, sand.flux>=0.5) %>% 
                 select(id2, csc, date, sand.flux) %>% arrange(desc(sand.flux))
             colnames(tbl_flux) <- c("DCA", "CSC Site", "Date", 
                                     "Sand Flux\\\n(g/cm<sup>2</sup>/day)") 
@@ -201,7 +201,7 @@ for (i in index){
             row.names(tbl_mass) <- NULL
         } else{
             # all other reports are broken up by DCA
-            tbl_flux <- daily_flux %>% filter(id2==i, sand.flux>1) %>% 
+            tbl_flux <- daily_flux %>% filter(id2==i, sand.flux>=1) %>% 
                 select(csc, date, sand.flux) %>% arrange(date, sand.flux) 
             tbl_flux <- tbl_flux[!duplicated(tbl_flux), ]
             colnames(tbl_flux) <- c("CSC Site", "Date", 
@@ -222,12 +222,16 @@ for (i in index){
         }
         split_size <- 1
         if (nrow(tbl_flux)==0){
-            cat(" \nNo days with measured sand flux > 1.0 g/cm<sup>2</sup>/day. \n")
+            if (area=='tbw2'){
+                cat(" \nNo days with measured sand flux >= 0.5 g/cm<sup>2</sup>/day. \n")
+            } else{
+                cat(" \nNo days with measured sand flux >= 1.0 g/cm<sup>2</sup>/day. \n")
+            }
         } else{
             if (area=='tbw2'){
-                cat(" \nDays with recorded sand flux > 0.5 g/cm<sup>2</sup>/day: \n")
+                cat(" \nDays with recorded sand flux >= 0.5 g/cm<sup>2</sup>/day: \n")
             } else{
-                cat(" \nDays with recorded sand flux > 1.0 g/cm<sup>2</sup>/day: \n")
+                cat(" \nDays with recorded sand flux >= 1.0 g/cm<sup>2</sup>/day: \n")
             }
             if (nrow(tbl_flux)<16){
                 tbl_flux_list <- vector(mode='list', length=1)
