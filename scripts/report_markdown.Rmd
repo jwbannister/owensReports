@@ -18,23 +18,14 @@ panderOptions('table.alignment.rownames', 'left')
 ```{r load_data, include=FALSE}
 flux_df <- load_site_data(area, start_date, end_date)
 flux_df[flux_df$sand_flux<=0, ]$sand_flux <- 0
-if (area=='sfwcrft'){
-    area_polys <- pull_sfwcrft_polygons() %>% 
-        rename(id1=treatment, id2=dca) %>% 
-        mutate(id3=id2)
-    area_labels <- pull_sfwcrft_labels() %>% 
-        rename(id1=treatment, id2=dca) %>%
-        mutate(id3=id2)
-} else{
-    area_polys <- pull_onlake_polygons() %>% 
-        rename(id2=dca_name) %>%
-        mutate(id1=id2, id3=id2)
-    area_labels <- pull_onlake_labels() %>% 
-        mutate(id2=label, id1=label, id3=label)
-    if (area=='twb2'){
-        area_polys <- group_twb2_areas(area_polys)
-        area_labels <- group_twb2_areas(area_labels)
-    }
+area_polys <- pull_onlake_polygons() %>% 
+    rename(id2=dca_name) %>%
+    mutate(id1=id2, id3=id2)
+area_labels <- pull_onlake_labels() %>% 
+    mutate(id2=label, id1=label, id3=label)
+if (area=='twb2'){
+    area_polys <- group_twb2_areas(area_polys)
+    area_labels <- group_twb2_areas(area_labels)
 }
 csc_locs <- load_sites(area, area_polys)
 csc_locs <- csc_locs %>% 
@@ -57,10 +48,6 @@ if (area=='twb2') source("~/code/owensReports/scripts/twb2_pairs.R")
 
 ```{r surface, include=FALSE}
 if (area=='twb2') source("~/code/owensReports/scripts/twb2_surface.R")
-```
-
-```{r wetness, include=FALSE}
-if (area=='sfwcrft') source("~/code/owensReports/scripts/sfwcrft_wetness.R")
 ```
 
 ```{r changes, include=FALSE}
@@ -87,17 +74,9 @@ pair_img_files <- img_files
 surface_img_files <- img_files
 for (i in index){
     img_files[[i]] <- paste0(tempfile(), ".png")
-    if (area=='sfwcrft'){
-        # sfwcrft reports show both mass and flux site maps
-        png(filename=img_files[[i]], width=8, height=4, units="in", res=300)
-        gridExtra::grid.arrange(mass_grobs[[i]], flux_grobs[[i]], ncol=2)
-        dev.off()
-    } else{
-        # all other reports show only flux map
-        png(filename=img_files[[i]], width=8, height=4, units="in", res=300)
-        gridExtra::grid.arrange(flux_grobs[[i]], ncol=2)
-        dev.off()
-    }
+    png(filename=img_files[[i]], width=8, height=4, units="in", res=300)
+    gridExtra::grid.arrange(flux_grobs[[i]], ncol=2)
+    dev.off()
     if (area=='twb2' & i!='East'){
         # twb2 report also shows TEOM pair maps
         pair_img_files[[i]] <- paste0(tempfile(), ".png")
@@ -129,37 +108,7 @@ for (i in index){
     cat(ttle)
     # site maps on top of page
     cat(" \n## Monitoring Site Results \n")
-    if (area=='sfwcrft') cat("(Area label indicates wetness cover target.) \n")
     cat(paste0("![](", img_files[[i]], ")"))
-    if (area=='sfwcrft'){
-        # tables for sfwcrft reports
-        cat(" \n\n## Monthly Sand Reduction Control Efficiency \n")
-        cat(paste0(" \n Monthly sand reduction control efficiency is only ", 
-                   "calculated if area average sand mass in the control area ",
-                   "is more than 10 grams for the month. \n"))
-        tbl_mass <- mass_ce %>% filter(id2==i) 
-        colnames(tbl_mass) <- c("DCA", "Target\nWetness", 
-                                "Area Average\nSand Mass\\\n(g/month)", 
-                                "Control Efficiency")
-        pandoc.table(as.data.frame(tbl_mass))
-        cat(" \n\n## Daily Sand Flux Reduction Control Efficiency \n")
-        tbl_flux <- flux_ce %>% filter(id2==i) 
-        if (nrow(tbl_flux)==0){
-            cat(" \n\nNo days with average daily flux in control area 
-                > 1 g/cm^2/day. \n")
-        } else{
-            cat(paste0(" \n Daily sand flux reduction control efficiency is ",
-                       "only reported for days when the area average sand flux ",
-                       "in the control area is more than 1 g/cm^2/day. \n"))
-            colnames(tbl_flux) <- c("DCA", "Date", 
-                                    "0% Target\\\nAvg. Daily Flux\\\n(g/cm^2/day)", 
-                                    "55% Target\\\nAvg. Daily Flux\\\n(g/cm^2/day)", 
-                                    "65% Target\\\nAvg. Daily Flux\\\n(g/cm^2/day)", 
-                                    "CE\\\n(55% Target)",
-                                    "CE\\\n(65% Target)") 
-            pandoc.table(as.data.frame(tbl_flux), split.table=Inf)
-        }
-    } else{
         # tables for all other reports
         cat(" \n\n## Daily Sand Flux \n")
         if (area %in% c("channel", "t1a1")){
@@ -259,7 +208,6 @@ for (i in index){
                 }
             }
         }
-    }
     # check for comment file and see how long
     gdrive_comments <- system(paste0(getwd(), "/gdrive list ", 
                       "-q \"'0B8qHESXOhs-DXzJfRXdmUXoyWGs' in parents\" ", 
@@ -276,34 +224,7 @@ for (i in index){
         comment_length <- 1
     }
 
-    if (area!='sfwcrft'){
-        # other reports formatting
-        row_limit <- if_else(split_size==1, 15, 34)
-        flux_length <- ifelse(exists("tbl_flux_list"), 
-                              nrow(tbl_flux_list[[split_size]]), 0)
-        if (flux_length + nrow(tbl_mass) + comment_length < row_limit){
-            cat(" \n\n## Monthly Sand Mass \n")
-            pandoc.table(as.data.frame(tbl_mass))
-        } else if (flux_length + nrow(tbl_mass) < row_limit){
-            cat(" \n\n## Monthly Sand Mass \n")
-            pandoc.table(as.data.frame(tbl_mass))
-            cat("<p style=\"page-break-after:always;\"></p> \n")
-            report_header(start_date, end_date, report_date, area)
-            cat(ttle)
-        } else{
-            cat("<p style=\"page-break-after:always;\"></p> \n")
-            report_header(start_date, end_date, report_date, area)
-            cat(ttle)
-            cat(" \n\n## Monthly Sand Mass \n")
-            pandoc.table(as.data.frame(tbl_mass))
-        }
-    }
     cat(" \n\n## Comments \n")
-    if (area=='sfwcrft'){
-        if (is.na(swir_fl)){
-            cat(" \n No SWIR image available for this report period. \n")
-        }
-    }
     if (comment_file %in% comment_list[ , 2]){
         for (n in 1:length(readLines(paste0(tempdir(), "/", comment_file)))){
             cat(" \n", readLines(paste0(tempdir(), "/", comment_file))[n], 
@@ -312,45 +233,6 @@ for (i in index){
     }
     cat("<p style=\"page-break-after:always;\"></p> \n")
 
-    if (area=='sfwcrft'){
-        if (!is.na(swir_fl)){
-            report_header(start_date, end_date, report_date, area)
-            cat(ttle)
-            cat(" \n\n## SWIR Wet/Dry Image \n")
-            cat(paste0("![](", dcas[[i]]$img_file, ")"))
-            cat(" \n")
-            cat(" \n## SWIR Estimated Wetness \n")
-            tbl_wet <- wetness %>% filter(id2==i)
-            colnames(tbl_wet) <- c("DCA", "Target Wetness", 
-                                   "SWIR Estimated\nWetness")
-            pandoc.table(as.data.frame(tbl_wet))
-            cat(" \n## Recorded Daily Precipitation in 30 Days Prior to SWIR Image \n")
-            tbl_precip <- met_df %>% filter(id2==i, pre>0) %>%
-                select(date, pre)
-            tbl_precip$date <- format(tbl_precip$date, "%m-%d-%Y")
-            colnames(tbl_precip) <- c("Date", "Precip (mm)")
-            pandoc.table(as.data.frame(tbl_precip))
-            cat(" \n\n## Comments \n")
-            cat(paste0(" \n SWIR image collected on ", 
-                       month(swir_date, label=T, abbr=F), " ", day(swir_date), 
-                       ", ", year(swir_date), ". \n"))
-            cat(paste0(" \n Recorded daily precipitation collected from ",
-                       "Meteorological Station ", 
-                       filter(met_index, id2==i)$deployment, ". \n"))
-            comment_file_wet <- paste0(area, month(start_date), year(start_date), i, 
-                                   "_wet.txt")
-            if (comment_file_wet %in% comment_list[ , 2]){
-                index <- which(comment_list[ , 2]==comment_file_wet)
-                system(paste0(getwd(), "/gdrive download --path ", tempdir(), " ", 
-                              comment_list[ , 1][which(comment_list[ , 2]==comment_file_wet)]))
-                for (k in 1:length(readLines(paste0(tempdir(), "/", comment_file_wet)))){
-                    cat(" \n", readLines(paste0(tempdir(), "/", comment_file_wet))[k], 
-                        " \n", sep="")
-                }
-            }
-            cat("<p style=\"page-break-after:always;\"></p> \n")
-        }
-    }
     if (area=='twb2' & i!="East"){
         report_header(start_date, end_date, report_date, area)
         cat(ttle)
