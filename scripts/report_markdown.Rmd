@@ -378,7 +378,12 @@ for (i in index){
         cat(ttle)
         cat(" \n## Surface Survey Data\n")
         tbl_surface <- surface_df[[i]] %>% 
+            filter(!(is.na(rs_avg) & is.na(rh_avg) & 
+                     is.na(rs_rh) & is.na(clods))) %>%
             select(id2, site, rs_avg, rh_avg, rs_rh, clods)
+        missing_surface <- surface_df[[i]] %>% 
+            filter((is.na(rs_avg) & is.na(rh_avg) & 
+                    is.na(rs_rh) & is.na(clods)))
         colnames(tbl_surface) <- c("DCA", "Site", "Row Spacing (cm)", 
                                    "Row Height (cm)", "RS/RH", 
                                    "Clod Coverage (%)")
@@ -386,8 +391,19 @@ for (i in index){
         pandoc.table(as.data.frame(tbl_surface), split.table=Inf)
         cat("</h6> \n")
         cat(" \n\n## Comments \n")
-        cat(" \n Sites not listed were not accessible due to flooding or were 
-            undergoing tillage maintenance.\n")
+        cat(paste0(" \n Surface data not collected from sites ",
+                   paste(missing_surface$site, collapse=", "), ".\n"))
+        comment_file_surface <- paste0(area, month(start_date), year(start_date), i, 
+                               "_surf.txt")
+        if (comment_file_surface %in% comment_list[ , 2]){
+            index <- which(comment_list[ , 2]==comment_file_surface)
+            system(paste0(getwd(), "/gdrive download --path ", tempdir(), " ", 
+                          comment_list[ , 1][which(comment_list[ , 2]==comment_file_surface)]))
+            for (k in 1:length(readLines(paste0(tempdir(), "/", comment_file_surface)))){
+                cat(" \n", readLines(paste0(tempdir(), "/", comment_file_surface))[k], 
+                    " \n", sep="")
+            }
+        }
         cat("<p style=\"page-break-after:always;\"></p> \n")
         report_header(start_date, end_date, report_date, area)
         cat(ttle)

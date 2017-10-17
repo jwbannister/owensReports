@@ -1,29 +1,39 @@
 yr.mo <- paste0(substr(year(start_date), 3, 4), "_", 
                 sprintf("%02i", month(start_date)))
+
 query1 <- paste0("SELECT site, rs_avg, rh_avg, rs_rh, ",
-                 "clods, yr_mo ", 
-                 "FROM field_data.twb2_qa_survey ",
-                 "WHERE yr_mo='", yr.mo, "';") 
-df1 <-query_db("owenslake", query1)
-query2 <- "SELECT DISTINCT site, area AS area_survey FROM field_data.twb2_qa_survey;"
-all_sites <- query_db("owenslake", query2)
-cross_walk <- data.frame(area_survey=c("T2-2", "T3-SW", "T3-SE", "T2-3", "T2-4", 
+                 "clods, yr_mo, area ", 
+                 "FROM field_data.twb2_qa_survey;")
+all_data <-query_db("owenslake", query1)
+cross_walk <- data.frame(area=c("T2-2", "T3-SW", "T3-SE", "T2-3", "T2-4", 
                                        "T3-NE", "T5-4", "T16", "T24-Add", "T29", 
                                        "T12"), 
                          id2=c("T2-2", "T3SW", "T3SE", "T2-3", "T2-4", 
                                "T3NE", "T5-4", "T16", "T24 Addition", 
                                "T29-4", "T12-1"))
-df2 <- all_sites %>% left_join(cross_walk, by="area_survey") %>%
-    left_join(select(area_polys, id2, id3), by="id2") %>% 
-    distinct() %>%
-    left_join(df1, by="site") %>%
-    arrange(site)
-df2$yr_mo <- rep(yr.mo, nrow(df2))
+df2 <- all_data %>% left_join(cross_walk, by="area") %>%
+       left_join(select(area_polys, id2, id3), by="id2") %>%
+       distinct()
 df2$index_date <- sapply(df2$yr_mo, 
                          function(x) paste0("20", substr(x, 1, 2), "-", 
                                             substr(x, 4, 5), "-01"))
 df2$index_date <- as.Date(df2$index_date)
-df3 <- filter(df2, !(is.na(rs_avg) & is.na(rh_avg) & is.na(rs_rh) & is.na(clods)))
+
+all_sites <- data.frame(site=unique(df2$site)) %>% 
+    left_join(select(df2, site, id2), by="site") %>%
+    distinct()
+
+df3 <- df2 %>% select(-id3) %>% 
+    filter(month(index_date)==month(start_date) & 
+           year(index_date)==year(start_date)) %>%
+        right_join(all_sites, by=c("site", "id2")) %>%
+        left_join(select(area_polys, id2, id3), by="id2") %>%
+        distinct() %>% arrange(site)
+df3$yr_mo <- rep(yr.mo, nrow(df3))
+df3$index_date <- sapply(df3$yr_mo, 
+                         function(x) paste0("20", substr(x, 1, 2), "-", 
+                                            substr(x, 4, 5), "-01"))
+df3$index_date <- as.Date(df3$index_date)
 
 plot_end <- as.Date(paste0(year(start_date), "-", month(start_date), "-01"))
 plot_start <- plot_end %m-% years(1)
@@ -37,7 +47,9 @@ if (nrow(df3)>0){
         surface_df[[i]] <- filter(df3, id3==i & 
                                   month(index_date)==month(start_date) &
                                   year(index_date)==year(start_date))
-        plot_data <- filter(df3, id3==i & index_date>=start_date %m-% years(1)) %>%
+        plot_data <- df2 %>% 
+            filter(!(is.na(rs_avg) & is.na(rh_avg) & is.na(rs_rh) & is.na(clods))) %>%
+            filter(id3==i & index_date>=start_date %m-% years(1)) %>%
             group_by(id2, id3, index_date) %>%
             summarize(rs=mean(rs_avg, na.rm=T), rh=mean(rh_avg, na.rm=T), 
                       rs_rh1=mean(rs_rh, na.rm=T), clods1=mean(clods, na.rm=T)) %>%
@@ -47,6 +59,7 @@ if (nrow(df3)>0){
                                    clods=c(55, NA, 65), 
                                    label=c("Reflood", "Maintain", "Compliance"))
         label_data <- plot_data %>% group_by(id2) %>%
+            filter(index_date<=plot_end) %>%
             filter(index_date==max(index_date))
         fl <- tempfile()
         png(filename=fl, width=8, height=8, units="in", res=300)
