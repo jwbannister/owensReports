@@ -32,6 +32,7 @@ plot_csc_site_label_nocolor <- function(background, sand_df, area_txt,
 
 move_brine_labels <- function(df1){
     df1[df1$id2=='T23NE', ]$x <- df1[df1$id2=='T23NE', ]$x - 150
+    df1[df1$id2=='T2-4', ]$x <- df1[df1$id2=='T2-4', ]$x + 300
     df1
 }
 

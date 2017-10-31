@@ -33,7 +33,8 @@ load_sandflux <- function(area, start_date, end_date){
 load_sites <- function(area, poly_df){
     query1 <- paste0("SELECT DISTINCT i.deployment AS csc, ",
                      "st_y(st_transform(i.geom, 26911)) AS y, ",
-                     "st_x(st_transform(i.geom, 26911)) AS x ",
+                     "st_x(st_transform(i.geom, 26911)) AS x, ",
+                     "i.active ",
                      "FROM sandcatch.csc_summary s ",
                      "LEFT JOIN instruments.deployments i ",
                      "ON s.csc_deployment_id=i.deployment_id ",
@@ -80,6 +81,7 @@ load_collections <- function(area){
                      "ON s.csc_deployment_id=i.deployment_id ",
                      "WHERE collection_datetime BETWEEN '", start_date, "'::date ", 
                      "AND '", end_date %m+% months(1), "'::date ", 
+                     "AND start_datetime<'", end_date, "'::date ", 
                      "AND i.deployment IN ('", 
                      paste0(csc_list[[area]], collapse="', '"), "');") 
     query_db("owenslake", query1)

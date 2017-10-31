@@ -5,8 +5,8 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-load_all("~/code/aiRsci")
 load_all()
+library(aiRsci)
 library(pander)
 library(tidyverse)
 library(lubridate)
@@ -27,8 +27,8 @@ if (area=='twb2'){
     area_polys <- group_twb2_areas(area_polys)
     area_labels <- group_twb2_areas(area_labels)
 }
-csc_locs <- load_sites(area, area_polys)
-csc_locs <- csc_locs %>% 
+csc_locs <- load_sites(area, area_polys) 
+csc_locs <- csc_locs %>% arrange(csc) %>% filter(active) %>%
     left_join(distinct(select(area_polys, objectid, id1, id2, id3)), by="objectid")
 csc_collections <- load_collections(area)
 index <- unique(csc_locs$id3)[!is.na(unique(csc_locs$id3))]
@@ -224,8 +224,27 @@ for (i in index){
         comment_length <- 1
     }
 
-    cat(" \n\n## Comments \n")
+    row_limit <- if_else(split_size==1, 15, 34)
+    flux_length <- ifelse(exists("tbl_flux_list"), 
+                          nrow(tbl_flux_list[[split_size]]), 0)
+    if (flux_length + nrow(tbl_mass) + comment_length < row_limit){
+        cat(" \n\n## Monthly Sand Mass \n")
+        pandoc.table(as.data.frame(tbl_mass))
+    } else if (flux_length + nrow(tbl_mass) < row_limit){
+        cat(" \n\n## Monthly Sand Mass \n")
+        pandoc.table(as.data.frame(tbl_mass))
+        cat("<p style=\"page-break-after:always;\"></p> \n")
+        report_header(start_date, end_date, report_date, area)
+        cat(ttle)
+    } else{
+        cat("<p style=\"page-break-after:always;\"></p> \n")
+        report_header(start_date, end_date, report_date, area)
+        cat(ttle)
+        cat(" \n\n## Monthly Sand Mass \n")
+        pandoc.table(as.data.frame(tbl_mass))
+    }
     if (comment_file %in% comment_list[ , 2]){
+        cat(" \n\n## Comments \n")
         for (n in 1:length(readLines(paste0(tempdir(), "/", comment_file)))){
             cat(" \n", readLines(paste0(tempdir(), "/", comment_file))[n], 
                 " \n", sep="")

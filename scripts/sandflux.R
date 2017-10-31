@@ -11,8 +11,6 @@ daily_flux <- full_flux %>% filter((!invalid | is.na(invalid)) &
     left_join(csc_locs, by="csc") %>%
     ungroup() 
 
-if (area=='sfwcrft') flux_ce <- calc_flux_ce_sfwcrft(full_daily)
-
 max_daily <- daily_flux %>% group_by(csc) %>%
     summarize(max.daily.flux = round(max(sand.flux), 2), x=unique(x), y=unique(y),
               id2=unique(id2), id3=unique(id3), id1=unique(id1)) 
