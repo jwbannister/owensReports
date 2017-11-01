@@ -52,9 +52,13 @@ for (i in index){
     p1 <- plot_csc_site_label_nocolor(background, tmp_flux, i,  value_index=2, 
                                       value_max=top_flux, 
                                       plot_title="Monitoring Sites") +
-        scale_shape_manual(name=NULL, values=c(21))  +
+        geom_point(data=tmp_partial, mapping=aes(x=x, y=y, shape=flag), 
+                   color="black", size=6) +
+        scale_shape_manual(name=NULL, values=c(21)) +
         geom_point(data=tmp_bad, mapping=aes(x=x, y=y, size=flag), 
                    color="black") +
+        ggrepel::geom_label_repel(data=tmp_bad, mapping=aes(x=x, y=y, label=csc), 
+                   nudge_x=label_space_x/25, nudge_y=label_space_y/45) +
         scale_size_manual(name=NULL, values=c(4)) +
         guides(color=guide_colorbar(order=1), shape=guide_legend(order=2), 
                size=guide_legend(order=3))
