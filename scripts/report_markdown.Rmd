@@ -31,7 +31,7 @@ csc_locs <- load_sites(area, area_polys)
 csc_locs <- csc_locs %>% arrange(csc) %>% filter(active) %>%
     left_join(distinct(select(area_polys, objectid, id1, id2, id3)), by="objectid")
 csc_collections <- load_collections(area)
-index <- unique(csc_locs$id3)[!is.na(unique(csc_locs$id3))]
+report_index <- unique(csc_locs$id3)[!is.na(unique(csc_locs$id3))]
 ```
 
 ```{r sandmass, include=FALSE}
@@ -68,11 +68,11 @@ if (change_file %in% change_list[ , 2]){
 ```
 
 ```{r plot_image, include=FALSE}
-img_files <- vector(mode="character", length=length(index))
-names(img_files) <- index
+img_files <- vector(mode="character", length=length(report_index))
+names(img_files) <- report_index
 pair_img_files <- img_files
 surface_img_files <- img_files
-for (i in index){
+for (i in report_index){
     img_files[[i]] <- paste0(tempfile(), ".png")
     png(filename=img_files[[i]], width=8, height=4, units="in", res=300)
     gridExtra::grid.arrange(flux_grobs[[i]], ncol=2)
@@ -97,7 +97,7 @@ for (i in index){
 ```
 
 ```{r output, echo=F, results='asis', warning=FALSE}
-for (i in index){
+for (i in report_index){
     # build page titles
     if (area=='twb2'){
         ttle <- paste0(" \n# ", i, " TwB2 \n")
@@ -210,7 +210,8 @@ for (i in index){
         }
     # check for comment file and see how long
     gdrive_comments <- system(paste0(getwd(), "/gdrive list ", 
-                      "-q \"'0B8qHESXOhs-DXzJfRXdmUXoyWGs' in parents\" ", 
+                      "-q \"trashed = false and ", 
+                      "'0B8qHESXOhs-DXzJfRXdmUXoyWGs' in parents\" ", 
                       "-m 10000"), intern=T)  
     cmnt_fl <- tempfile()
     write.table(gdrive_comments, file=cmnt_fl, quote=F, row.names=F, col.names=F)
@@ -292,8 +293,8 @@ for (i in index){
         pandoc.table(as.data.frame(tbl_surface), split.table=Inf)
         cat("</h6> \n")
         cat(" \n\n## Comments \n")
-        cat(paste0(" \n Surface data not collected from sites ",
-                   paste(missing_surface$site, collapse=", "), ".\n"))
+        cat(" \n Sites not listed were not accessible due to flooding or were 
+            undergoing tillage maintenance.\n")
         comment_file_surface <- paste0(area, month(start_date), year(start_date), i, 
                                "_surf.txt")
         if (comment_file_surface %in% comment_list[ , 2]){

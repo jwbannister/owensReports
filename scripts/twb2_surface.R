@@ -39,11 +39,11 @@ plot_end <- as.Date(paste0(year(start_date), "-", month(start_date), "-01"))
 plot_start <- plot_end %m-% years(1)
 
 if (nrow(df3)>0){
-    surface_df <- vector(mode='list', length=length(index))
-    names(surface_df) <- index
-    surface_grobs <- vector(mode='list', length=length(index))
-    names(surface_grobs) <- index
-    for (i in index){
+    surface_df <- vector(mode='list', length=length(report_index))
+    names(surface_df) <- report_index
+    surface_grobs <- vector(mode='list', length=length(report_index))
+    names(surface_grobs) <- report_index
+    for (i in report_index){
         surface_df[[i]] <- filter(df3, id3==i & 
                                   month(index_date)==month(start_date) &
                                   year(index_date)==year(start_date))
