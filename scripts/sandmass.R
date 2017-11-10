@@ -42,6 +42,11 @@ if (nrow(bad_collections)>0){
 if (nrow(bad_collections)==0) bad_collections[1, 1:ncol(bad_collections)] <- 0
 bad_collections <- bad_collections %>% 
     left_join(select(last_coll, -dwp_mass), by="csc")
+# remove sites that were not in place for entire month
+absent_sites <- filter(bad_collections, 
+                       (flag=="No Data For Month" & 
+                        comment=="No Collection Made"))$csc
+bad_collections <- bad_collections %>% filter(!(csc %in% absent_sites))
 
 geom_adj <- 1.2 #sandcatch geometry adjustment for sandflux calculation
 csc_mass <- full_flux %>% filter(!invalid | is.na(invalid)) %>% group_by(csc) %>% 
@@ -53,6 +58,9 @@ csc_mass$sand.mass <- sapply(csc_mass$sand.mass,
                              function(x) ifelse(is.na(x), 0, x))
 csc_mass <- csc_mass %>% 
     left_join(select(bad_collections, csc, flag, comment), by="csc")
+# remove sites from table that were not in place for entire month
+csc_mass <- csc_mass %>% filter(!(csc %in% absent_sites))
+
 
 if (area=="dwm") area_labels <- move_dwm_labels(area_labels)
 if (area=="brine") area_labels <- move_brine_labels(area_labels)

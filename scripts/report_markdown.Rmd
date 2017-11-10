@@ -5,8 +5,9 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+airsci_loc <- Sys.getenv("R_AIRSCI")
+suppressMessages(devtools::load_all(airsci_loc))
 load_all()
-library(aiRsci)
 library(pander)
 library(tidyverse)
 library(lubridate)
@@ -215,8 +216,10 @@ for (i in report_index){
                       "-m 10000"), intern=T)  
     cmnt_fl <- tempfile()
     write.table(gdrive_comments, file=cmnt_fl, quote=F, row.names=F, col.names=F)
-    comment_list <- read.fwf(file=cmnt_fl, widths=c(29, 29), strip.white=T)
-    comment_file <- paste0(area, month(start_date), year(start_date), i, ".txt")
+    comment_list <- read.table(file=cmnt_fl, sep="", header=T, na.strings="", 
+                               skip=1)
+    comment_file <- 
+        gsub(" ", "", paste0(area, month(start_date), year(start_date), i, ".txt"))
     if (comment_file %in% comment_list[ , 2]){
         system(paste0(getwd(), "/gdrive download --path ", tempdir(), " ", 
                       comment_list[ , 1][which(comment_list[ , 2]==comment_file)]))
@@ -295,8 +298,9 @@ for (i in report_index){
         cat(" \n\n## Comments \n")
         cat(" \n Sites not listed were not accessible due to flooding or were 
             undergoing tillage maintenance.\n")
-        comment_file_surface <- paste0(area, month(start_date), year(start_date), i, 
-                               "_surf.txt")
+        comment_file_surface <- 
+            gsub(" ", "", paste0(area, month(start_date), year(start_date), i, 
+                                 "_surface.txt"))
         if (comment_file_surface %in% comment_list[ , 2]){
             index <- which(comment_list[ , 2]==comment_file_surface)
             system(paste0(getwd(), "/gdrive download --path ", tempdir(), " ", 

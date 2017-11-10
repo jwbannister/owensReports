@@ -4,11 +4,6 @@ csc_list <- list("brine"=seq(1700, 1799, 1),
                  "dwm"=seq(1900, 1999, 1), 
                  "t1a1"=seq(1100, 1199, 1), 
                  "twb2"=seq(1600, 1699, 1))
-if (start_date < "2016-08-01"){
-    csc_list$sfwcrft <- c(seq(1400, 1499, 1), seq(1500, 1599, 1)) 
-} else{
-    csc_list$sfwcrft <- c(seq(1800, 1899, 1))
-}
 
 load_sites <- function(area, poly_df){
     query1 <- paste0("SELECT DISTINCT i.deployment AS csc, ",
@@ -22,7 +17,7 @@ load_sites <- function(area, poly_df){
                      "IN ('", paste0(csc_list[[area]], collapse="', '"), "');")
     sites_df <- query_db("owenslake", query1)
     sites_df$objectid <- apply(cbind(sites_df$x, sites_df$y), 1, 
-                               point_in_dca, poly_df=poly_df, return_dca=F)
+                               aiRsci::point_in_dca, poly_df=poly_df, return_dca=F)
     sites_df <- sites_df[!duplicated(sites_df), ]
     sites_df <- filter(sites_df, objectid!='NULL')
     sites_df$objectid <- unlist(sites_df$objectid)
@@ -60,9 +55,8 @@ load_collections <- function(area){
     query1 <- paste0("SELECT i.deployment, s.* FROM sandcatch.csc_summary s ", 
                      "JOIN instruments.deployments i ",
                      "ON s.csc_deployment_id=i.deployment_id ",
-                     "WHERE collection_datetime BETWEEN '", start_date, "'::date ", 
-                     "AND '", end_date %m+% months(1), "'::date ", 
-                     "AND start_datetime<'", end_date, "'::date ", 
+                     "WHERE ('", start_date, "'::date, '", end_date, "'::date) ",
+                     "OVERLAPS (s.start_datetime::date, collection_datetime) ", 
                      "AND i.deployment IN ('", 
                      paste0(csc_list[[area]], collapse="', '"), "');") 
     query_db("owenslake", query1)

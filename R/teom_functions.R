@@ -64,27 +64,41 @@ pull_locations <- function(deploys){
 #'
 #' Pull PM10 data for reporting from AirSci PostgreSQL database.
 #' 
-#' @param x A number.
+#' @param date1 Period start date.
+#' @param date2 Period end date.
 #' @param deploys Numerical. Vector of deployment ids.
 #' @return Data frame.
 #' @examples
-#' pull_pm10(c(1719, 1718, 1849))
 pull_pm10 <- function(date1, date2, deploys){
-    d1 <- paste0(date1, " ", "00:00:00")
-    d2 <- paste0(date2 %m+% days(1), " ", "00:00:00")
     deploys <- paste0("('", paste(deploys, collapse="', '"), "')")
-    query1 <- paste0("SELECT deployment, datetime, pm10_std_avg AS pm10_avg, ",
-                     "invalid ",
-                     "FROM teom.avg_1hour_validated ",
-                     "WHERE (datetime-'1 second'::interval)::date ",
+    query1 <- paste0("SELECT i.deployment, t.datetime, ",
+                     "t.pm10_1hour_stp AS pm10_avg, ",
+                     "flags.field_is_invalid(t.deployment_id, 205, t.datetime) AS invalid ",
+                     "FROM teom.teom_30min t ",
+                     "JOIN instruments.deployments i ", 
+                     "ON t.deployment_id=i.deployment_id ", 
+                     "WHERE (t.datetime-'1 second'::interval)::date ",
                      "BETWEEN '", date1, "'::date ", 
                      "AND '", date2, "'::date ",  
-                     "AND deployment IN ", deploys) 
+                     "AND deployment IN ", deploys, 
+                     "AND EXTRACT(minute FROM t.datetime)=0;") 
     pm10_df <- query_db("owenslake", query1)
 #    pm10_df <- filter(pm10_df, pm10_avg > -35)
     pm10_df$pm10_avg <- round(pm10_df$pm10_avg, 2)
     pm10_df
 }
+
+# OLD TEOM DATA QUERY (PRE-OCTOBER 2017). This query used a view on the 
+# 1-minute TEOM data. The 1-minute table was deprecated in October 2017 in 
+# favor of the 30 minute table. To re-run older reports, this query must be 
+# used in the pull_pm10 function. 
+#    query1 <- paste0("SELECT deployment, datetime, pm10_std_avg AS pm10_avg, ",
+#                     "invalid ",
+#                     "FROM teom.avg_1hour_validated ",
+#                     "WHERE (datetime-'1 second'::interval)::date ",
+#                     "BETWEEN '", date1, "'::date ", 
+#                     "AND '", date2, "'::date ",  
+#                     "AND deployment IN ", deploys) 
 
 #' Identify missing hourly data
 #' 

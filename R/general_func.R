@@ -1,10 +1,3 @@
-S3_bucket_access <- function(key, file){
-    aws_access <- read.table("~/system/credentials/AWS_cred.txt")[2, 1]
-    aws_secret <- read.table("~/system/credentials/AWS_cred.txt")[4, 1]
-    RS3::S3_connect(aws_access, aws_secret, hostname="s3-us-west-2.amazonaws.com")
-    RS3::S3_get_object("saltonimages", key, file)
-}
-
 report_header <- function(start_date, end_date, report_date, area){
     index <- data.frame(a = c("brine", "channel", "dwm", "sfwcrft", "twb2", "t1a1"), 
                         b = c("Brine Areas Monthly Report", 
@@ -21,14 +14,3 @@ report_header <- function(start_date, end_date, report_date, area){
     cat("<hr class=\"style1\">")
 }
 
-
-ras_clip <- function(ras, shp, fld=1){
-          a1_crop <- raster::crop(ras, shp)
-          step1 <- raster::rasterize(shp, a1_crop, field=fld)
-          a1_crop * step1
-}
-
-class_wet <- function(ras, teeter=2080){
-  ras[ , ] <- sapply(ras[ , ], function(x) ifelse(x<2080, 1, 0))
-  ras
-}
