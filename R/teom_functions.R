@@ -145,18 +145,6 @@ find_missing_summary <- function(teom_data){
   missing_data
 }
 
-#' round a number to closest multiple of a given number.
-#' 
-#' @param x Numeric.
-#' @param base Numeric.
-#' @return x rounded to closest multiple of base.
-#' @examples
-#' > mround(11.3, 5)
-#' > 10
-mround <- function(x, base){
-  base * round(x/base)
-}
-
 #' Pair up teoms for upwind/downwind analysis
 #' 
 #' This function is specific to pairing teoms in TwB2 upwind/downwind analysis.
@@ -318,13 +306,3 @@ teom_pair_plot <- function(teom_locs, df1, background, start_date, end_date){
   p3
 }
 
-#' strip legend from ggplot object
-#' 
-#' @param a.gplot ggplot object.
-#' @return A grob of the plot legend
-g_legend<-function(a.gplot){ 
-  tmp <- ggplot_gtable(ggplot_build(a.gplot)) 
-  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box") 
-  legend <- tmp$grobs[[leg]] 
-  return(legend)
-} 

@@ -33,7 +33,7 @@ load_site_data <- function(area, start_date, end_date){
                "THEN (sens.sumpc / csc.sumpc_total) * (csc.dwp_mass / 1.2) ",
                "ELSE 0 ",
            "END AS sand_flux, ", 
-           "flags.is_tf_invalid(csc.sensit_deployment_id, 90, sens.datetime - '00:05:00'::interval, sens.datetime + '00:05:00'::interval) AS invalid ",
+           "flags.field_is_invalid(csc.sensit_deployment_id, 90, sens.datetime AS invalid ",
            "FROM sensit.sensit_5min sens LEFT JOIN sandcatch.csc_summary csc ",
            "ON csc.sensit_deployment_id = sens.deployment_id ", 
            "AND sens.datetime > csc.start_datetime ", 
