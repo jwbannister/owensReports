@@ -71,19 +71,14 @@ pull_locations <- function(deploys){
 #' @examples
 pull_pm10 <- function(date1, date2, deploys){
     deploys <- paste0("('", paste(deploys, collapse="', '"), "')")
-    query1 <- paste0("SELECT i.deployment, t.datetime, ",
-                     "t.pm10_1hour_stp AS pm10_avg, ",
-                     "flags.field_is_invalid(t.deployment_id, 205, t.datetime) AS invalid ",
-                     "FROM teom.teom_30min t ",
-                     "JOIN instruments.deployments i ", 
-                     "ON t.deployment_id=i.deployment_id ", 
-                     "WHERE (t.datetime-'1 second'::interval)::date ",
+    query1 <- paste0("SELECT deployment, datetime, ",
+                     "pm10_1hour_stp AS pm10_avg, invalid ",
+                     "FROM teom.hourly_validated ",
+                     "WHERE (datetime-'1 second'::interval)::date ",
                      "BETWEEN '", date1, "'::date ", 
                      "AND '", date2, "'::date ",  
-                     "AND deployment IN ", deploys, 
-                     "AND EXTRACT(minute FROM t.datetime)=0;") 
+                     "AND deployment IN ", deploys, ";")
     pm10_df <- query_db("owenslake", query1)
-#    pm10_df <- filter(pm10_df, pm10_avg > -35)
     pm10_df$pm10_avg <- round(pm10_df$pm10_avg, 2)
     pm10_df
 }
