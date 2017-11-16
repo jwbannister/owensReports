@@ -6,12 +6,12 @@ query1 <- paste0("SELECT site, rs_avg, rh_avg, rs_rh, ",
                  "FROM field_data.twb2_qa_survey;")
 all_data <-query_db("owenslake", query1)
 cross_walk <- data.frame(area=c("T2-2", "T3-SW", "T3-SE", "T2-3", "T2-4", 
-                                       "T3-NE", "T5-4", "T16", "T24-Add", "T29", 
-                                       "T12"), 
+                                       "T3-NE", "T16", "T24-Add", "T12"), 
                          id2=c("T2-2", "T3SW", "T3SE", "T2-3", "T2-4", 
-                               "T3NE", "T5-4", "T16", "T24 Addition", 
-                               "T29-4", "T12-1"))
-df2 <- all_data %>% left_join(cross_walk, by="area") %>%
+                               "T3NE", "T16", "T24 Addition", "T12-1"))
+df2 <- all_data %>% 
+    filter(area %in% cross_walk$area) %>%
+    left_join(cross_walk, by="area") %>%
        left_join(select(area_polys, id2, id3), by="id2") %>%
        distinct()
 df2$index_date <- sapply(df2$yr_mo, 
@@ -37,6 +37,10 @@ df3$index_date <- as.Date(df3$index_date)
 
 plot_end <- as.Date(paste0(year(start_date), "-", month(start_date), "-01"))
 plot_start <- plot_end %m-% years(1)
+month_seq <- seq(plot_start, plot_end, "month")
+full_seq <- expand.grid(id2=unique(df2$id2), index_date=month_seq, 
+                        stringsAsFactors=F) %>%
+    left_join(distinct(select(df2, id2, id3)), by="id2")
 
 if (nrow(df3)>0){
     surface_df <- vector(mode='list', length=length(report_index))
@@ -48,12 +52,17 @@ if (nrow(df3)>0){
                                   month(index_date)==month(start_date) &
                                   year(index_date)==year(start_date))
         plot_data <- df2 %>% 
-            filter(!(is.na(rs_avg) & is.na(rh_avg) & is.na(rs_rh) & is.na(clods))) %>%
+            filter(!(is.na(rs_avg) & is.na(rh_avg) & is.na(rs_rh) & 
+                     is.na(clods))) %>%
             filter(id3==i & index_date>=start_date %m-% years(1)) %>%
             group_by(id2, id3, index_date) %>%
             summarize(rs=mean(rs_avg, na.rm=T), rh=mean(rh_avg, na.rm=T), 
                       rs_rh1=mean(rs_rh, na.rm=T), clods1=mean(clods, na.rm=T)) %>%
             arrange(id2, index_date) %>% ungroup() 
+        plot_full <- full_seq %>%
+            filter(id3==i & index_date>=start_date %m-% years(1)) %>%
+            left_join(plot_data, by=c("id2", "id3", "index_date"))
+
         comply_lines <- data.frame(x=rep(min(plot_data$index_date), 3), 
                                    rh=c(29, 35, 41), rs_rh=c(9.5, 11, 12.5), 
                                    clods=c(55, NA, 65), 
@@ -64,7 +73,7 @@ if (nrow(df3)>0){
         fl <- tempfile()
         png(filename=fl, width=8, height=8, units="in", res=300)
         print(
-              ggplot(plot_data, aes(x=index_date, y=rh)) + 
+              ggplot(plot_full, aes(x=index_date, y=rh)) + 
                   geom_path(aes(color=id2)) +
                   ggrepel::geom_label_repel(data=label_data, 
                                             mapping=aes(x=index_date, y=rh, 
@@ -89,7 +98,7 @@ if (nrow(df3)>0){
         surface_grobs[[i]]$rh_plot <- grid::rasterGrob(tmp_plot, interpolate=TRUE)
         png(filename=fl, width=8, height=8, units="in", res=300)
         print(
-              ggplot(plot_data, aes(x=index_date, y=rs_rh1)) + 
+              ggplot(plot_full, aes(x=index_date, y=rs_rh1)) + 
                   geom_path(aes(color=id2)) +
                   ggrepel::geom_label_repel(data=label_data, 
                                             mapping=aes(x=index_date, y=rs_rh1, 
@@ -114,8 +123,7 @@ if (nrow(df3)>0){
         surface_grobs[[i]]$rsrh_plot <- grid::rasterGrob(tmp_plot, interpolate=TRUE)
         png(filename=fl, width=8, height=8, units="in", res=300)
         print(
-              surface_grobs[[i]]$clods_plot <- ggplot(plot_data, 
-                                                      aes(x=index_date, y=clods1)) + 
+              ggplot(plot_full, aes(x=index_date, y=clods1)) + 
               geom_path(aes(color=id2)) +
               ggrepel::geom_label_repel(data=label_data, 
                                         mapping=aes(x=index_date, y=clods1, 
