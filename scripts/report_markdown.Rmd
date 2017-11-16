@@ -51,6 +51,9 @@ if (area=='twb2') source("~/code/owensReports/scripts/twb2_pairs.R")
 if (area=='twb2') source("~/code/owensReports/scripts/twb2_surface.R")
 ```
 
+```{r lidar, include=FALSE}
+if (area=='twb2') source("~/code/owensReports/scripts/twb2_lidar.R")
+
 ```{r changes, include=FALSE}
 # One-off adjustments specific to report
 # CHECK EACH MONTH AND CHANGE IF NECESSARY
@@ -216,7 +219,7 @@ for (i in report_index){
                       "-m 10000"), intern=T)  
     cmnt_fl <- tempfile()
     write.table(gdrive_comments, file=cmnt_fl, quote=F, row.names=F, col.names=F)
-    comment_list <- read.table(file=cmnt_fl, sep="", header=T, na.strings="", 
+    comment_list <- read.table(file=cmnt_fl, sep="", header=F, na.strings="", 
                                skip=1)
     comment_file <- 
         gsub(" ", "", paste0(area, month(start_date), year(start_date), i, ".txt"))
@@ -315,6 +318,23 @@ for (i in report_index){
         cat(ttle)
         cat(" \n## Surface Survey Data Trend Plots\n")
         cat(paste0("![](", surface_img_files[[i]], ")"))
+        cat("<p style=\"page-break-after:always;\"></p> \n")
+    }
+    if (area=='twb2'){
+        report_header(start_date, end_date, report_date, area)
+        cat(ttle)
+        cat(" \n## LiDAR Roughness Maps\n")
+        cat(" \n Maps developed from most recently processed data.\n")
+        for (n in 1:length(lidar_files[[i]])){
+            cat(paste0("<p>![](", lidar_files[[i]][n], ")</p>"))
+            if (n %% 2 == 0){
+                cat("<p style=\"page-break-after:always;\"></p> \n")
+                report_header(start_date, end_date, report_date, area)
+                cat(ttle)
+                cat(" \n## LiDAR Roughness Maps (Continued)\n")
+                cat(" \n Maps developed from most recently processed data.\n")
+            }
+        }
         cat("<p style=\"page-break-after:always;\"></p> \n")
     }
 }
