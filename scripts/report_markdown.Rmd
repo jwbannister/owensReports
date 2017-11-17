@@ -321,21 +321,24 @@ for (i in report_index){
         cat("<p style=\"page-break-after:always;\"></p> \n")
     }
     if (area=='twb2'){
-        report_header(start_date, end_date, report_date, area)
-        cat(ttle)
-        cat(" \n## LiDAR Roughness Maps\n")
-        cat(" \n Maps developed from most recently processed data.\n")
-        for (n in 1:length(lidar_files[[i]])){
-            cat(paste0("<p>![](", lidar_files[[i]][n], ")</p>"))
-            if (n %% 2 == 0){
-                cat("<p style=\"page-break-after:always;\"></p> \n")
-                report_header(start_date, end_date, report_date, area)
-                cat(ttle)
-                cat(" \n## LiDAR Roughness Maps (Continued)\n")
-                cat(" \n Maps developed from most recently processed data.\n")
+        lidar_images <- lidar_files[[i]][!is.na(lidar_files[[i]])]
+        if (length(lidar_images)>0){
+            report_header(start_date, end_date, report_date, area)
+            cat(ttle)
+            cat(" \n## LiDAR Roughness Maps\n")
+            cat(" \n Maps developed from most recently processed data.\n")
+            for (n in 1:length(lidar_images)){
+                cat(paste0("<p>![](", lidar_images[n], ")</p>"))
+                if ((n %% 2 == 0) & (n!=length(lidar_images))){
+                    cat("<p style=\"page-break-after:always;\"></p> \n")
+                    report_header(start_date, end_date, report_date, area)
+                    cat(ttle)
+                    cat(" \n## LiDAR Roughness Maps (Continued)\n")
+                    cat(" \n Maps developed from most recently processed data.\n")
+                }
             }
+            cat("<p style=\"page-break-after:always;\"></p> \n")
         }
-        cat("<p style=\"page-break-after:always;\"></p> \n")
     }
 }
 ```

@@ -4,7 +4,7 @@ cross_walk <- c("T3SW"="T3SW", "T3SE"="T3SE", "T3NE"="T3NE",
 gdrive_images <- system(paste0(getwd(), "/gdrive list ", 
                                "-q \"trashed = false and ", 
                                "'0B8qHESXOhs-DQTlXa3FKWlpSOHM' in parents and ",
-                               "mimeType = 'image/png'\" ", 
+                               "mimeType = 'image/jpeg'\" ", 
                                "-m 10000"), intern=T)  
 cmnt_fl <- tempfile()
 write.table(gdrive_images, file=cmnt_fl, quote=F, row.names=F, col.names=F)
@@ -31,11 +31,15 @@ for (i in names(lidar_files)){
         vector(mode='character', length=nrow(filter(recent_images, id3==i)))
     names(lidar_files[[i]]) <- filter(recent_images, id3==i)$id2
     for (j in names(lidar_files[[i]])){
-        lidar_files[[i]][j] <- 
-            paste0(tempdir(), "/", filter(recent_images, id2==j)$V2)
-        system(paste0(getwd(), "/gdrive download --force --path ", tempdir(), 
-                      " ", filter(recent_images, id2==j)$V1))
-        system(paste0("convert ", lidar_files[[i]][j], " -resize 5000x400 ",
-        lidar_files[[i]][j]))
+        if (!is.na(filter(recent_images, id2==j)$V2)){
+            lidar_files[[i]][j] <- 
+                paste0(tempdir(), "/", filter(recent_images, id2==j)$V2)
+            system(paste0(getwd(), "/gdrive download --force --path ", 
+                          tempdir(), " ", filter(recent_images, id2==j)$V1))
+            system(paste0("convert ", lidar_files[[i]][j], " -resize 5000x400 ",
+                          lidar_files[[i]][j]))
+        } else{
+            lidar_files[[i]][j] <- NA
+        }
     }
 }
