@@ -61,8 +61,45 @@ if (nrow(df3)>0){
             arrange(id2, index_date) %>% ungroup() 
         plot_full <- full_seq %>%
             filter(id3==i & index_date>=start_date %m-% years(1)) %>%
-            left_join(plot_data, by=c("id2", "id3", "index_date"))
-
+            left_join(plot_data, by=c("id2", "id3", "index_date")) %>%
+            arrange(id2, index_date)
+        na_plot <- data.frame(id2=c(), index_date=c(), rs=c(), rh=c(), 
+                              rs_rh1=c(), clods1=c())
+        for (l in unique(plot_full$id2)){
+            tmp <- filter(plot_full, id2==l)
+            na_run <- which(is.na(tmp$rs))
+            for (k in 1:nrow(tmp)){
+                na_start <- 
+                    data.frame(index_date=tmp$index_date[min(na_run)-1],
+                               rs=tmp$rs[min(na_run)-1], 
+                               rh=tmp$rh[min(na_run)-1], 
+                               rs_rh1=tmp$rs_rh1[min(na_run)-1], 
+                               clods1=tmp$clods1[min(na_run)-1]) 
+                if (length(which(diff(na_run)>1))>0){
+                    na_end <- data.frame(id2=c(), index_date=c(), rs=c(), rh=c(), 
+                                          rs_rh1=c(), clods1=c())
+                    for (m in which(diff(na_run)>1)){
+                    tmp1 <- 
+                        data.frame(index_date=tmp$index_date[na_run[m]+1],
+                                   rs=tmp$rs[na_run[m]+1], 
+                                   rh=tmp$rh[na_run[m]+1], 
+                                   rs_rh1=tmp$rs_rh1[na_run[m]+1], 
+                                   clods1=tmp$clods1[na_run[m]+1]) 
+                    na_end <- rbind(na_end, tmp1)
+                    }
+                } else{
+                na_end <- 
+                    data.frame(index_date=tmp$index_date[max(na_run)+1],
+                               rs=tmp$rs[max(na_run)+1], 
+                               rh=tmp$rh[max(na_run)+1], 
+                               rs_rh1=tmp$rs_rh1[max(na_run)+1], 
+                               clods1=tmp$clods1[max(na_run)+1]) 
+                }
+                id2_na_plot <- rbind(na_start, na_end) %>% 
+                    cbind(data.frame(id2=rep(l, 2)))
+            }
+            na_plot <- rbind(na_plot, id2_na_plot)
+        }
         comply_lines <- data.frame(x=rep(min(plot_data$index_date), 3), 
                                    rh=c(29, 35, 41), rs_rh=c(9.5, 11, 12.5), 
                                    clods=c(55, NA, 65), 
@@ -76,6 +113,7 @@ if (nrow(df3)>0){
               ggplot(plot_full, aes(x=index_date, y=rh)) + 
                   geom_path(aes(color=id2)) +
                   geom_point(aes(color=id2)) +
+                  geom_path(data=na_plot, mapping=aes(group=id2), color='grey') +
                   ggrepel::geom_label_repel(data=label_data, 
                                             mapping=aes(x=index_date, y=rh, 
                                                         label=id2), 
@@ -102,6 +140,7 @@ if (nrow(df3)>0){
               ggplot(plot_full, aes(x=index_date, y=rs_rh1)) + 
                   geom_path(aes(color=id2)) +
                   geom_point(aes(color=id2)) +
+                  geom_path(data=na_plot, color='grey') +
                   ggrepel::geom_label_repel(data=label_data, 
                                             mapping=aes(x=index_date, y=rs_rh1, 
                                                         label=id2), 
@@ -128,6 +167,7 @@ if (nrow(df3)>0){
               ggplot(plot_full, aes(x=index_date, y=clods1)) + 
               geom_path(aes(color=id2)) +
               geom_point(aes(color=id2)) +
+              geom_path(data=na_plot, color='grey') +
               ggrepel::geom_label_repel(data=label_data, 
                                         mapping=aes(x=index_date, y=clods1, 
                                                     label=id2), 

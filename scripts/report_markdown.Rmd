@@ -222,7 +222,7 @@ for (i in report_index){
     comment_list <- read.table(file=cmnt_fl, sep="", header=F, na.strings="", 
                                skip=1)
     comment_file <- 
-        gsub(" ", "", paste0(area, month(start_date), year(start_date), i, ".txt"))
+        gsub(" ", "_", paste0(area, month(start_date), year(start_date), i, ".txt"))
     if (comment_file %in% comment_list[ , 2]){
         system(paste0(getwd(), "/gdrive download --path ", tempdir(), " ", 
                       comment_list[ , 1][which(comment_list[ , 2]==comment_file)]))
@@ -329,7 +329,8 @@ for (i in report_index){
             cat(" \n Maps developed from most recently processed data.\n")
             for (n in 1:length(lidar_images)){
                 cat(paste0("<p>![](", lidar_images[n], ")</p>"))
-                if ((n %% 2 == 0) & (n!=length(lidar_images))){
+               # if ((n %% 2 == 0) & (n!=length(lidar_images))){
+                if (n<length(lidar_images)){
                     cat("<p style=\"page-break-after:always;\"></p> \n")
                     report_header(start_date, end_date, report_date, area)
                     cat(ttle)

@@ -4,7 +4,7 @@ cross_walk <- c("T3SW"="T3SW", "T3SE"="T3SE", "T3NE"="T3NE",
 gdrive_images <- system(paste0(getwd(), "/gdrive list ", 
                                "-q \"trashed = false and ", 
                                "'0B8qHESXOhs-DQTlXa3FKWlpSOHM' in parents and ",
-                               "mimeType = 'image/jpeg'\" ", 
+                               "mimeType = 'application/pdf'\" ", 
                                "-m 10000"), intern=T)  
 cmnt_fl <- tempfile()
 write.table(gdrive_images, file=cmnt_fl, quote=F, row.names=F, col.names=F)
@@ -36,10 +36,18 @@ for (i in names(lidar_files)){
                 paste0(tempdir(), "/", filter(recent_images, id2==j)$V2)
             system(paste0(getwd(), "/gdrive download --force --path ", 
                           tempdir(), " ", filter(recent_images, id2==j)$V1))
-            system(paste0("convert ", lidar_files[[i]][j], " -resize 5000x400 ",
-                          lidar_files[[i]][j]))
+            system(paste0("convert -verbose -density 150 ", lidar_files[[i]][j], 
+                          " -resize 1000x6000 -quality 100 -flatten ",
+                          "-sharpen 0x1.0 -rotate 90 -compress lossless ", 
+                          gsub(".pdf", ".jpg", lidar_files[[i]][j])))
+#            system(paste0("convert -verbose -density 150 ", lidar_files[[i]][j], 
+#                          " -resize 5000x400 -quality 100 -flatten ",
+#                          "-sharpen 0x1.0 -compress lossless ", 
+#                          gsub(".pdf", ".jpg", lidar_files[[i]][j])))
+            lidar_files[[i]][j] <- gsub(".pdf", ".jpg", lidar_files[[i]][j])
         } else{
             lidar_files[[i]][j] <- NA
         }
     }
 }
+
