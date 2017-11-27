@@ -140,7 +140,7 @@ if (nrow(df3)>0){
               ggplot(plot_full, aes(x=index_date, y=rs_rh1)) + 
                   geom_path(aes(color=id2)) +
                   geom_point(aes(color=id2)) +
-                  geom_path(data=na_plot, color='grey') +
+                  geom_path(data=na_plot, mapping=aes(group=id2), color='grey') +
                   ggrepel::geom_label_repel(data=label_data, 
                                             mapping=aes(x=index_date, y=rs_rh1, 
                                                         label=id2), 
@@ -167,7 +167,7 @@ if (nrow(df3)>0){
               ggplot(plot_full, aes(x=index_date, y=clods1)) + 
               geom_path(aes(color=id2)) +
               geom_point(aes(color=id2)) +
-              geom_path(data=na_plot, color='grey') +
+              geom_path(data=na_plot, mapping=aes(group=id2), color='grey') +
               ggrepel::geom_label_repel(data=label_data, 
                                         mapping=aes(x=index_date, y=clods1, 
                                                     label=id2), 
