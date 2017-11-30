@@ -33,6 +33,19 @@ csc_locs <- csc_locs %>% arrange(csc) %>% filter(active) %>%
     left_join(distinct(select(area_polys, objectid, id1, id2, id3)), by="objectid")
 csc_collections <- load_collections(area)
 report_index <- unique(csc_locs$id3)[!is.na(unique(csc_locs$id3))]
+## Add remove T17-1 and add T23-5 to report
+#report_index <- c(report_index[report_index!='T17-1'], 'T23-5')
+##rename T10-3E to T10-3
+#area_polys[area_polys$id1=='T10-3E', ]$id1 <- 'T10-3'
+#area_polys[area_polys$id2=='T10-3E', ]$id2 <- 'T10-3'
+#area_polys[area_polys$id3=='T10-3E', ]$id3 <- 'T10-3'
+#area_labels[area_labels$id1=='T10-3E', ]$id1 <- 'T10-3'
+#area_labels[area_labels$id2=='T10-3E', ]$id2 <- 'T10-3'
+#area_labels[area_labels$id3=='T10-3E', ]$id3 <- 'T10-3'
+#csc_locs[csc_locs$id1=='T10-3E', ]$id1 <- 'T10-3'
+#csc_locs[csc_locs$id2=='T10-3E', ]$id2 <- 'T10-3'
+#csc_locs[csc_locs$id3=='T10-3E', ]$id3 <- 'T10-3'
+#report_index[report_index=='T10-3E'] <- 'T10-3'
 ```
 
 ```{r sandmass, include=FALSE}
@@ -234,21 +247,23 @@ for (i in report_index){
     row_limit <- if_else(split_size==1, 15, 34)
     flux_length <- ifelse(exists("tbl_flux_list"), 
                           nrow(tbl_flux_list[[split_size]]), 0)
-    if (flux_length + nrow(tbl_mass) + comment_length < row_limit){
-        cat(" \n\n## Monthly Sand Mass \n")
-        pandoc.table(as.data.frame(tbl_mass))
-    } else if (flux_length + nrow(tbl_mass) < row_limit){
-        cat(" \n\n## Monthly Sand Mass \n")
-        pandoc.table(as.data.frame(tbl_mass))
-        cat("<p style=\"page-break-after:always;\"></p> \n")
-        report_header(start_date, end_date, report_date, area)
-        cat(ttle)
-    } else{
-        cat("<p style=\"page-break-after:always;\"></p> \n")
-        report_header(start_date, end_date, report_date, area)
-        cat(ttle)
-        cat(" \n\n## Monthly Sand Mass \n")
-        pandoc.table(as.data.frame(tbl_mass))
+    if (nrow(tbl_mass)>0){
+        if (flux_length + nrow(tbl_mass) + comment_length < row_limit){
+            cat(" \n\n## Monthly Sand Mass \n")
+            pandoc.table(as.data.frame(tbl_mass))
+        } else if (flux_length + nrow(tbl_mass) < row_limit){
+            cat(" \n\n## Monthly Sand Mass \n")
+            pandoc.table(as.data.frame(tbl_mass))
+            cat("<p style=\"page-break-after:always;\"></p> \n")
+            report_header(start_date, end_date, report_date, area)
+            cat(ttle)
+        } else{
+            cat("<p style=\"page-break-after:always;\"></p> \n")
+            report_header(start_date, end_date, report_date, area)
+            cat(ttle)
+            cat(" \n\n## Monthly Sand Mass \n")
+            pandoc.table(as.data.frame(tbl_mass))
+        }
     }
     if (comment_file %in% comment_list[ , 2]){
         cat(" \n\n## Comments \n")

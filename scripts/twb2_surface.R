@@ -101,7 +101,7 @@ if (nrow(df3)>0){
             na_plot <- rbind(na_plot, id2_na_plot)
         }
         comply_lines <- data.frame(x=rep(min(plot_data$index_date), 3), 
-                                   rh=c(29, 35, 41), rs_rh=c(9.5, 11, 12.5), 
+                                   rh=c(29, 35, 41), rs_rh=c(12.5, 11, 9.5), 
                                    clods=c(55, NA, 65), 
                                    label=c("Reflood", "Maintain", "Compliance"))
         label_data <- plot_data %>% group_by(id2) %>%
@@ -126,7 +126,7 @@ if (nrow(df3)>0){
               geom_label(data=comply_lines, mapping=aes(x=x, y=rh, label=label, 
                                                         fill=label), 
                          hjust=0, alpha=0.5) +
-              scale_fill_manual(guide="none", values=c("darkgreen", "dodgerblue", 
+              scale_fill_manual(guide="none", values=c("dodgerblue", "goldenrod", 
                                                        "firebrick")) +
               ggtitle("Average Ridge Height") +
               theme(plot.background=element_blank(), 
@@ -153,7 +153,7 @@ if (nrow(df3)>0){
               geom_label(data=comply_lines, mapping=aes(x=x, y=rs_rh, label=label, 
                                                         fill=label), 
                          hjust=0, alpha=0.5) +
-              scale_fill_manual(guide="none", values=c("darkgreen", "dodgerblue", 
+              scale_fill_manual(guide="none", values=c("dodgerblue", "goldenrod", 
                                                        "firebrick")) +
               ggtitle("Average Ridge Spacing / Ridge Height Ratio") +
               theme(plot.background=element_blank(), 
@@ -179,7 +179,7 @@ if (nrow(df3)>0){
               geom_label(data=comply_lines, mapping=aes(x=x, y=clods, label=label, 
                                                         fill=label), 
                          hjust=0, alpha=0.5) +
-              scale_fill_manual(guide="none", values=c("darkgreen", "dodgerblue", 
+              scale_fill_manual(guide="none", values=c("dodgerblue", "goldenrod", 
                                                        "firebrick")) +
               ggtitle("Average Clod Coverage") +
               theme(plot.background=element_blank(), 
