@@ -314,8 +314,10 @@ for (i in report_index){
         pandoc.table(as.data.frame(tbl_surface), split.table=Inf)
         cat("</h6> \n")
         cat(" \n\n## Comments \n")
+        cat(" \n Surface survey data was collected Sept. 27 - 28, 2017.\n")
         cat(" \n Sites not listed were not accessible due to flooding or were 
             undergoing tillage maintenance.\n")
+        cat(" \n RS and RH results are reported as rounded integer numbers. RS/RH ratio reported above is calculated from the actual (decimal) values.\n")
         comment_file_surface <- 
             gsub(" ", "", paste0(area, month(start_date), year(start_date), i, 
                                  "_surface.txt"))
@@ -333,6 +335,8 @@ for (i in report_index){
         cat(ttle)
         cat(" \n## Surface Survey Data Trend Plots\n")
         cat(paste0("![](", surface_img_files[[i]], ")"))
+        cat(" \n\n## Comments \n")
+        cat(" \n Temporal figures reflect the average conditions at all current survey sites by area.  Month to month differences can be attributed to a combination of actual differences, as well as differences in the number and locations of survey sites.  The latter two can vary on a monthly basis, due to maintenance (sites not used) or wet surface conditions (lack of safe access).\n")
         cat("<p style=\"page-break-after:always;\"></p> \n")
     }
     if (area=='twb2'){
