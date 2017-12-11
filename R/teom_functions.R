@@ -297,7 +297,6 @@ teom_pair_plot <- function(teom_locs, df1, background, start_date, end_date){
           panel.grid.minor=element_blank(),
           plot.background=element_blank(),
           plot.title=element_text(size=12))
-  dev.off()
   p3
 }
 

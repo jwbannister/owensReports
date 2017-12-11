@@ -314,7 +314,7 @@ for (i in report_index){
         pandoc.table(as.data.frame(tbl_surface), split.table=Inf)
         cat("</h6> \n")
         cat(" \n\n## Comments \n")
-        cat(" \n Surface survey data was collected Sept. 27 - 28, 2017.\n")
+        cat(" \n Surface survey data was collected Nov. 7 - 9, 2017.\n")
         cat(" \n Sites not listed were not accessible due to flooding or were 
             undergoing tillage maintenance.\n")
         cat(" \n RS and RH results are reported as rounded integer numbers. RS/RH ratio reported above is calculated from the actual (decimal) values.\n")
