@@ -188,13 +188,13 @@ for (i in report_index){
         }
         split_size <- 1
         if (nrow(tbl_flux)==0){
-            if (area=='tbw2'){
+            if (area=='twb2'){
                 cat(" \nNo days with measured sand flux >= 0.5 g/cm<sup>2</sup>/day. \n")
             } else{
                 cat(" \nNo days with measured sand flux >= 1.0 g/cm<sup>2</sup>/day. \n")
             }
         } else{
-            if (area=='tbw2'){
+            if (area=='twb2'){
                 cat(" \nDays with recorded sand flux >= 0.5 g/cm<sup>2</sup>/day: \n")
             } else{
                 cat(" \nDays with recorded sand flux >= 1.0 g/cm<sup>2</sup>/day: \n")
@@ -294,6 +294,11 @@ for (i in report_index){
             cat(" \n## Paired TEOM PM10 Results\n")
         }
         pandoc.table(as.data.frame(tbl_pair), split.table=Inf)
+        # one-off comment for November 2017
+        if (i=='South'){
+        cat(" \n\n## Comments \n")
+        cat(" \nThe	PM10 difference	between	the	TEOM monitoring	stations recorded on 11/27/2017 was based	on a single	hour during	which the wind was measured	within 22.5 degrees	(+/-11.25 degrees) between the two stations. The wind was steady out of	the	south-southwest and the recorded wind speed during this hour was approximately 14 meters/second. This day was a high wind day with multiple high PM10 readings across the Owens Valley.\n")	
+        }
         cat("<p style=\"page-break-after:always;\"></p> \n")
     }
     if (area=='twb2'& exists('surface_df')){
@@ -315,8 +320,8 @@ for (i in report_index){
         cat("</h6> \n")
         cat(" \n\n## Comments \n")
         cat(" \n Surface survey data was collected Nov. 7 - 9, 2017.\n")
-        cat(" \n Sites not listed were not accessible due to flooding or were 
-            undergoing tillage maintenance.\n")
+#        cat(" \n Sites not listed were not accessible due to flooding or were 
+#            undergoing tillage maintenance.\n")
         cat(" \n RS and RH results are reported as rounded integer numbers. RS/RH ratio reported above is calculated from the actual (decimal) values.\n")
         comment_file_surface <- 
             gsub(" ", "", paste0(area, month(start_date), year(start_date), i, 

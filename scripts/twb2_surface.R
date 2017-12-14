@@ -66,38 +66,26 @@ if (nrow(df3)>0){
         na_plot <- data.frame(id2=c(), index_date=c(), rs=c(), rh=c(), 
                               rs_rh1=c(), clods1=c())
         for (l in unique(plot_full$id2)){
+        id2_na_plot <- data.frame(id2=c(), index_date=c(), rs=c(), rh=c(), 
+                              rs_rh1=c(), clods1=c())
             tmp <- filter(plot_full, id2==l)
             na_run <- which(is.na(tmp$rs))
-            for (k in 1:nrow(tmp)){
-                na_start <- 
-                    data.frame(index_date=tmp$index_date[min(na_run)-1],
-                               rs=tmp$rs[min(na_run)-1], 
-                               rh=tmp$rh[min(na_run)-1], 
-                               rs_rh1=tmp$rs_rh1[min(na_run)-1], 
-                               clods1=tmp$clods1[min(na_run)-1]) 
-                if (length(which(diff(na_run)>1))>0){
-                    na_end <- data.frame(id2=c(), index_date=c(), rs=c(), rh=c(), 
-                                          rs_rh1=c(), clods1=c())
-                    for (m in which(diff(na_run)>1)){
-                    tmp1 <- 
-                        data.frame(index_date=tmp$index_date[na_run[m]+1],
-                                   rs=tmp$rs[na_run[m]+1], 
-                                   rh=tmp$rh[na_run[m]+1], 
-                                   rs_rh1=tmp$rs_rh1[na_run[m]+1], 
-                                   clods1=tmp$clods1[na_run[m]+1]) 
-                    na_end <- rbind(na_end, tmp1)
-                    }
-                } else{
-                na_end <- 
-                    data.frame(index_date=tmp$index_date[max(na_run)+1],
-                               rs=tmp$rs[max(na_run)+1], 
-                               rh=tmp$rh[max(na_run)+1], 
-                               rs_rh1=tmp$rs_rh1[max(na_run)+1], 
-                               clods1=tmp$clods1[max(na_run)+1]) 
-                }
-                id2_na_plot <- rbind(na_start, na_end) %>% 
-                    cbind(data.frame(id2=rep(l, 2)))
+            for (m in na_run){
+                a <- data.frame(index_date=tmp$index_date[m-1],
+                                   rs=tmp$rs[m-1], 
+                                   rh=tmp$rh[m-1], 
+                                   rs_rh1=tmp$rs_rh1[m-1], 
+                                   clods1=tmp$clods1[m-1]) 
+                b <- data.frame(index_date=tmp$index_date[m+1],
+                                   rs=tmp$rs[m+1], 
+                                   rh=tmp$rh[m+1], 
+                                   rs_rh1=tmp$rs_rh1[m+1], 
+                                   clods1=tmp$clods1[m+1]) 
+                id2_na_plot <- rbind(id2_na_plot, a, b)
             }
+            id2_na_plot <- id2_na_plot[complete.cases(id2_na_plot), ] %>% 
+                distinct()
+            id2_na_plot$id2 <- rep(l, nrow(id2_na_plot))
             na_plot <- rbind(na_plot, id2_na_plot)
         }
         comply_lines <- data.frame(x=rep(min(plot_data$index_date), 3), 

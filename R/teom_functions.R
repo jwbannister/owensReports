@@ -247,12 +247,12 @@ teom_pair_plot <- function(teom_locs, df1, background, start_date, end_date){
   valueseq <- c(10, 50, 150, 500)
   legend.plot <- df1 %>% filter(id3==teom_locs$id3[1]) %>%
     plot_rose(., value='pm10_avg', dir='wd', valueseq=valueseq,
-              legend.title="PM10", reverse.bars=F)
+              legend.title="PM10", reverse.bars=T)
   legnd <- g_legend(legend.plot)
   for (j in 1:nrow(teom_locs)){
     tmp_df <- filter(df1, deployment==teom_locs$deployment[j])
     p <- plot_rose_image_only(tmp_df, value='pm10_avg', dir='wd', 
-                              valueseq=valueseq, reverse.bars=F)
+                              valueseq=valueseq, reverse.bars=T)
     fl <- paste0(tempfile(), ".png")
     png(filename=fl, height=3, width=3, units="in", res=300, bg="transparent")
     print(p)
