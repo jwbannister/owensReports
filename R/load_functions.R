@@ -55,8 +55,9 @@ load_collections <- function(area){
     query1 <- paste0("SELECT i.deployment, s.* FROM sandcatch.csc_summary s ", 
                      "JOIN instruments.deployments i ",
                      "ON s.csc_deployment_id=i.deployment_id ",
-                     "WHERE ('", start_date, "'::date, '", end_date, "'::date) ",
-                     "OVERLAPS (s.start_datetime::date, collection_datetime) ", 
+                     "WHERE ('", start_date-1, "'::date, '", end_date+1, "'::date) ",
+                     "OVERLAPS (s.start_datetime::date, ",
+                     "s.collection_datetime::date) ", 
                      "AND i.deployment IN ('", 
                      paste0(csc_list[[area]], collapse="', '"), "');") 
     query_db("owenslake", query1)

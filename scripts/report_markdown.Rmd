@@ -286,7 +286,7 @@ for (i in report_index){
         # one-off comment for November 2017
         if (i=='South'){
         cat(" \n\n## Comments \n")
-        cat(" \nAfter review of PM10 and meteorological data it is determined that the observed upwind-downwind PM10 difference on 11/27/2017 is limited to one hour (between 3:00 am and 4:00 am). In addition, there were several hours with high winds from the same direction, crossing TwB2, where the downwind PM10 concentration was considerably lower than the upwind. Sand fluxes in the TwB2 areas were negligible for the hour in question, as well as for the entire day.  Furthermore, November ground survey data showed that all survey sites in the south TwB2 areas had stable, clodded surfaces. Based on this information, it is unlikely that the southern TwB2 areas contributed to the PM10 measured at the downwind (T7) monitor.\n")	
+        cat(" \nAfter review of PM10 and meteorological data, it is determined that the observed upwind-downwind PM10 difference on 11/27/2017 is limited to one hour (between 3:00 am and 4:00 am). In addition, there were several hours with high winds from the same direction, crossing TwB2, where the downwind PM10 concentration was considerably lower than the upwind. Sand fluxes in the TwB2 areas were negligible for the hour in question, as well as for the entire day.  Furthermore, November ground survey data showed that all survey sites in the south TwB2 areas had stable, clodded surfaces. This information is indicative that the southern TwB2 areas did not contribute to the PM10 measured at the downwind (T7) monitor.\n")	
         }
         cat("<p style=\"page-break-after:always;\"></p> \n")
     }
