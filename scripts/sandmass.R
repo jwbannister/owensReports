@@ -1,3 +1,4 @@
+# calculate sand masses
 full_5min <- expand.grid(csc=unique(csc_locs$csc), 
                    datetime=seq(as.POSIXct(paste0(start_date, "00:05:00")), 
                             as.POSIXct(paste0(end_date %m+% days(1), 
