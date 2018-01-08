@@ -32,8 +32,8 @@ for (i in report_index){
     }
         plot_range_x <- range(c(met_pts$x, tmp_polys$x))
         plot_range_y <- range(c(met_pts$y, tmp_polys$y))
-        extent <- data.frame(x=extendrange(r=plot_range_x, f=0.3),
-                             y=extendrange(r=plot_range_y, f=0.3))
+        extent <- data.frame(x=extendrange(r=plot_range_x, f=0.2),
+                             y=extendrange(r=plot_range_y, f=0.2))
         background <- photo_background(extent$x[1], extent$x[2], 
                                        extent$y[1], extent$y[2], 
                                        zone="11N") +
