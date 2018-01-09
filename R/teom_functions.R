@@ -13,7 +13,7 @@
 #' pull_teom_wind("2016-02-01", "2016-03-01")
 pull_teom_wind <- function(date1, date2){
     query1 <- paste0("SELECT i.deployment, ",
-                     "t.datetime::timestamp AT TIME ZONE 'America/Los_Angeles', ", 
+                     "t.datetime::timestamp AT TIME ZONE 'America/Los_Angeles' AS datetime, ", 
                      "t.ws_wvc AS ws, t.wd_wvc AS wd ",
                      "FROM teom.teom_analog_1hour t ",
                      "JOIN instruments.deployments i ",
@@ -30,7 +30,7 @@ pull_teom_wind <- function(date1, date2){
 
 pull_mfile <- function(date1, date2){
     query1 <- paste0("SELECT site AS deployment, ",
-                     "datetime::timestamp AT TIME ZONE 'America/Los_Angeles', ", 
+                     "datetime::timestamp AT TIME ZONE 'America/Los_Angeles' AS datetime, ", 
                      "aspd AS ws, dir AS wd, teom AS pm10_avg ",
                      "FROM archive.mfile_data ",
                      "WHERE (datetime-'1 second'::interval)::date ",
@@ -76,7 +76,7 @@ pull_locations <- function(deploys){
 pull_pm10 <- function(date1, date2, deploys){
     deploys <- paste0("('", paste(deploys, collapse="', '"), "')")
     query1 <- paste0("SELECT deployment, ",
-                     "datetime::timestamp AT TIME ZONE 'America/Los_Angeles', ", 
+                     "datetime::timestamp AT TIME ZONE 'America/Los_Angeles' AS datetime, ", 
                      "pm10_1hour_stp AS pm10_avg, invalid ",
                      "FROM teom.hourly_validated ",
                      "WHERE (datetime-'1 second'::interval)::date ",

@@ -25,8 +25,9 @@ load_sites <- function(area, poly_df){
 }
 
 load_site_data <- function(area, start_date, end_date){
-    query1 <- paste0("SELECT sens.datetime::timestamp AT TIME ZONE 'America/Los_Angeles', ",
-           "csc.csc_deployment_id, ", "csc.sensit_deployment_id, ic.deployment AS csc, ", 
+    query1 <- 
+        paste0("SELECT sens.datetime::timestamp AT TIME ZONE 'America/Los_Angeles' AS datetime, ",
+           "csc.csc_deployment_id, csc.sensit_deployment_id, ic.deployment AS csc, ", 
            "sens.sumpc, csc.dwp_mass, csc.sumpc_total, met.ws_10m, met.wd_10m, ",
            "CASE ", 
                "WHEN csc.sumpc_total > 0 ", 
