@@ -48,6 +48,7 @@ for (i in report_index){
             diff(ggplot_build(background)[[2]]$panel_ranges[[1]]$y.range)
     legend_flux='Max. Daily Flux\n(g/cm^2/day)'
     top_flux <- if_else(area=='twb2', 1, 10)
+    label_adjust <- csc_label_adjust[[area]]
     if (area %in% c('channel', 't1a1')){
     p1 <- plot_csc_site_label_nocolor(background, tmp_flux, i,  value_index=2, 
                                       value_max=top_flux, 
@@ -64,7 +65,8 @@ for (i in report_index){
                size=guide_legend(order=3))
     } else{
     p1 <- plot_csc_site(background, tmp_flux, i, legend_title=legend_flux, 
-                        value_index=2, value_max=top_flux, plot_title="Daily Flux") +
+                        value_index=2, value_max=top_flux, plot_title="Daily Flux",
+                        label_adjust=label_adjust) +
         geom_point(data=tmp_partial, mapping=aes(x=x, y=y, shape=flag), 
                    color="black", size=6) +
         scale_shape_manual(name=NULL, values=c(21)) +
@@ -83,7 +85,7 @@ for (i in report_index){
                 scale_shape_manual(name='Met Station', values=c(17), 
                                    labels=c('1552')) 
      }
-    fl <- tempfile()
+    fl <- tempfile(fileext=".png")
     png(filename=fl, width=8, height=8, units="in", res=300)
     print(p1)
     dev.off()

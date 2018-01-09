@@ -1,8 +1,9 @@
 # calculate sand masses
 full_5min <- expand.grid(csc=unique(csc_locs$csc), 
-                   datetime=seq(as.POSIXct(paste0(start_date, "00:05:00")), 
-                            as.POSIXct(paste0(end_date %m+% days(1), 
-                                              " 00:00:00")), 
+                   datetime=seq(as.POSIXct(paste0(start_date, "00:05:00"), 
+                                           tz='America/Los_Angeles'), 
+                            as.POSIXct(paste0(end_date %m+% days(1), " 00:00:00"),
+                                       tz='America/Los_Angeles'), 
                                        as.difftime(5, units="mins")), 
                          stringsAsFactors=F)
 full_5min_csc <- full_5min %>%
@@ -67,6 +68,7 @@ if (area=="dwm") area_labels <- move_dwm_labels(area_labels)
 if (area=="brine") area_labels <- move_brine_labels(area_labels)
 if (area=="channel") area_labels <- move_channel_labels(area_labels)
 if (area=="t1a1") area_labels <- move_t1a1_labels(area_labels)
+if (area=="twb2") area_labels <- move_twb2_labels(area_labels)
 
 
 

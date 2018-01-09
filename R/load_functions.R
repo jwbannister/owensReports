@@ -48,7 +48,9 @@ load_site_data <- function(area, start_date, end_date){
            "AND csc.dwp_mass IS NOT NULL ",
            "AND sens.datetime >= '", start_date %m+% minutes(5), "'::timestamp ",
            "AND sens.datetime <= '", end_date %m+% days(1), "'::timestamp;")
-    query_db("owenslake", query1)
+    a <- query_db("owenslake", query1)
+#    attributes(a$datetime)$tzone <- 'America/Los_Angeles'
+    return(a)
 }
 
 load_collections <- function(area){

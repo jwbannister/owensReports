@@ -7,7 +7,7 @@ output:
 ```{r setup, include=FALSE}
 airsci_loc <- Sys.getenv("R_AIRSCI")
 suppressMessages(devtools::load_all(airsci_loc))
-load_all()
+load_all(here::here())
 library(pander)
 library(tidyverse)
 library(lubridate)

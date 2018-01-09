@@ -56,9 +56,12 @@ move_t1a1_labels <- function(df1){
 }
 
 move_twb2_labels <- function(df1){
-    df1[df1$dca=="T2-2", ]$x[2] <- 410547
-    df1[df1$dca=="T2-2", ]$y[2] <- 4020386
-    df1[df1$dca=="T5-4", ]$x <- 414060
-    df1[df1$dca=="T5-4", ]$y <- 4021851
+    df1[df1$id2=='T2-2', ]$y <- df1[df1$id2=='T2-2', ]$y - 250
+    df1[df1$id2=='T2-3', ]$x <- df1[df1$id2=='T2-3', ]$x - 600
+    df1[df1$id2=='T2-3', ]$y <- df1[df1$id2=='T2-3', ]$y - 50
+    df1[df1$id2=='T2-4', ]$x <- df1[df1$id2=='T2-4', ]$x - 400
+    df1[df1$id2=='T2-4', ]$y <- df1[df1$id2=='T2-4', ]$y + 200
+    df1[df1$id2=='T3NE', ]$x <- df1[df1$id2=='T3NE', ]$x + 600
+    df1[df1$id2=='T3NE', ]$y <- df1[df1$id2=='T3NE', ]$y + 250
     df1
 }
