@@ -12,8 +12,9 @@
 #' @examples
 #' pull_teom_wind("2016-02-01", "2016-03-01")
 pull_teom_wind <- function(date1, date2){
-    query1 <- paste0("SELECT i.deployment, t.datetime, t.ws_wvc AS ws, ",
-                     "t.wd_wvc AS wd ",
+    query1 <- paste0("SELECT i.deployment, ",
+                     "t.datetime::timestamp AT TIME ZONE 'America/Los_Angeles', ", 
+                     "t.ws_wvc AS ws, t.wd_wvc AS wd ",
                      "FROM teom.teom_analog_1hour t ",
                      "JOIN instruments.deployments i ",
                      "ON t.deployment_id=i.deployment_id ",
@@ -23,12 +24,14 @@ pull_teom_wind <- function(date1, date2){
                      "AND NOT t.deployment_id = 8")
     wind_df <- query_db("owenslake", query1)
     wind_df$wd <- round(wind_df$wd, 2)
+    attributes(wind_df$datetime)$tzone <- 'America/Los_Angeles'
     wind_df
 }
 
 pull_mfile <- function(date1, date2){
-    query1 <- paste0("SELECT site AS deployment,  datetime, aspd AS ws, ",
-                     "dir AS wd, teom AS pm10_avg ",
+    query1 <- paste0("SELECT site AS deployment, ",
+                     "datetime::timestamp AT TIME ZONE 'America/Los_Angeles', ", 
+                     "aspd AS ws, dir AS wd, teom AS pm10_avg ",
                      "FROM archive.mfile_data ",
                      "WHERE (datetime-'1 second'::interval)::date ",
                      "BETWEEN '", date1, "'::date ", 
@@ -37,6 +40,7 @@ pull_mfile <- function(date1, date2){
     mfile_df <- query_db("owenslake", query1)
     mfile_df$wd <- round(mfile_df$wd, 2)
     mfile_df$pm10_avg <- round(mfile_df$pm10_avg, 2)
+    attributes(mfile_df$datetime)$tzone <- 'America/Los_Angeles'
     mfile_df
 }
 
@@ -71,7 +75,8 @@ pull_locations <- function(deploys){
 #' @examples
 pull_pm10 <- function(date1, date2, deploys){
     deploys <- paste0("('", paste(deploys, collapse="', '"), "')")
-    query1 <- paste0("SELECT deployment, datetime, ",
+    query1 <- paste0("SELECT deployment, ",
+                     "datetime::timestamp AT TIME ZONE 'America/Los_Angeles', ", 
                      "pm10_1hour_stp AS pm10_avg, invalid ",
                      "FROM teom.hourly_validated ",
                      "WHERE (datetime-'1 second'::interval)::date ",
@@ -80,6 +85,7 @@ pull_pm10 <- function(date1, date2, deploys){
                      "AND deployment IN ", deploys, ";")
     pm10_df <- query_db("owenslake", query1)
     pm10_df$pm10_avg <- round(pm10_df$pm10_avg, 2)
+    attributes(pm10_df$datetime)$tzone <- 'America/Los_Angeles'
     pm10_df
 }
 
