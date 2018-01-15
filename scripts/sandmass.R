@@ -49,6 +49,11 @@ absent_sites <- filter(bad_collections,
                        (flag=="No Data For Month" & 
                         comment=="No Collection Made"))$csc
 bad_collections <- bad_collections %>% filter(!(csc %in% absent_sites))
+for (row in 1:nrow(bad_collections)){
+    if (bad_collections$flag[row]=='Partial Data For Month'){
+        bad_collections$comment[row] <- NA
+    }
+}
 
 geom_adj <- 1.2 #sandcatch geometry adjustment for sandflux calculation
 csc_mass <- full_flux %>% filter(!invalid | is.na(invalid)) %>% group_by(csc) %>% 
