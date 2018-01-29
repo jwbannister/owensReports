@@ -28,10 +28,12 @@ load_site_data <- function(area, start_date, end_date){
     query1 <- 
         paste0("SELECT sens.datetime::timestamp AT TIME ZONE 'America/Los_Angeles' AS datetime, ",
            "csc.csc_deployment_id, csc.sensit_deployment_id, ic.deployment AS csc, ", 
-           "sens.sumpc, csc.dwp_mass, csc.sumpc_total, met.ws_10m, met.wd_10m, ",
+           "sens.sumpc, COALESCE(csc.dwp_mass, csc.district_mass) AS dwp_mass, ",
+           "csc.sumpc_total, met.ws_10m, met.wd_10m, ",
            "CASE ", 
                "WHEN csc.sumpc_total > 0 ", 
-               "THEN (sens.sumpc / csc.sumpc_total) * (csc.dwp_mass / 1.2) ",
+               "THEN (sens.sumpc / csc.sumpc_total) * ", 
+               "(COALESCE(csc.dwp_mass, csc.district_mass) / 1.2) ",
                "ELSE 0 ",
            "END AS sand_flux, ", 
            "flags.field_is_invalid(csc.sensit_deployment_id, 90, sens.datetime) AS invalid ",
@@ -46,7 +48,7 @@ load_site_data <- function(area, start_date, end_date){
            "AND met.deployment_id = csc.met_deployment_id ",
            "WHERE ic.deployment IN ('", 
            paste0(csc_list[[area]], collapse="', '"), "') ", 
-           "AND csc.dwp_mass IS NOT NULL ",
+           "AND COALESCE(csc.dwp_mass, csc.district_mass) IS NOT NULL ",
            "AND sens.datetime >= '", start_date %m+% minutes(5), "'::timestamp ",
            "AND sens.datetime <= '", end_date %m+% days(1), "'::timestamp;")
     a <- query_db("owenslake", query1)

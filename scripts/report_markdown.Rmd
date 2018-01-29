@@ -303,9 +303,10 @@ for (i in report_index){
         pandoc.table(as.data.frame(tbl_surface), split.table=Inf)
         cat("</h6> \n")
         cat(" \n\n## Comments \n")
-        cat(" \n Surface survey data was collected Nov. 7 - 9, 2017.\n")
-#        cat(" \n Sites not listed were not accessible due to flooding or were 
-#            undergoing tillage maintenance.\n")
+        cat(" \n Surface survey data was collected Jan. 4 - 22, 2018.\n")
+        if (i=='South'){
+        cat(" \n January surface survey data not available for sites 1606A, 1606B, 1606C, and 1607A.  No safe access to these sites due to flooding.\n")
+        }
         cat(" \n RS and RH results are reported as rounded integer numbers. RS/RH ratio reported above is calculated from the actual (decimal) values.\n")
         comment_file_surface <- 
             gsub(" ", "", paste0(area, month(start_date), year(start_date), i, 
