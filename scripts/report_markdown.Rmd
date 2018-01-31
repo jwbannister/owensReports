@@ -188,7 +188,7 @@ for (i in report_index){
             } else{
                 cat(" \nDays with recorded sand flux >= 1.0 g/cm<sup>2</sup>/day: \n")
             }
-            if (nrow(tbl_flux)<16){
+            if (nrow(tbl_flux)<=17){
                 tbl_flux_list <- vector(mode='list', length=1)
                 tbl_flux_list[[1]] <- tbl_flux
                 pandoc.table(as.data.frame(tbl_flux_list[[1]]), split.table=Inf)
