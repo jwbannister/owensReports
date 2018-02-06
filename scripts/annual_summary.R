@@ -44,6 +44,18 @@ for (a in areas){
         group_by(csc, month) %>%
         summarize(max_flux=max(sand_flux)) %>%
         spread(month, max_flux)
+    max_days_table <- flux_df %>% group_by(csc, month, date) %>%
+        summarize(sand_flux=round(sum(sand_flux), 2)) %>% 
+        filter(sand_flux>0.5) %>%
+        group_by(csc, month) %>%
+        filter(sand_flux==max(sand_flux)) %>%
+        right_join(expand.grid(unique(max_flux$csc), levels(flux_df$month)), 
+                   by=c('csc'='Var1', 'month'='Var2')) %>%
+        select(-sand_flux) %>%
+        spread(month, date)
+    max_days_vec <- unique(gather(max_days_table, key='month', value='date', 
+                                  -csc)$date)
+    max_days_vec <- max_days_vec[!is.na(max_days_vec)]
 
     daily_wind <- flux_df %>% group_by(csc, date, hour) %>%
         summarize(hourly_ws = mean(ws_10m, na.rm=T)) %>%
@@ -73,12 +85,15 @@ for (a in areas){
     ws_flux <- ws_flux %>% select(ws_class, pre_con_flux, post_con_flux) %>%
         mutate(estimated_ce = round(1 - (post_con_flux/pre_con_flux), 2))
 
+    dir.create(paste0("~/output/annual/", a), showWarnings=FALSE)
     write.csv(mass_month, row.names=F, 
-              file=paste0("~/output/annual/", a, "_monthly_masses.csv"))
+              file=paste0("~/output/annual/", a, "/", a, "_monthly_masses.csv"))
     write.csv(max_flux, row.names=F, 
-              file=paste0("~/output/annual/", a, "_monthly_max_flux.csv"))
+              file=paste0("~/output/annual/", a, "/",  a, "_monthly_max_flux.csv"))
+    write.csv(max_days_table, row.names=F, 
+              file=paste0("~/output/annual/", a, "/",  a, "_monthly_max_flux_days.csv"))
     write.csv(ws_flux, row.names=F, 
-              file=paste0("~/output/annual/", a, "_control_eff.csv"))
+              file=paste0("~/output/annual/", a, "/",  a, "_control_eff.csv"))
 
     hour_flux <- flux_df %>% group_by(csc, date, hour) %>% filter(!is.na(wd_10m)) %>%
         summarize(flux=sum(sand_flux), 
@@ -91,10 +106,23 @@ for (a in areas){
     p1 <- plot_rose(hour_flux, 'flux', 'wd', valuemin=0.5, valueseq_round=1, 
                     plot.title=paste0(title_index[a]), 
                     legend.title="g/cm2/hr")
-    png(file=paste0("~/output/annual/", a, "_sandflux_plot.png"), height=6, width=6, 
-        units="in", res=300)
+    png(file=paste0("~/output/annual/", a, "/",  a, "_sandflux_plot.png"), 
+        height=6, width=6, units="in", res=300)
     print(p1)
     dev.off()
+
+    for (dt in as.character(max_days_vec)){
+        dir.create(paste0("~/output/annual/", a, "/day_roses"))
+        p2 <- filter(hour_flux, date==dt) %>%
+            plot_rose(., 'flux', 'wd', valueseq_round=2, 
+                      plot.title=paste0(title_index[a], " - ", dt), 
+                      legend.title="g/cm2/hr")
+        png(file=paste0("~/output/annual/", a, "/day_roses/",  a, "_", dt, 
+                        "_sandflux_plot.png"), 
+            height=6, width=6, units="in", res=300)
+        print(p2)
+        dev.off()
+    }
 }
     
 

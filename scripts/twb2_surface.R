@@ -88,7 +88,7 @@ if (nrow(df3)>0){
             id2_na_plot$id2 <- rep(l, nrow(id2_na_plot))
             na_plot <- rbind(na_plot, id2_na_plot)
         }
-        comply_lines <- data.frame(x=rep(min(plot_data$index_date), 3), 
+        comply_lines <- data.frame(x=rep(max(plot_data$index_date) %m-% years(1), 3), 
                                    rh=c(29, 35, 41), rs_rh=c(12.5, 11, 9.5), 
                                    clods=c(55, NA, 65), 
                                    label=c("Reflood", "Maintain", "Compliance"))
