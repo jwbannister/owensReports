@@ -32,9 +32,6 @@ csc_locs <- load_sites(area, area_polys)
 csc_locs <- csc_locs %>% arrange(csc) %>% filter(active) %>%
     left_join(distinct(select(area_polys, objectid, id1, id2, id3)), by="objectid")
 csc_collections <- load_collections(area)
-report_index <- unique(csc_locs$id3)[!is.na(unique(csc_locs$id3))]
-## Add remove T17-1 and add T23-5 to report
-#report_index <- c(report_index[report_index!='T17-1'], 'T23-5')
 ```
 
 ```{r sandmass, include=FALSE}
@@ -42,6 +39,7 @@ source("~/code/owensReports/scripts/sandmass.R")
 ```
 
 ```{r sandflux, include=FALSE}
+# report_index is set after daily sand flux calculations
 source("~/code/owensReports/scripts/sandflux.R")
 ```
 
