@@ -44,7 +44,10 @@ source("~/code/owensReports/scripts/sandflux.R")
 ```
 
 ```{r pairs, include=FALSE}
-if (area=='twb2') source("~/code/owensReports/scripts/twb2_pairs.R")
+# don't run twb2 paired TEOM analysis if too early in the month (interim 
+# reports). TEOM data may not be in database and will throw error.
+if (Sys.Date() < start_date %m+% weeks(2)) paired_flag <- FALSE 
+if (area=='twb2' & paired_flag) source("~/code/owensReports/scripts/twb2_pairs.R")
 ```
 
 ```{r surface, include=FALSE}
@@ -81,7 +84,7 @@ for (i in report_index){
     png(filename=img_files[[i]], width=8, height=4, units="in", res=300)
     gridExtra::grid.arrange(flux_grobs[[i]], ncol=2)
     dev.off()
-    if (area=='twb2' & i!='East'){
+    if (area=='twb2' & i!='East' & paired_flag){
         # twb2 report also shows TEOM pair maps
         pair_img_files[[i]] <- paste0(tempfile(), ".png")
         png(filename=pair_img_files[[i]], width=8, height=4, units="in", res=300)
@@ -261,7 +264,7 @@ for (i in report_index){
     }
     cat("<p style=\"page-break-after:always;\"></p> \n")
 
-    if (area=='twb2' & i!="East"){
+    if (area=='twb2' & i!="East" & paired_flag){
         report_header(start_date, end_date, report_date, area)
         cat(ttle)
         cat(" \n## Paired TEOM PM10 Results\n")
