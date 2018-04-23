@@ -70,18 +70,20 @@ if (nrow(df3)>0){
                               rs_rh1=c(), clods1=c())
             tmp <- filter(plot_full, id2==l)
             na_run <- which(is.na(tmp$rs))
-            for (m in na_run){
-                a <- data.frame(index_date=tmp$index_date[m-1],
-                                   rs=tmp$rs[m-1], 
-                                   rh=tmp$rh[m-1], 
-                                   rs_rh1=tmp$rs_rh1[m-1], 
-                                   clods1=tmp$clods1[m-1]) 
-                b <- data.frame(index_date=tmp$index_date[m+1],
-                                   rs=tmp$rs[m+1], 
-                                   rh=tmp$rh[m+1], 
-                                   rs_rh1=tmp$rs_rh1[m+1], 
-                                   clods1=tmp$clods1[m+1]) 
-                id2_na_plot <- rbind(id2_na_plot, a, b)
+            if (!is.na(tmp$rs[nrow(tmp)])){
+                for (m in na_run){
+                    a <- data.frame(index_date=tmp$index_date[m-1],
+                                       rs=tmp$rs[m-1], 
+                                       rh=tmp$rh[m-1], 
+                                       rs_rh1=tmp$rs_rh1[m-1], 
+                                       clods1=tmp$clods1[m-1]) 
+                    b <- data.frame(index_date=tmp$index_date[m+1],
+                                       rs=tmp$rs[m+1], 
+                                       rh=tmp$rh[m+1], 
+                                       rs_rh1=tmp$rs_rh1[m+1], 
+                                       clods1=tmp$clods1[m+1]) 
+                    id2_na_plot <- rbind(id2_na_plot, a, b)
+                }
             }
             id2_na_plot <- id2_na_plot[complete.cases(id2_na_plot), ] %>% 
                 distinct()
