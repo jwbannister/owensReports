@@ -46,7 +46,8 @@ source("~/code/owensReports/scripts/sandflux.R")
 ```{r pairs, include=FALSE}
 # don't run twb2 paired TEOM analysis if too early in the month (interim 
 # reports). TEOM data may not be in database and will throw error.
-paired_flag <- ifelse(Sys.Date() < start_date %m+% weeks(2), FALSE, TRUE)
+#paired_flag <- ifelse(Sys.Date() < start_date %m+% weeks(2), FALSE, TRUE)
+paired_flag <- TRUE
 if (area=='twb2' & paired_flag) source("~/code/owensReports/scripts/twb2_pairs.R")
 ```
 
@@ -55,7 +56,8 @@ if (area=='twb2') source("~/code/owensReports/scripts/twb2_surface.R")
 ```
 
 ```{r lidar, include=FALSE}
-if (area=='twb2') source("~/code/owensReports/scripts/twb2_lidar.R")
+lidar_flag <- FALSE
+if (area=='twb2' & lidar_flag) source("~/code/owensReports/scripts/twb2_lidar.R")
 
 ```{r changes, include=FALSE}
 # One-off adjustments specific to report
@@ -304,7 +306,7 @@ for (i in report_index){
         pandoc.table(as.data.frame(tbl_surface), split.table=Inf)
         cat("</h6> \n")
         cat(" \n\n## Comments \n")
-        cat(" \n Surface survey data was collected Mar. 7 - 20, 2018.\n")
+        cat(" \n Surface survey data was collected April 6 - 10, 2018.\n")
         cat(" \n RS and RH results are reported as rounded integer numbers. RS/RH ratio reported above is calculated from the actual (decimal) values.\n")
         comment_file_surface <- 
             gsub(" ", "", paste0(area, month(start_date), year(start_date), i, 
@@ -327,7 +329,7 @@ for (i in report_index){
         cat(" \n Temporal figures reflect the average conditions at all current survey sites by area.  Month to month differences can be attributed to a combination of actual differences, as well as differences in the number and locations of survey sites.  The latter two can vary on a monthly basis, due to maintenance (sites not used) or wet surface conditions (lack of safe access).\n")
         cat("<p style=\"page-break-after:always;\"></p> \n")
     }
-    if (area=='twb2'){
+    if (area=='twb2' & lidar_flag){
         lidar_images <- lidar_files[[i]][!is.na(lidar_files[[i]])]
         if (length(lidar_images)>0){
             report_header(start_date, end_date, report_date, area)
