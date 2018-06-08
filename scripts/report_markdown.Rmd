@@ -56,7 +56,7 @@ if (area=='twb2') source("~/code/owensReports/scripts/twb2_surface.R")
 ```
 
 ```{r lidar, include=FALSE}
-lidar_flag <- FALSE
+lidar_flag <- TRUE
 if (area=='twb2' & lidar_flag) source("~/code/owensReports/scripts/twb2_lidar.R")
 
 ```{r changes, include=FALSE}
@@ -285,7 +285,11 @@ for (i in report_index){
             cat(ttle)
             cat(" \n## Paired TEOM PM10 Results\n")
         }
+        if (nrow(tbl_pair)==0){
+            cat(" \n\n###No PM10 increases across area recorded. \n")
+        } else{
         pandoc.table(as.data.frame(tbl_pair), split.table=Inf)
+        }
         cat("<p style=\"page-break-after:always;\"></p> \n")
     }
     if (area=='twb2'& exists('surface_df')){
@@ -306,7 +310,7 @@ for (i in report_index){
         pandoc.table(as.data.frame(tbl_surface), split.table=Inf)
         cat("</h6> \n")
         cat(" \n\n## Comments \n")
-        cat(" \n Surface survey data was collected April 6 - 10, 2018.\n")
+        cat(" \n Surface survey data was collected May 8 - 11, 2018.\n")
         cat(" \n RS and RH results are reported as rounded integer numbers. RS/RH ratio reported above is calculated from the actual (decimal) values.\n")
         comment_file_surface <- 
             gsub(" ", "", paste0(area, month(start_date), year(start_date), i, 
@@ -337,7 +341,8 @@ for (i in report_index){
             cat(" \n## LiDAR Roughness Maps\n")
             cat(" \n Maps developed from most recently processed data.\n")
             for (n in 1:length(lidar_images)){
-                cat(paste0("<p>![](", lidar_images[n], ")</p>"))
+               # knitr::include_graphics(lidar_images[n])
+               cat(paste0("<p>![](", lidar_images[n], "){height=9in}</p>"))
                # if ((n %% 2 == 0) & (n!=length(lidar_images))){
                 if (n<length(lidar_images)){
                     cat("<p style=\"page-break-after:always;\"></p> \n")

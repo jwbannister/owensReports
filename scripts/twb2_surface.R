@@ -99,11 +99,9 @@ if (nrow(df3)>0){
             filter(index_date==max(index_date))
         fl <- tempfile()
         png(filename=fl, width=8, height=8, units="in", res=300)
-        print(
-              ggplot(plot_full, aes(x=index_date, y=rh)) + 
+        plt1 <- ggplot(plot_full, aes(x=index_date, y=rh)) + 
                   geom_path(aes(color=id2)) +
                   geom_point(aes(color=id2)) +
-                  geom_path(data=na_plot, mapping=aes(group=id2), color='grey') +
                   ggrepel::geom_label_repel(data=label_data, 
                                             mapping=aes(x=index_date, y=rh, 
                                                         label=id2), 
@@ -121,16 +119,18 @@ if (nrow(df3)>0){
               ggtitle("Average Ridge Height") +
               theme(plot.background=element_blank(), 
                     legend.position="none")
-              )
+        if (nrow(na_plot) > 0){
+            plt1 <- plt1 + 
+                geom_path(data=na_plot, mapping=aes(group=id2), color='grey') 
+        }
+        print(plt1)
         dev.off()
         tmp_plot <- png::readPNG(fl)
         surface_grobs[[i]]$rh_plot <- grid::rasterGrob(tmp_plot, interpolate=TRUE)
         png(filename=fl, width=8, height=8, units="in", res=300)
-        print(
-              ggplot(plot_full, aes(x=index_date, y=rs_rh1)) + 
+        plt2 <- ggplot(plot_full, aes(x=index_date, y=rs_rh1)) + 
                   geom_path(aes(color=id2)) +
                   geom_point(aes(color=id2)) +
-                  geom_path(data=na_plot, mapping=aes(group=id2), color='grey') +
                   ggrepel::geom_label_repel(data=label_data, 
                                             mapping=aes(x=index_date, y=rs_rh1, 
                                                         label=id2), 
@@ -148,16 +148,18 @@ if (nrow(df3)>0){
               ggtitle("Average Ridge Spacing / Ridge Height Ratio") +
               theme(plot.background=element_blank(), 
                     legend.position="none")
-              )
+        if (nrow(na_plot) > 0){
+            plt2 <- plt2 + 
+                geom_path(data=na_plot, mapping=aes(group=id2), color='grey') 
+        }
+        print(plt2)
         dev.off()
         tmp_plot <- png::readPNG(fl)
         surface_grobs[[i]]$rsrh_plot <- grid::rasterGrob(tmp_plot, interpolate=TRUE)
         png(filename=fl, width=8, height=8, units="in", res=300)
-        print(
-              ggplot(plot_full, aes(x=index_date, y=clods1)) + 
+        plt3 <- ggplot(plot_full, aes(x=index_date, y=clods1)) + 
               geom_path(aes(color=id2)) +
               geom_point(aes(color=id2)) +
-              geom_path(data=na_plot, mapping=aes(group=id2), color='grey') +
               ggrepel::geom_label_repel(data=label_data, 
                                         mapping=aes(x=index_date, y=clods1, 
                                                     label=id2), 
@@ -174,7 +176,11 @@ if (nrow(df3)>0){
               ggtitle("Average Clod Coverage") +
               theme(plot.background=element_blank(), 
                     legend.position="none")
-              )
+        if (nrow(na_plot) > 0){
+            plt3 <- plt3 + 
+                geom_path(data=na_plot, mapping=aes(group=id2), color='grey') 
+        }
+        print(plt3)
         dev.off()
         tmp_plot <- png::readPNG(fl)
         surface_grobs[[i]]$clods_plot <- grid::rasterGrob(tmp_plot, interpolate=TRUE)
