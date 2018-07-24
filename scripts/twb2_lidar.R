@@ -37,7 +37,7 @@ for (i in names(lidar_files)){
             system(paste0(getwd(), "/gdrive download --force --path ", 
                           tempdir(), " ", filter(recent_images, id2==j)$V1))
             system(paste0("convert -verbose -density 150 ", lidar_files[[i]][j], 
-                          " -resize 900x4800 -quality 100 -flatten ",
+                          " -resize 40% -quality 100 -flatten ",
                           "-sharpen 0x1.0 ",
                           "-rotate 90 ", 
                           "-compress lossless ", 

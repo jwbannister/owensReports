@@ -89,6 +89,11 @@ leg_pos[['T17-1']] <- c(1, 1)
 leg_pos[['T11']] <- c(1, 1)
 leg_pos[['T18S']] <- c(1, 1)
 leg_pos[['T23-5']] <- c(1, 1)
+leg_pos[['T37-2d']] <- c(1, 1)
+leg_pos[['T2-1']] <- c(1, 1)
+leg_pos[['T17-2']] <- c(1, 1)
+leg_pos[['T21E']] <- c(1, 1)
+leg_pos[['T37-2a']] <- c(1, 1)
 
 csc_label_adjust <- list('twb2'=list('1661'=c(x=100, y=100),
                                  '1647'=c(x=200, y=-500)), 

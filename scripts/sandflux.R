@@ -11,7 +11,7 @@ daily_flux <- full_flux %>% filter((!invalid | is.na(invalid)) &
     summarize(sand.flux=round(sum(sand_flux), 2)) %>%
     left_join(csc_locs, by="csc") %>%
     ungroup() 
-report_index <- unique(daily_flux$id3)
+report_index <- unique(csc_mass$id3)
 
 max_daily <- daily_flux %>% group_by(csc) %>%
     summarize(max.daily.flux = round(max(sand.flux), 2), x=unique(x), y=unique(y),

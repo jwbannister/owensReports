@@ -310,7 +310,7 @@ for (i in report_index){
         pandoc.table(as.data.frame(tbl_surface), split.table=Inf)
         cat("</h6> \n")
         cat(" \n\n## Comments \n")
-        cat(" \n Surface survey data was collected May 8 - 11, 2018.\n")
+        cat(" \n Surface survey data was collected June 8 - 13, 2018.\n")
         cat(" \n RS and RH results are reported as rounded integer numbers. RS/RH ratio reported above is calculated from the actual (decimal) values.\n")
         comment_file_surface <- 
             gsub(" ", "", paste0(area, month(start_date), year(start_date), i, 
@@ -342,7 +342,7 @@ for (i in report_index){
             cat(" \n Maps developed from most recently processed data.\n")
             for (n in 1:length(lidar_images)){
                # knitr::include_graphics(lidar_images[n])
-               cat(paste0("<p>![](", lidar_images[n], "){height=9in}</p>"))
+               cat(paste0("<p>![](", lidar_images[n], "){height=8in}</p>"))
                # if ((n %% 2 == 0) & (n!=length(lidar_images))){
                 if (n<length(lidar_images)){
                     cat("<p style=\"page-break-after:always;\"></p> \n")
