@@ -1,7 +1,7 @@
 cross_walk <- c("T3SW"="T3SW", "T3SE"="T3SE", "T3NE"="T3NE", 
                 "T2-2"="T2-2", "T2-3"="T2-3", "T2-4"="T2-4", 
                 "T16"="T16", "T12"="T12-1", "T24ADD"="T24 Addition")
-gdrive_images <- system(paste0(getwd(), "/gdrive list ", 
+gdrive_images <- system(paste0("gdrive list ", 
                                "-q \"trashed = false and ", 
                                "'0B8qHESXOhs-DQTlXa3FKWlpSOHM' in parents and ",
                                "mimeType = 'application/pdf'\" ", 
@@ -34,10 +34,10 @@ for (i in names(lidar_files)){
         if (!is.na(filter(recent_images, id2==j)$V2)){
             lidar_files[[i]][j] <- 
                 paste0(tempdir(), "/", filter(recent_images, id2==j)$V2)
-            system(paste0(getwd(), "/gdrive download --force --path ", 
+            system(paste0("gdrive download --force --path ", 
                           tempdir(), " ", filter(recent_images, id2==j)$V1))
             system(paste0("convert -verbose -density 150 ", lidar_files[[i]][j], 
-                          " -resize 40% -quality 100 -flatten ",
+                          " -resize 35% -quality 100 -flatten ",
                           "-sharpen 0x1.0 ",
                           "-rotate 90 ", 
                           "-compress lossless ", 

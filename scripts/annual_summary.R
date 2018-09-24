@@ -10,8 +10,8 @@ library(lubridate)
 library(circular)
 
 areas <- c('north_channel', 'south_channel', 't1a1')
-start_date <- as.Date('2016-07-01')
-end_date <- as.Date('2017-06-30')
+start_date <- as.Date('2017-07-01')
+end_date <- as.Date('2018-06-30')
 
 for (a in areas){
     print(a)
@@ -30,9 +30,9 @@ for (a in areas){
     flux_df[flux_df$dwp_mass<=0, ]$sand_flux <- 0
     flux_df$month <- ordered(paste0(month(flux_df$datetime, label=T), "-", 
                                     substr(year(flux_df$datetime), 3, 4)), 
-                             levels=c('Jul-16', 'Aug-16', 'Sep-16', 'Oct-16', 
-                                      'Nov-16', 'Dec-16', 'Jan-17', 'Feb-17', 
-                                      'Mar-17', 'Apr-17', 'May-17', 'Jun-17'))
+                             levels=c('Jul-17', 'Aug-17', 'Sep-17', 'Oct-17', 
+                                      'Nov-17', 'Dec-17', 'Jan-18', 'Feb-18', 
+                                      'Mar-18', 'Apr-18', 'May-18', 'Jun-18'))
     flux_df$date <- as.Date(flux_df$datetime, tz='America/Los_Angeles')
     flux_df$hour <- hour(flux_df$datetime %m-% seconds(1))
     geom_adj <- 1.2 #sandcatch geometry adjustment for sandflux calculation
@@ -85,7 +85,7 @@ for (a in areas){
     ws_flux <- ws_flux %>% select(ws_class, pre_con_flux, post_con_flux) %>%
         mutate(estimated_ce = round(1 - (post_con_flux/pre_con_flux), 2))
 
-    dir.create(paste0("~/output/annual/", a), showWarnings=FALSE)
+    dir.create(paste0("~/output/annual/", a), recursive=TRUE)
     write.csv(mass_month, row.names=F, 
               file=paste0("~/output/annual/", a, "/", a, "_monthly_masses.csv"))
     write.csv(max_flux, row.names=F, 
@@ -112,7 +112,7 @@ for (a in areas){
     dev.off()
 
     for (dt in as.character(max_days_vec)){
-        dir.create(paste0("~/output/annual/", a, "/day_roses"))
+        dir.create(paste0("~/output/annual/", a, "/day_roses"), showWarnings=FALSE)
         p2 <- filter(hour_flux, date==dt) %>%
             plot_rose(., 'flux', 'wd', valueseq_round=2, 
                       plot.title=paste0(title_index[a], " - ", dt), 

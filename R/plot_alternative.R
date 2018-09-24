@@ -5,8 +5,8 @@ plot_csc_site_label_nocolor <- function(background, sand_df, area_txt,
                             plot_title=""){
   value.range <- 
       range(sand_df[ , value_index])[2] - range(sand_df[ , value_index])[1]
-  x_range <- diff(ggplot_build(background)[[2]]$panel_ranges[[1]]$x.range)
-  y_range <- diff(ggplot_build(background)[[2]]$panel_ranges[[1]]$y.range)
+  x_range <- diff(range(ggplot_build(background)[[1]][[1]]$x))
+  y_range <- diff(range(ggplot_build(background)[[1]][[1]]$y))
   sand_df[ , value_index] <- 
       sapply(sand_df[ , value_index], 
              function(x) ifelse(x>value_max, value_max, x))

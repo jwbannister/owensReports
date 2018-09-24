@@ -70,7 +70,7 @@ for (i in teom_groups){
     print(i)
     tmp_polys <- filter(area_polys, id3==i)
     tmp_labels <- filter(area_labels, id3==i) 
-    p_range <- get_plot_range(tmp_polys)
+    p_range <- data.frame('x'=range(tmp_polys$x), y=range(tmp_polys$y))
     sub_locs <- filter(teom_locs, id3==i)
     plot_range_x <- range(c(p_range$x, sub_locs$x))
     plot_range_y <- range(c(p_range$y, sub_locs$y))

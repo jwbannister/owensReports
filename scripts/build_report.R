@@ -30,13 +30,15 @@ fl2 <- tempfile(fileext=".pdf")
 # render HTML file from markdown document
 rmarkdown::render("report_markdown.Rmd", output_file=fl1)
 # convert HTML to PDF 
-system(paste0("xvfb-run wkhtmltopdf  --page-size letter ", 
+#system(paste0("xvfb-run wkhtmltopdf  --page-size letter ", 
+#              "--javascript-delay 2000 ", fl1, " ", fl2))
+system(paste0("wkhtmltopdf  --page-size letter ", 
               "--javascript-delay 2000 ", fl1, " ", fl2))
 system(paste0("gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 ",
               "-dPDFSETTINGS=/default -dNOPAUSE -dQUIET -dBATCH ",
               "-dDetectDuplicateImages -dCompressFonts=true -r150 ",
               "-sOutputFile=", tempdir(), "/", file_name, " ", fl2))
-system(paste0(path.expand(getwd()), "/gdrive upload ", 
+system(paste0("gdrive upload ", 
               "-p 0B8qHESXOhs-DMk4wcVNnbUIyZTA ", tempdir(), "/", file_name))
 
 # save workspace if needed for debugging

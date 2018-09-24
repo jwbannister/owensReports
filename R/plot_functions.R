@@ -3,8 +3,8 @@ plot_csc_site <- function(background, sand_df, area_txt,
                             begin=start_date, ending=end_date, 
                             legend_title="", value_index, value_max, 
                             plot_title="", label_adjust=NULL){
-  x_range <- diff(ggplot_build(background)[[2]]$panel_ranges[[1]]$x.range)
-  y_range <- diff(ggplot_build(background)[[2]]$panel_ranges[[1]]$y.range)
+  x_range <- diff(range(ggplot_build(background)[[1]][[1]]$x))
+  y_range <- diff(range(ggplot_build(background)[[1]][[1]]$y))
   sand_df[ , value_index] <- 
       sapply(sand_df[ , value_index], 
              function(x) ifelse(x>value_max, value_max, x))

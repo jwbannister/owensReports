@@ -63,14 +63,14 @@ if (area=='twb2' & lidar_flag) source("~/code/owensReports/scripts/twb2_lidar.R"
 # One-off adjustments specific to report
 # CHECK EACH MONTH AND CHANGE IF NECESSARY
 change_file <- paste0(area, month(start_date), year(start_date), ".R")
-gdrive_change <- system(paste0(getwd(), "/gdrive list ", 
+gdrive_change <- system(paste0("gdrive list ", 
                   "-q \"'0B8qHESXOhs-DX29FTnVIa0xielU' in parents\""), intern=T)  
 change_fl <- tempfile()
 write.table(gdrive_change, file=change_fl, quote=F, row.names=F, col.names=F)
 change_list <- read.table(change_fl, header=F, skip=1)
 if (change_file %in% change_list[ , 2]){
     ind <- which(change_list[ , 2]==change_file)
-    system(paste0(getwd(), "/gdrive download --path ", tempdir(), " ", 
+    system(paste0("gdrive download --path ", tempdir(), " ", 
                   change_list[ , 1][ind]))
     source(paste0(tempdir(), "/", change_file))
 }
@@ -218,7 +218,7 @@ for (i in report_index){
             }
         }
     # check for comment file and see how long
-    gdrive_comments <- system(paste0(getwd(), "/gdrive list ", 
+    gdrive_comments <- system(paste0("gdrive list ", 
                       "-q \"trashed = false and ", 
                       "'0B8qHESXOhs-DXzJfRXdmUXoyWGs' in parents\" ", 
                       "-m 10000"), intern=T)  
@@ -229,7 +229,7 @@ for (i in report_index){
     comment_file <- 
         gsub(" ", "_", paste0(area, month(start_date), year(start_date), i, ".txt"))
     if (comment_file %in% comment_list[ , 2]){
-        system(paste0(getwd(), "/gdrive download --path ", tempdir(), " ", 
+        system(paste0("gdrive download --path ", tempdir(), " ", 
                       comment_list[ , 1][which(comment_list[ , 2]==comment_file)]))
         comment_length <- 1 + length(readLines(paste0(tempdir(), "/", comment_file)))
     } else{
@@ -310,14 +310,14 @@ for (i in report_index){
         pandoc.table(as.data.frame(tbl_surface), split.table=Inf)
         cat("</h6> \n")
         cat(" \n\n## Comments \n")
-        cat(" \n Surface survey data was collected June 8 - 13, 2018.\n")
+        cat(" \n Surface survey data was collected August 6 - 9, 2018.\n")
         cat(" \n RS and RH results are reported as rounded integer numbers. RS/RH ratio reported above is calculated from the actual (decimal) values.\n")
         comment_file_surface <- 
             gsub(" ", "", paste0(area, month(start_date), year(start_date), i, 
                                  "_surface.txt"))
         if (comment_file_surface %in% comment_list[ , 2]){
             index <- which(comment_list[ , 2]==comment_file_surface)
-            system(paste0(getwd(), "/gdrive download --path ", tempdir(), " ", 
+            system(paste0("gdrive download --path ", tempdir(), " ", 
                           comment_list[ , 1][which(comment_list[ , 2]==comment_file_surface)]))
             for (k in 1:length(readLines(paste0(tempdir(), "/", comment_file_surface)))){
                 cat(" \n", readLines(paste0(tempdir(), "/", comment_file_surface))[k], 
