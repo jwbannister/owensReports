@@ -10,14 +10,22 @@ full_5min_csc <- full_5min %>%
     left_join(flux_df, by=c("csc", "datetime"))
 full_5min_csc[is.na(full_5min_csc$sand_flux), "sand_flux"] <- 0
 
-full_flux <- sqldf::sqldf(paste0("SELECT f.*, c.dwp_mass AS coll_mass ", 
-                           "FROM full_5min_csc f ", 
-                           "LEFT JOIN csc_collections c ", 
-                           "ON f.csc=c.deployment ", 
-                           "AND f.datetime BETWEEN c.start_datetime ", 
-                           "AND c.collection_datetime"))
-full_flux$bad_coll <- sapply(full_flux$coll_mass, 
-                             function(x) ifelse(is.na(x) | x<0, T, F))
+full_flux <- full_5min_csc %>%
+    left_join(select(csc_collections, deployment, 'coll_mass'=dwp_mass, 
+                     start_datetime, collection_datetime), 
+              by=c("csc"="deployment")) %>%
+    mutate(check=mapply(function(x, y, z) between(x, y, z), 
+                        datetime, start_datetime, collection_datetime)) %>%
+    filter(check)
+full_flux$bad_coll <- sapply(full_flux$coll_mass, function(x) 
+                             ifelse(is.na(x) | x<0, T, F))
+
+#full_flux <- sqldf::sqldf(paste0("SELECT f.*, c.dwp_mass AS coll_mass ", 
+#                           "FROM full_5min_csc f ", 
+#                           "LEFT JOIN csc_collections c ", 
+#                           "ON f.csc=c.deployment ", 
+#                           "AND f.datetime BETWEEN c.start_datetime ", 
+#                           "AND c.collection_datetime"))
 
 last_coll <- select(csc_locs, csc) %>% 
     left_join(csc_collections, by=c("csc"="deployment")) %>% group_by(csc) %>%
