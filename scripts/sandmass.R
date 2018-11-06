@@ -43,13 +43,14 @@ bad_collections <- full_flux %>% group_by(csc) %>%
     summarize(bad_count=sum(bad_coll), good_count=sum(!bad_coll)) %>%
     filter(bad_count>0) %>%
     left_join(csc_locs, by="csc")
+bad_collections$id3 <- as.character(bad_collections$id3)
+if (nrow(bad_collections)==0) bad_collections[1, 1:ncol(bad_collections)] <- 0
 bad_collections$flag <- sapply(bad_collections$good_count, function(x) 
                                if_else(x==0, "No Data For Month", 
                                        "Partial Data For Month"))
 bad_collections <- bad_collections[!duplicated(bad_collections), ]
 if (nrow(bad_collections)>0){
     bad_collections$flag <- factor(bad_collections$flag) }
-if (nrow(bad_collections)==0) bad_collections[1, 1:ncol(bad_collections)] <- 0
 bad_collections <- bad_collections %>% 
     left_join(select(last_coll, -dwp_mass), by="csc")
 # remove sites that were not in place for entire month
