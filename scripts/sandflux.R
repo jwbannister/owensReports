@@ -1,3 +1,5 @@
+library(ggmap)
+google_key = Sys.getenv("OWENS_MAPS_KEY")
 
 # add met station locations if needed for plot display
 met_loc <- NULL
@@ -38,7 +40,8 @@ for (i in report_index){
                              y=extendrange(r=plot_range_y, f=0.3))
         background <- photo_background(extent$x[1], extent$x[2], 
                                        extent$y[1], extent$y[2], 
-                                       zone="11N") +
+                                       zone="11N", 
+                                       key=google_key) +
         geom_path(data=tmp_polys, mapping=aes(x=x, y=y, group=objectid), 
                   color="black") +
         geom_text(data=tmp_labels, aes(x=x, y=y, label=id1), color="black") 

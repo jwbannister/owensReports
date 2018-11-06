@@ -1,4 +1,5 @@
 
+google_key = Sys.getenv("OWENS_MAPS_KEY")
 # pull data from portable teoms, keep wind direction and speed
 teom_wind <- pull_teom_wind(start_date, end_date)
 
@@ -78,7 +79,8 @@ for (i in teom_groups){
                          y=extendrange(r=plot_range_y, f=0.5))
     background <- photo_background(extent$x[1], extent$x[2], 
                                    extent$y[1], extent$y[2], 
-                                   zone="11N") +
+                                   zone="11N", 
+                                   key=google_key) +
         geom_path(data=tmp_polys, mapping=aes(x=x, y=y, group=objectid), 
                   color="black") +
         geom_text(data=tmp_labels, aes(x=x, y=y, label=id1), color="black") 

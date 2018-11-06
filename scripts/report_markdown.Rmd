@@ -7,7 +7,7 @@ output:
 ```{r setup, include=FALSE}
 airsci_loc <- Sys.getenv("R_AIRSCI")
 suppressMessages(devtools::load_all(airsci_loc))
-load_all(here::here())
+load_all("~/code/owensReports")
 library(pander)
 library(tidyverse)
 library(lubridate)
@@ -310,7 +310,7 @@ for (i in report_index){
         pandoc.table(as.data.frame(tbl_surface), split.table=Inf)
         cat("</h6> \n")
         cat(" \n\n## Comments \n")
-        cat(" \n Surface survey data was collected August 6 - 9, 2018.\n")
+        cat(" \n Surface survey data was collected October 8 - 11, 2018.\n")
         cat(" \n RS and RH results are reported as rounded integer numbers. RS/RH ratio reported above is calculated from the actual (decimal) values.\n")
         comment_file_surface <- 
             gsub(" ", "", paste0(area, month(start_date), year(start_date), i, 
