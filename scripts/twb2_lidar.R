@@ -9,7 +9,7 @@ gdrive_images <- system(paste0("gdrive list ",
 cmnt_fl <- tempfile()
 write.table(gdrive_images, file=cmnt_fl, quote=F, row.names=F, col.names=F)
 images_list <- read.table(file=cmnt_fl, sep="", header=F, na.strings="", 
-                          skip=1)
+                          skip=1, stringsAsFactors=F)
 images_list$len <- nchar(images_list$V2)
 images_list$index_date <- 
     as.Date(paste0('20', 
