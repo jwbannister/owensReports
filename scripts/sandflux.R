@@ -13,7 +13,16 @@ daily_flux <- full_flux %>% filter((!invalid | is.na(invalid)) &
     summarize(sand.flux=round(sum(sand_flux), 2)) %>%
     left_join(csc_locs, by="csc") %>%
     ungroup() 
-report_index <- unique(csc_mass$id3)
+if (area!='twb2'){
+    split_dcas <- strsplit(unique(csc_mass$id3), "-")
+    dca_break <- list(sapply(split_dcas, function(x) strtoi(substr(gsub("T", "", x[1]), 1, 2))),
+        sapply(split_dcas, function(x) substr(gsub("T", "", x[1]), 3, 100)),
+        sapply(split_dcas, function(x) strtoi(substr(x[2], 1, 1))),
+        sapply(split_dcas, function(x) substr(x[2], 2, 100)))
+    report_index <- unique(csc_mass$id3)[order(dca_break[[1]], dca_break[[2]], dca_break[[3]], dca_break[[4]])]
+} else{
+    report_index <- unique(csc_mass$id3)
+}
 
 max_daily <- daily_flux %>% group_by(csc) %>%
     summarize(max.daily.flux = round(max(sand.flux), 2), x=unique(x), y=unique(y),
