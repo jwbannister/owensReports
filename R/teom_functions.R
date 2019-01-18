@@ -89,6 +89,30 @@ pull_pm10 <- function(date1, date2, deploys){
     pm10_df
 }
 
+pull_pm10_aggregate <- function(date1, date2, deploys){
+    deploys <- paste0("('", paste(deploys, collapse="', '"), "')")
+    query1 <- paste0("SELECT deployment, ",
+                     "datetime::timestamp AT TIME ZONE 'America/Los_Angeles' AS datetime, ", 
+                     "pm10_1hour_stp AS pm10_avg, invalid ",
+                     "FROM teom.hourly_validated ",
+                     "WHERE (datetime-'1 second'::interval)::date ",
+                     "BETWEEN '", date1, "'::date ", 
+                     "AND '", date2, "'::date ",  
+                     "AND deployment IN ", deploys, " ",
+                     "UNION ", 
+                     "SELECT deployment, datetime, pm10_std_avg AS pm10_avg, ",
+                     "invalid ",
+                     "FROM teom.avg_1hour_validated ",
+                     "WHERE (datetime-'1 second'::interval)::date ",
+                     "BETWEEN '", date1, "'::date ", 
+                     "AND '", date2, "'::date ",  
+                     "AND deployment IN ", deploys, ";")
+    pm10_df <- query_db("owenslake", query1)
+    pm10_df$pm10_avg <- round(pm10_df$pm10_avg, 2)
+    attributes(pm10_df$datetime)$tzone <- 'America/Los_Angeles'
+    pm10_df
+}
+
 # OLD TEOM DATA QUERY (PRE-OCTOBER 2017). This query used a view on the 
 # 1-minute TEOM data. The 1-minute table was deprecated in October 2017 in 
 # favor of the 30 minute table. To re-run older reports, this query must be 

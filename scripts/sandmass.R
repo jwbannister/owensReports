@@ -62,7 +62,7 @@ if (nrow(bad_collections)>0){
 
 geom_adj <- 1.2 #sandcatch geometry adjustment for sandflux calculation
 csc_mass <- full_flux %>% filter(!invalid | is.na(invalid)) %>% group_by(csc) %>% 
-    summarize(sand.mass=round(sum(sand_flux)*geom_adj, 1)) %>%
+    summarize(sand.mass=round(sum(sand_flux, na.rm=T)*geom_adj, 1)) %>%
     left_join(csc_locs, by="csc") %>% ungroup()
 csc_mass <- filter(csc_mass, objectid!='NULL')
 csc_mass$objectid <- unlist(csc_mass$objectid)

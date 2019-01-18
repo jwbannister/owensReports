@@ -13,16 +13,13 @@ daily_flux <- full_flux %>% filter((!invalid | is.na(invalid)) &
     summarize(sand.flux=round(sum(sand_flux), 2)) %>%
     left_join(csc_locs, by="csc") %>%
     ungroup() 
-if (area!='twb2'){
-    split_dcas <- strsplit(unique(csc_mass$id3), "-")
-    dca_break <- list(sapply(split_dcas, function(x) strtoi(substr(gsub("T", "", x[1]), 1, 2))),
-        sapply(split_dcas, function(x) substr(gsub("T", "", x[1]), 3, 100)),
-        sapply(split_dcas, function(x) strtoi(substr(x[2], 1, 1))),
-        sapply(split_dcas, function(x) substr(x[2], 2, 100)))
-    report_index <- unique(csc_mass$id3)[order(dca_break[[1]], dca_break[[2]], dca_break[[3]], dca_break[[4]])]
-} else{
-    report_index <- unique(csc_mass$id3)
-}
+split_dcas <- strsplit(unique(gsub("T", "", csc_mass$id3)), "-")
+dca_break <- list(sapply(split_dcas, function(x) strtoi(parse_dca(x[1])[1])), 
+    sapply(split_dcas, function(x) parse_dca(x[1])[2]), 
+    sapply(split_dcas, function(x) strtoi(parse_dca(x[2])[1])), 
+    sapply(split_dcas, function(x) parse_dca(x[2])[2]))
+report_index <- unique(csc_mass$id3)[order(dca_break[[1]], dca_break[[2]], 
+                                           dca_break[[3]], dca_break[[4]])]
 
 max_daily <- daily_flux %>% group_by(csc) %>%
     summarize(max.daily.flux = round(max(sand.flux), 2), x=unique(x), y=unique(y),
@@ -32,12 +29,17 @@ flux_grobs <- vector(mode="list", length=length(report_index))
 names(flux_grobs) <- report_index
 for (i in report_index){
     print(i)
-        tmp_bad <- filter(bad_collections, id3==i & flag=="No Data For Month")
-        tmp_partial <- filter(bad_collections, 
-                              id3==i & flag=="Partial Data For Month")
-        tmp_polys <- filter(area_polys, id3==i)
-        tmp_labels <- filter(area_labels, id3==i)
-        tmp_flux <- filter(max_daily, id3==i)
+    tmp_bad <- filter(bad_collections, id3==i & flag=="No Data For Month")
+    tmp_partial <- filter(bad_collections, 
+                          id3==i & flag=="Partial Data For Month")
+    tmp_polys <- filter(area_polys, id3==i)
+    tmp_labels <- filter(area_labels, id3==i)
+    tmp_flux <- filter(max_daily, id3==i)
+    if (nrow(tmp_flux)==0){
+        tmp_flux <- data.frame(csc=tmp_bad$csc, max.daily.flux=rep(0, nrow(tmp_bad)), 
+                               x=tmp_bad$x, y=tmp_bad$y, id1=tmp_bad$id1, 
+                               id2=tmp_bad$id2, id3=tmp_bad$id3)
+    }
     if (is.null(met_loc)){
         met_pts <- c()
     } else{
@@ -57,9 +59,9 @@ for (i in report_index){
         geom_point(data=tmp_partial, mapping=aes(x=x, y=y), size=8, 
                    color="black") 
         label_space_x <- 
-            diff(ggplot_build(background)[[2]]$panel_ranges[[1]]$x.range)
+            diff(ggplot_build(background)$layout$panel_params[[1]]$x.range)
         label_space_y <- 
-            diff(ggplot_build(background)[[2]]$panel_ranges[[1]]$y.range)
+            diff(ggplot_build(background)$layout$panel_params[[1]]$y.range)
     legend_flux='Max. Daily Flux\n(g/cm^2/day)'
     top_flux <- if_else(area=='twb2', 1, 10)
     label_adjust <- csc_label_adjust[[area]]

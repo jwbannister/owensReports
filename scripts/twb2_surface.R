@@ -2,7 +2,7 @@ yr.mo <- paste0(substr(year(start_date), 3, 4), "_",
                 sprintf("%02i", month(start_date)))
 
 query1 <- paste0("SELECT site, rs_avg, rh_avg, rs_rh, ",
-                 "clods, yr_mo, area ", 
+                 "clods, yr_mo, area, coll_period ", 
                  "FROM field_data.twb2_qa_survey;")
 all_data <-query_db("owenslake", query1)
 cross_walk <- data.frame(area=c("T2-2", "T3-SW", "T3-SE", "T2-3", "T2-4", 

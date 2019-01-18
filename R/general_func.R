@@ -14,3 +14,13 @@ report_header <- function(start_date, end_date, report_date, area){
     cat("<hr class=\"style1\">")
 }
 
+parse_dca <- function(x){
+    st <- c("", "")
+    ints <- as.character(seq(0, 9, 1))
+    for (ch in strsplit(x, "")[[1]]){
+       if (ch %in% ints) st[1] <- paste0(st[1], ch)
+       if (!(ch %in% ints)) st[2] <- paste0(st[2], ch)
+    }
+    return(st)
+}
+

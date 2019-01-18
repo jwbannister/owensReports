@@ -236,7 +236,7 @@ for (i in report_index){
         comment_length <- 1
     }
 
-    row_limit <- if_else(split_size==1, 15, 34)
+    row_limit <- if_else(split_size==1, 12, 31)
     flux_length <- ifelse(exists("tbl_flux_list"), 
                           nrow(tbl_flux_list[[split_size]]), 0)
     if (nrow(tbl_mass)>0){
@@ -296,6 +296,7 @@ for (i in report_index){
         report_header(start_date, end_date, report_date, area)
         cat(ttle)
         cat(" \n## Surface Survey Data\n")
+        coll_period <- unique(surface_df[[i]]$coll_period)
         tbl_surface <- surface_df[[i]] %>% 
             filter(!(is.na(rs_avg) & is.na(rh_avg) & 
                      is.na(rs_rh) & is.na(clods))) %>%
@@ -310,7 +311,7 @@ for (i in report_index){
         pandoc.table(as.data.frame(tbl_surface), split.table=Inf)
         cat("</h6> \n")
         cat(" \n\n## Comments \n")
-        cat(" \n Surface survey data was collected November 5 - 13, 2018.\n")
+        cat(paste0(" \n Surface survey data was collected ", coll_period, ".\n"))
         cat(" \n RS and RH results are reported as rounded integer numbers. RS/RH ratio reported above is calculated from the actual (decimal) values.\n")
         comment_file_surface <- 
             gsub(" ", "", paste0(area, month(start_date), year(start_date), i, 
