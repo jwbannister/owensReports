@@ -41,7 +41,7 @@ for (i in seq(1, length(date_seq)-1, 1)){
 
     deploys <- c('T29-4N', 'T29-4S', 'T16', 'T11', 'T2-1')
     teom <- pull_pm10_aggregate(start_date, end_date, deploys)
-    teom <- filter(teom_pm10, !invalid) %>% select(-invalid)
+    teom <- filter(teom, !invalid) %>% select(-invalid)
     df0 <- rbind(teom, mfile)
     daily_pm10 <- df0 %>% 
         group_by(deployment, date=as.Date(datetime %m-% seconds(1),
