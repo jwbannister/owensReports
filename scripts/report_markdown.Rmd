@@ -62,17 +62,17 @@ if (area=='twb2' & lidar_flag) source("~/code/owensReports/scripts/twb2_lidar.R"
 ```{r changes, include=FALSE}
 # One-off adjustments specific to report
 # CHECK EACH MONTH AND CHANGE IF NECESSARY
+url <- "ftp://proc2.airsci.com//changes/"
+ftp_login = Sys.getenv("OWENS_REPORTS_FTP")
+ftp_output <- RCurl::getURL(url, userpwd = ftp_login, 
+                               ftp.use.epsv=FALSE, dirlistonly = TRUE) 
+change_list <- strsplit(ftp_output, "\n")[[1]]
 change_file <- paste0(area, month(start_date), year(start_date), ".R")
-gdrive_change <- system(paste0("gdrive list ", 
-                  "-q \"'0B8qHESXOhs-DX29FTnVIa0xielU' in parents\""), intern=T)  
-change_fl <- tempfile()
-write.table(gdrive_change, file=change_fl, quote=F, row.names=F, col.names=F)
-change_list <- read.table(change_fl, header=F, skip=1)
-if (change_file %in% change_list[ , 2]){
-    ind <- which(change_list[ , 2]==change_file)
-    system(paste0("gdrive download --path ", tempdir(), " ", 
-                  change_list[ , 1][ind]))
-    source(paste0(tempdir(), "/", change_file))
+if (change_file %in% change_list){
+    file_url <- paste0(url, change_file)
+    fl <- RCurl::getBinaryURL(file_url, userpwd = ftp_login)
+    writeBin(fl, paste0(tempdir(), change_file))
+    source(paste0(tempdir(), change_file))
 }
 ```
 
@@ -218,20 +218,18 @@ for (i in report_index){
             }
         }
     # check for comment file and see how long
-    gdrive_comments <- system(paste0("gdrive list ", 
-                      "-q \"trashed = false and ", 
-                      "'0B8qHESXOhs-DXzJfRXdmUXoyWGs' in parents\" ", 
-                      "-m 10000"), intern=T)  
-    cmnt_fl <- tempfile()
-    write.table(gdrive_comments, file=cmnt_fl, quote=F, row.names=F, col.names=F)
-    comment_list <- read.table(file=cmnt_fl, sep="", header=F, na.strings="", 
-                               skip=1)
+    url <- "ftp://proc2.airsci.com//comments/"
+    ftp_login = Sys.getenv("OWENS_REPORTS_FTP")
+    ftp_output <- RCurl::getURL(url, userpwd = ftp_login, 
+                                   ftp.use.epsv=FALSE, dirlistonly = TRUE) 
+    comment_list <- strsplit(ftp_output, "\n")[[1]]
     comment_file <- 
         gsub(" ", "_", paste0(area, month(start_date), year(start_date), i, ".txt"))
-    if (comment_file %in% comment_list[ , 2]){
-        system(paste0("gdrive download --path ", tempdir(), " ", 
-                      comment_list[ , 1][which(comment_list[ , 2]==comment_file)]))
-        comment_length <- 1 + length(readLines(paste0(tempdir(), "/", comment_file)))
+    if (comment_file %in% comment_list){
+        file_url <- paste0(url, comment_file)
+        fl <- RCurl::getURL(file_url, userpwd = ftp_login)
+        comments <- strsplit(fl, "\r\n")[[1]]
+        comment_length <- 1 + length(comments)
     } else{
         comment_length <- 1
     }
@@ -257,10 +255,10 @@ for (i in report_index){
             pandoc.table(as.data.frame(tbl_mass))
         }
     }
-    if (comment_file %in% comment_list[ , 2]){
+    if (comment_file %in% comment_list){
         cat(" \n\n## Comments \n")
-        for (n in 1:length(readLines(paste0(tempdir(), "/", comment_file)))){
-            cat(" \n", readLines(paste0(tempdir(), "/", comment_file))[n], 
+        for (n in 1:length(comments)){
+            cat(" \n", comments[n], 
                 " \n", sep="")
         }
     }
@@ -316,13 +314,12 @@ for (i in report_index){
         comment_file_surface <- 
             gsub(" ", "", paste0(area, month(start_date), year(start_date), i, 
                                  "_surface.txt"))
-        if (comment_file_surface %in% comment_list[ , 2]){
-            index <- which(comment_list[ , 2]==comment_file_surface)
-            system(paste0("gdrive download --path ", tempdir(), " ", 
-                          comment_list[ , 1][which(comment_list[ , 2]==comment_file_surface)]))
-            for (k in 1:length(readLines(paste0(tempdir(), "/", comment_file_surface)))){
-                cat(" \n", readLines(paste0(tempdir(), "/", comment_file_surface))[k], 
-                    " \n", sep="")
+        if (comment_file_surface %in% comment_list){
+            file_url <- paste0(url, comment_file_surface)
+            fl <- RCurl::getURL(file_url, userpwd = ftp_login)
+            comments_surface <- strsplit(fl, "\r\n")[[1]]
+            for (k in 1:length(comments_surface)){
+                cat(" \n", comments_surface[k], " \n", sep="")
             }
         }
         cat("<p style=\"page-break-after:always;\"></p> \n")

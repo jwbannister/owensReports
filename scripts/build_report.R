@@ -38,9 +38,10 @@ system(paste0("gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 ",
               "-dPDFSETTINGS=/default -dNOPAUSE -dQUIET -dBATCH ",
               "-dDetectDuplicateImages -dCompressFonts=true -r150 ",
               "-sOutputFile=", tempdir(), "/", file_name, " ", fl2))
-system(paste0("gdrive upload ", 
-              "-p 0B8qHESXOhs-DMk4wcVNnbUIyZTA ", tempdir(), "/", file_name))
-
+url <- "ftp://proc2.airsci.com//drafts/"
+ftp_login = Sys.getenv("OWENS_REPORTS_FTP")
+RCurl::ftpUpload(paste0(tempdir(), "/", file_name), paste0(url, file_name), 
+                 userpwd = ftp_login)
 # save workspace if needed for debugging
 img_fl <- paste0("/tmp/", area, "_report_image.RData")
 save.image(file=img_fl)

@@ -6,6 +6,15 @@ met_loc <- NULL
 #met_loc <- data.frame(id3=c('North', 'South'), deployment=c('1552', '1150'), 
 #                        x=c(415077.3, 409413.6), y=c(4041263.2, 4019839.6))
 
+hourly_flux <- full_flux %>% filter((!invalid | is.na(invalid)) & 
+                                   (!bad_coll | is.na(bad_coll))) %>%
+    group_by(csc, date=as.Date(datetime %m-% seconds(1),
+                               tz='America/Los_Angeles'),
+             hour=hour(datetime %m-% seconds(1))) %>% 
+    summarize(sand.flux=round(sum(sand_flux), 2)) %>%
+    left_join(csc_locs, by="csc") %>%
+    ungroup() 
+
 daily_flux <- full_flux %>% filter((!invalid | is.na(invalid)) & 
                                    (!bad_coll | is.na(bad_coll))) %>%
     group_by(csc, date=as.Date(datetime %m-% seconds(1),
@@ -20,6 +29,9 @@ dca_break <- list(sapply(split_dcas, function(x) strtoi(parse_dca(x[1])[1])),
     sapply(split_dcas, function(x) parse_dca(x[2])[2]))
 report_index <- unique(csc_mass$id3)[order(dca_break[[1]], dca_break[[2]], 
                                            dca_break[[3]], dca_break[[4]])]
+if (area=='twb2'){
+    report_index <- c('South', 'Central', 'East')
+}
 
 max_daily <- daily_flux %>% group_by(csc) %>%
     summarize(max.daily.flux = round(max(sand.flux), 2), x=unique(x), y=unique(y),
