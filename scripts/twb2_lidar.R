@@ -6,10 +6,11 @@ gdrive_images <- system(paste0("gdrive list ",
                                "'0B8qHESXOhs-DQTlXa3FKWlpSOHM' in parents and ",
                                "mimeType = 'application/pdf'\" ", 
                                "-m 10000"), intern=T)  
-cmnt_fl <- tempfile()
-write.table(gdrive_images, file=cmnt_fl, quote=F, row.names=F, col.names=F)
-images_list <- read.table(file=cmnt_fl, sep="", header=F, na.strings="", 
-                          skip=1, stringsAsFactors=F)
+url <- "ftp://proc2.airsci.com//additions/"
+ftp_login = Sys.getenv("OWENS_REPORTS_FTP")
+ftp_output <- RCurl::getURL(url, userpwd = ftp_login, 
+                               ftp.use.epsv=FALSE, dirlistonly = TRUE) 
+images_list <- data.frame('V2'=strsplit(ftp_output, "\n")[[1]])
 images_list$len <- nchar(images_list$V2)
 images_list$index_date <- 
     as.Date(paste0('20', 
@@ -34,6 +35,9 @@ for (i in names(lidar_files)){
         if (!is.na(filter(recent_images, id2==j)$V2)){
             lidar_files[[i]][j] <- 
                 paste0(tempdir(), "/", filter(recent_images, id2==j)$V2)
+            file_url <- paste0(url, filter(recent_images, id2==j)$V2)
+            fl <- RCurl::getBinaryURL(file_url, userpwd = ftp_login)
+            writeBin(fl, lidar_files[[i]][j])
             system(paste0("gdrive download --force --path ", 
                           tempdir(), " ", filter(recent_images, id2==j)$V1))
             system(paste0("convert -verbose -density 150 ", lidar_files[[i]][j], 
@@ -42,10 +46,6 @@ for (i in names(lidar_files)){
                           "-rotate 90 ", 
                           "-compress lossless ", 
                           gsub(".pdf", ".jpg", lidar_files[[i]][j])))
-#            system(paste0("convert -verbose -density 150 ", lidar_files[[i]][j], 
-#                          " -resize 5000x400 -quality 100 -flatten ",
-#                          "-sharpen 0x1.0 -compress lossless ", 
-#                          gsub(".pdf", ".jpg", lidar_files[[i]][j])))
             lidar_files[[i]][j] <- gsub(".pdf", ".jpg", lidar_files[[i]][j])
         } else{
             lidar_files[[i]][j] <- NA

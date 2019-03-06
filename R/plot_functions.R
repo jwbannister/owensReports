@@ -12,10 +12,12 @@ plot_csc_site <- function(background, sand_df, area_txt,
   sand_df$label_y <- sand_df$y
   if (!is.null(label_adjust)){
       for (csc in names(label_adjust)){
-          sand_df[sand_df$csc==csc, ]$label_x <- 
-              sand_df[sand_df$csc==csc, ]$label_x + label_adjust[[csc]]['x']
-          sand_df[sand_df$csc==csc, ]$label_y <- 
-              sand_df[sand_df$csc==csc, ]$label_y + label_adjust[[csc]]['y']
+          if (csc %in% sand_df$csc){
+              sand_df[sand_df$csc==csc, ]$label_x <- 
+                  sand_df[sand_df$csc==csc, ]$label_x + label_adjust[[csc]]['x']
+              sand_df[sand_df$csc==csc, ]$label_y <- 
+                  sand_df[sand_df$csc==csc, ]$label_y + label_adjust[[csc]]['y']
+          }
       }
   }
   p1 <- background +

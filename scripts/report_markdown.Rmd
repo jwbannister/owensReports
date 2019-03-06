@@ -256,6 +256,9 @@ for (i in report_index){
         }
     }
     if (comment_file %in% comment_list){
+        if (nrow(tbl_mass) + comment_length > 30){
+            cat("<p style=\"page-break-after:always;\"></p> \n")
+        }
         cat(" \n\n## Comments \n")
         for (n in 1:length(comments)){
             cat(" \n", comments[n], 
