@@ -10,7 +10,7 @@ hourly_flux <- full_flux %>% filter((!invalid | is.na(invalid)) &
                                    (!bad_coll | is.na(bad_coll))) %>%
     group_by(csc, date=as.Date(datetime %m-% seconds(1),
                                tz='America/Los_Angeles'),
-             hour=hour(datetime %m-% seconds(1))) %>% 
+             hour=hour(datetime %m-% seconds(1))+1) %>% 
     summarize(sand.flux=round(sum(sand_flux), 2)) %>%
     left_join(csc_locs, by="csc") %>%
     ungroup() 

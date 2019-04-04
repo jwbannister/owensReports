@@ -191,14 +191,14 @@ for (i in report_index){
             } else{
                 cat(" \nDays with recorded sand flux >= 1.0 g/cm<sup>2</sup>/day: \n")
             }
-            if (nrow(tbl_flux)<=17){
+            if (nrow(tbl_flux)<=15){
                 tbl_flux_list <- vector(mode='list', length=1)
                 tbl_flux_list[[1]] <- tbl_flux
                 pandoc.table(as.data.frame(tbl_flux_list[[1]]), split.table=Inf)
             } else{
                 # if flux table is too large, break into sections
-                split_size <- 2 + (nrow(tbl_flux[-(1:17), ]) %/% 35)
-                split_factors <- rep(1, 17) 
+                split_size <- 2 + (nrow(tbl_flux[-(1:15), ]) %/% 35)
+                split_factors <- rep(1, 15) 
                 for (k in 2:split_size){
                     split_factors <- c(split_factors, rep(k, 35))
                 }
