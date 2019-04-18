@@ -5,16 +5,29 @@ csc_list <- list("brine"=seq(1700, 1799, 1),
                  "t1a1"=seq(1100, 1199, 1), 
                  "twb2"=seq(1600, 1699, 1))
 
-load_sites <- function(area, poly_df){
-    query1 <- paste0("SELECT DISTINCT i.deployment AS csc, ",
-                     "st_y(st_transform(i.geom, 26911)) AS y, ",
-                     "st_x(st_transform(i.geom, 26911)) AS x, ",
-                     "i.active ",
-                     "FROM sandcatch.csc_summary s ",
-                     "LEFT JOIN instruments.deployments i ",
-                     "ON s.csc_deployment_id=i.deployment_id ",
-                     "WHERE i.deployment ",
-                     "IN ('", paste0(csc_list[[area]], collapse="', '"), "');")
+#load_sites <- function(area, poly_df){
+#    query1 <- paste0("SELECT DISTINCT i.deployment AS csc, ",
+#                     "st_y(st_transform(i.geom, 26911)) AS y, ",
+#                     "st_x(st_transform(i.geom, 26911)) AS x, ",
+#                     "i.active ",
+#                     "FROM sandcatch.csc_summary s ",
+#                     "LEFT JOIN instruments.deployments i ",
+#                     "ON s.csc_deployment_id=i.deployment_id ",
+#                     "WHERE i.deployment ",
+#                     "IN ('", paste0(csc_list[[area]], collapse="', '"), "');")
+#    sites_df <- query_db("owenslake", query1)
+#    sites_df$objectid <- apply(cbind(sites_df$x, sites_df$y), 1, 
+#                               aiRsci::point_in_dca, poly_df=poly_df, return_dca=F)
+#    sites_df <- sites_df[!duplicated(sites_df), ]
+#    sites_df <- filter(sites_df, objectid!='NULL')
+#    sites_df$objectid <- unlist(sites_df$objectid)
+#    sites_df
+#}
+load_sites <- function(area, poly_df, start_date){
+    query1 <- paste0("SELECT deployment::text AS csc, x, y ",
+                     "FROM info.site_locations_at_date(',", start_date, "') ", 
+                     "WHERE deployment ",
+                     "IN (", paste0(csc_list[[area]], collapse=", "), ");")
     sites_df <- query_db("owenslake", query1)
     sites_df$objectid <- apply(cbind(sites_df$x, sites_df$y), 1, 
                                aiRsci::point_in_dca, poly_df=poly_df, return_dca=F)
