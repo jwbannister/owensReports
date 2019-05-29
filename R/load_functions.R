@@ -3,7 +3,8 @@ csc_list <- list("brine"=seq(1700, 1799, 1),
                  "channel"=seq(1300, 1399, 1),
                  "dwm"=seq(1900, 1999, 1), 
                  "t1a1"=seq(1100, 1199, 1), 
-                 "twb2"=seq(1600, 1699, 1))
+                 "twb2"=seq(1600, 1699, 1),
+                 "offlake"=c(2004, 1453))
 
 #load_sites <- function(area, poly_df){
 #    query1 <- paste0("SELECT DISTINCT i.deployment AS csc, ",
@@ -69,7 +70,7 @@ load_site_data <- function(area, start_date, end_date){
     return(a)
 }
 
-load_collections <- function(area){
+load_collections <- function(area, start_date, end_date){
     query1 <- paste0("SELECT i.deployment, s.* FROM sandcatch.csc_summary s ", 
                      "JOIN instruments.deployments i ",
                      "ON s.csc_deployment_id=i.deployment_id ",

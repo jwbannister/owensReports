@@ -57,26 +57,28 @@ for (i in report_index){
     } else{
         met_pts <- filter(met_loc, id3==i)
     }
-        plot_range_x <- range(c(met_pts$x, tmp_polys$x))
-        plot_range_y <- range(c(met_pts$y, tmp_polys$y))
-        extent <- data.frame(x=extendrange(r=plot_range_x, f=0.3),
-                             y=extendrange(r=plot_range_y, f=0.3))
-        background <- photo_background(extent$x[1], extent$x[2], 
-                                       extent$y[1], extent$y[2], 
-                                       zone="11N", 
-                                       key=google_key) +
-        geom_path(data=tmp_polys, mapping=aes(x=x, y=y, group=objectid), 
-                  color="black") +
-        geom_text(data=tmp_labels, aes(x=x, y=y, label=id1), color="black") 
-        geom_point(data=tmp_partial, mapping=aes(x=x, y=y), size=8, 
-                   color="black") 
-        label_space_x <- 
-            diff(ggplot_build(background)$layout$panel_params[[1]]$x.range)
-        label_space_y <- 
-            diff(ggplot_build(background)$layout$panel_params[[1]]$y.range)
+    plot_range_x <- range(c(met_pts$x, tmp_polys$x))
+    plot_range_y <- range(c(met_pts$y, tmp_polys$y))
+    extent <- data.frame(x=extendrange(r=plot_range_x, f=0.3),
+                         y=extendrange(r=plot_range_y, f=0.3))
+    background <- photo_background(extent$x[1], extent$x[2], 
+                                   extent$y[1], extent$y[2], 
+                                   zone="11N", 
+                                   key=google_key) +
+    geom_path(data=tmp_polys, mapping=aes(x=x, y=y, group=objectid), 
+              color="black") +
+    geom_text(data=tmp_labels, aes(x=x, y=y, label=id1), color="black") 
+    geom_point(data=tmp_partial, mapping=aes(x=x, y=y), size=8, 
+               color="black") 
+    label_space_x <- 
+        diff(ggplot_build(background)$layout$panel_params[[1]]$x.range)
+    label_space_y <- 
+        diff(ggplot_build(background)$layout$panel_params[[1]]$y.range)
     legend_flux='Max. Daily Flux\n(g/cm^2/day)'
     top_flux <- if_else(area=='twb2', 1, 10)
-    label_adjust <- csc_label_adjust[[area]]
+    label_df <- rbind(select(tmp_flux, csc, x, y, id1, id2, id3), 
+                      select(tmp_bad, csc, x, y, id1, id2, id3)) %>%
+        distinct()
     if (area %in% c('channel', 't1a1')){
     p1 <- plot_csc_site_label_nocolor(background, tmp_flux, i,  value_index=2, 
                                       value_max=top_flux, 
@@ -94,14 +96,15 @@ for (i in report_index){
     } else{
     p1 <- plot_csc_site(background, tmp_flux, i, legend_title=legend_flux, 
                         value_index=2, value_max=top_flux, plot_title="Daily Flux",
-                        label_adjust=label_adjust) +
+                        labels=FALSE) +
         geom_point(data=tmp_partial, mapping=aes(x=x, y=y, shape=flag), 
                    color="black", size=6) +
         scale_shape_manual(name=NULL, values=c(21)) +
         geom_point(data=tmp_bad, mapping=aes(x=x, y=y, size=flag), 
                    color="black") +
-        ggrepel::geom_label_repel(data=tmp_bad, mapping=aes(x=x, y=y, label=csc), 
-                   nudge_x=label_space_x/25, nudge_y=label_space_y/45) +
+        ggrepel::geom_label_repel(data=label_df, mapping=aes(x=x, y=y, label=csc), 
+                   nudge_x=label_space_x/25, nudge_y=label_space_y/45,
+                   box.padding=0.5) +
         scale_size_manual(name=NULL, values=c(4)) +
         guides(color=guide_colorbar(order=1), shape=guide_legend(order=2), 
                size=guide_legend(order=3))

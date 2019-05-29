@@ -2,7 +2,7 @@
 plot_csc_site <- function(background, sand_df, area_txt,
                             begin=start_date, ending=end_date, 
                             legend_title="", value_index, value_max, 
-                            plot_title="", label_adjust=NULL){
+                            plot_title="", labels=TRUE){
   x_range <- diff(range(ggplot_build(background)[[1]][[1]]$x))
   y_range <- diff(range(ggplot_build(background)[[1]][[1]]$y))
   sand_df[ , value_index] <- 
@@ -10,16 +10,6 @@ plot_csc_site <- function(background, sand_df, area_txt,
              function(x) ifelse(x>value_max, value_max, x))
   sand_df$label_x <- sand_df$x
   sand_df$label_y <- sand_df$y
-  if (!is.null(label_adjust)){
-      for (csc in names(label_adjust)){
-          if (csc %in% sand_df$csc){
-              sand_df[sand_df$csc==csc, ]$label_x <- 
-                  sand_df[sand_df$csc==csc, ]$label_x + label_adjust[[csc]]['x']
-              sand_df[sand_df$csc==csc, ]$label_y <- 
-                  sand_df[sand_df$csc==csc, ]$label_y + label_adjust[[csc]]['y']
-          }
-      }
-  }
   p1 <- background +
     geom_point(data=sand_df, size=4,  
                mapping=aes_string(x='x', y='y', 
@@ -31,8 +21,6 @@ plot_csc_site <- function(background, sand_df, area_txt,
                           labels=c("0", as.character(value_max/2), 
                                    paste0(">", value_max))) +
     coord_fixed() +
-    ggrepel::geom_label_repel(data=sand_df, mapping=aes(x=x, y=y, label=csc),
-              nudge_x=x_range/25, nudge_y=y_range/45) +
     ggtitle(plot_title) +
     theme(axis.ticks.x=element_blank(),
           axis.text.x=element_blank(),
@@ -44,6 +32,11 @@ plot_csc_site <- function(background, sand_df, area_txt,
           legend.position=leg_pos[[area_txt]], 
           legend.background=element_rect(linetype="solid", color="black"), 
           legend.justification=leg_pos[[area_txt]])
+    if (labels){
+        p1 <- p1 + 
+        ggrepel::geom_label_repel(data=sand_df, mapping=aes(x=x, y=y, label=csc),
+                  nudge_x=x_range/25, nudge_y=y_range/45, box.padding=1) 
+    }
   p1
 }  
 
@@ -98,7 +91,9 @@ leg_pos[['T21E']] <- c(1, 1)
 leg_pos[['T37-2a']] <- c(1, 1)
 
 csc_label_adjust <- list('twb2'=list('1661'=c(x=100, y=100),
-                                 '1647'=c(x=200, y=-500)), 
+                                 '1647'=c(x=150, y=400),
+                                 '1614'=c(x=0, y=300),
+                                 '1604'=c(x=-500, y=0)), 
                      'dwm'=NULL, 
                      'channel'=NULL, 
                      'brine'=NULL, 

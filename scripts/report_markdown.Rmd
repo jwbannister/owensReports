@@ -31,7 +31,26 @@ if (area=='twb2'){
 csc_locs <- load_sites(area, area_polys, start_date) 
 csc_locs <- csc_locs %>% arrange(csc) %>% 
     left_join(distinct(select(area_polys, objectid, id1, id2, id3)), by="objectid")
-csc_collections <- load_collections(area)
+csc_collections <- load_collections(area, start_date, end_date)
+# this is a one-off adjustment to check fluxes for sites that weren't accessible 
+# prior to May 2019
+if (TRUE){
+    source('~/code/owensReports/scripts/twb2_may_adjust.R')
+    site_list <- c('1600', '1601', '1607', '1643', '1644', '1645')
+    new_collections <- csc_adjust(csc_collections, site_list)
+    csc_collections <- csc_collections %>%
+        filter(!(csc_data_id %in% new_collections$csc_data_id)) %>%
+        filter(!(deployment %in% site_list & dwp_mass == -999))
+    csc_collections <- rbind(csc_collections, new_collections)
+
+    a <- unlist(pbapply(flux_df, 1, apply_func, col='dwp_mass'))
+    flux_df$new_mass <- as.numeric(a)
+    b <- unlist(pbapply(flux_df, 1, apply_func, col='sumpc_total'))
+    flux_df$new_sumpc_total <- sapply(b, function(x) x[1])
+    geom_factor = 1.2
+    flux_df$sand_flux <- (flux_df$new_mass/geom_factor) * 
+        (flux_df$sumpc/flux_df$new_sumpc_total)
+}
 ```
 
 ```{r sandmass, include=FALSE}
@@ -291,6 +310,10 @@ for (i in report_index){
         } else{
         pandoc.table(as.data.frame(tbl_pair), split.table=Inf)
         }
+        # Comment relevant to April 2019 report only
+        cat(" \n The upwind-downwind concentration difference observed on 04/02/2019 is derived from 
+            a 2-hour wind event across the Tillage areas. This concentration difference is much less than 50 
+            micrograms/m<sup>3</sup> when distributed to a 24-hour average as specified in the Stipulated Judgement. This event is noted for informational purposes but does not qualify as an exceedance of the TwB2 requirements per the Stipulated Judgement.")
         cat("<p style=\"page-break-after:always;\"></p> \n")
     }
     if (area=='twb2'& exists('surface_df')){
