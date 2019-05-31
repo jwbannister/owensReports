@@ -34,7 +34,7 @@ csc_locs <- csc_locs %>% arrange(csc) %>%
 csc_collections <- load_collections(area, start_date, end_date)
 # this is a one-off adjustment to check fluxes for sites that weren't accessible 
 # prior to May 2019
-if (TRUE){
+if (FALSE){
     source('~/code/owensReports/scripts/twb2_may_adjust.R')
     site_list <- c('1600', '1601', '1607', '1643', '1644', '1645')
     new_collections <- csc_adjust(csc_collections, site_list)
