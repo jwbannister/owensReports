@@ -1,19 +1,24 @@
 csc_adjust <- function(collections, site_list){
-    current_valids <- collections %>% filter(deployment %in% site_list) %>%
+    may_valids <- collections %>% 
+        filter(deployment %in% site_list & collection_datetime < as.Date('2019-05-31') & 
+               collection_datetime > as.Date('2019-01-01')) %>%
         group_by(deployment) %>% 
         summarize(current_valid=max(collection_datetime))
     tmp <- collections %>% 
         filter(deployment %in% site_list & 
-               collection_datetime < as.Date('2019-04-30')) %>%
+               collection_datetime < as.Date('2019-04-30') &
+               collection_datetime > as.Date('2019-01-01')) %>%
         filter(dwp_mass != -999)
     valids <- tmp %>% group_by(deployment) %>%
         summarize(last_valid= max(collection_datetime) + 30) %>%
-        left_join(current_valids) %>%
+        left_join(may_valids) %>%
         arrange(deployment)
     bads <- collections %>% 
         filter(deployment %in% site_list & dwp_mass == -999) %>%
         group_by(deployment) %>% summarize(bad_sumpc = sum(sumpc_total))
-    new_collections <- collections %>% filter(deployment %in% site_list) %>%
+    new_collections <- collections %>% 
+        filter(deployment %in% site_list & collection_datetime < as.Date('2019-05-31') &
+               collection_datetime > as.Date('2019-01-01')) %>%
         group_by(deployment) %>% 
         filter(collection_datetime==max(collection_datetime)) %>% ungroup() %>%
         arrange(deployment) %>% 

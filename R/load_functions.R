@@ -24,9 +24,9 @@ csc_list <- list("brine"=seq(1700, 1799, 1),
 #    sites_df$objectid <- unlist(sites_df$objectid)
 #    sites_df
 #}
-load_sites <- function(area, poly_df, start_date){
+load_sites <- function(area, poly_df, end_date){
     query1 <- paste0("SELECT deployment::text AS csc, x, y ",
-                     "FROM info.site_locations_at_date(',", start_date, "') ", 
+                     "FROM info.site_locations_at_date(',", end_date, "') ", 
                      "WHERE deployment ",
                      "IN (", paste0(csc_list[[area]], collapse=", "), ");")
     sites_df <- query_db("owenslake", query1)

@@ -85,9 +85,18 @@ if (nrow(df3)>0){
                     id2_na_plot <- rbind(id2_na_plot, a, b)
                 }
             }
-            id2_na_plot <- id2_na_plot[complete.cases(id2_na_plot), ] %>% 
-                distinct()
-            id2_na_plot$id2 <- rep(l, nrow(id2_na_plot))
+            if (nrow(id2_na_plot)!=0){
+                id2_na_plot$keep <- rep(NA, nrow(id2_na_plot))
+                id2_na_plot$keep[nrow(id2_na_plot)] <- TRUE
+                for (p in c(2:(nrow(id2_na_plot)-1))){
+                    if (!is.na(id2_na_plot$rs[p-1]) & !is.na(id2_na_plot$rs[p])){
+                        id2_na_plot$keep[p] <- TRUE
+                    }
+                }
+                id2_na_plot <- id2_na_plot[complete.cases(id2_na_plot), ] %>% 
+                    filter(keep) %>% distinct()
+                id2_na_plot$id2 <- rep(l, nrow(id2_na_plot))
+            }
             na_plot <- rbind(na_plot, id2_na_plot)
         }
         comply_lines <- data.frame(x=rep(max(plot_data$index_date) %m-% years(1), 3), 

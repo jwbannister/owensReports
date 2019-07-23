@@ -38,6 +38,9 @@ move_brine_labels <- function(df1){
 
 move_dwm_labels <- function(df1){
     df1[df1$id2=='T10-2', ]$y <- df1[df1$id2=='T10-2', ]$y + 300
+    df1[df1$id2=='T10-1', ]$y <- df1[df1$id2=='T10-1', ]$y + 300
+    df1[df1$id2=='T10-1', ]$x <- df1[df1$id2=='T10-1', ]$x - 300
+    df1[df1$id2=='T10-1a', ]$y <- df1[df1$id2=='T10-1a', ]$y - 150
     df1
 }
 

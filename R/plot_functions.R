@@ -43,6 +43,7 @@ plot_csc_site <- function(background, sand_df, area_txt,
 # adjust legend positions for plotting
 leg_pos <- vector(mode="list", length=0)
 leg_pos[['T10-1']] <- c(1, 0)
+leg_pos[['T10-1a']] <- c(1, 1)
 leg_pos[['T26']] <- c(0, 0)
 leg_pos[['T13-1']] <- c(.2, .8)
 leg_pos[['T29-2']] <- c(0, 0)
@@ -89,6 +90,7 @@ leg_pos[['T2-1']] <- c(1, 1)
 leg_pos[['T17-2']] <- c(1, 1)
 leg_pos[['T21E']] <- c(1, 1)
 leg_pos[['T37-2a']] <- c(1, 1)
+leg_pos[['T1A-2']] <- c(1, 1)
 
 csc_label_adjust <- list('twb2'=list('1661'=c(x=100, y=100),
                                  '1647'=c(x=150, y=400),

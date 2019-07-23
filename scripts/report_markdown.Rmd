@@ -28,14 +28,22 @@ if (area=='twb2'){
     area_polys <- group_twb2_areas(area_polys)
     area_labels <- group_twb2_areas(area_labels)
 }
-csc_locs <- load_sites(area, area_polys, start_date) 
+csc_locs <- load_sites(area, area_polys, end_date) 
 csc_locs <- csc_locs %>% arrange(csc) %>% 
     left_join(distinct(select(area_polys, objectid, id1, id2, id3)), by="objectid")
 csc_collections <- load_collections(area, start_date, end_date)
 # this is a one-off adjustment to check fluxes for sites that weren't accessible 
 # prior to May 2019
-if (FALSE){
+if (TRUE){
+    print("Running false flooded branch...")
+    library(pbapply)
     source('~/code/owensReports/scripts/twb2_may_adjust.R')
+    new_start <- as.Date('2019-01-01')
+    flux_df <- load_site_data(area, new_start, end_date) %>%
+        filter(!invalid)
+    flux_df[flux_df$sand_flux<=0, ]$sand_flux <- 0
+    csc_collections <- load_collections(area, new_start, end_date)
+
     site_list <- c('1600', '1601', '1607', '1643', '1644', '1645')
     new_collections <- csc_adjust(csc_collections, site_list)
     csc_collections <- csc_collections %>%
@@ -50,6 +58,9 @@ if (FALSE){
     geom_factor = 1.2
     flux_df$sand_flux <- (flux_df$new_mass/geom_factor) * 
         (flux_df$sumpc/flux_df$new_sumpc_total)
+    flux_df <- filter(flux_df, as.Date(datetime - 1) >= start_date)
+    csc_collections <- filter(csc_collections, 
+                              as.Date(collection_datetime - 1) >= start_date)
 }
 ```
 
@@ -311,9 +322,9 @@ for (i in report_index){
         pandoc.table(as.data.frame(tbl_pair), split.table=Inf)
         }
         # Comment relevant to April 2019 report only
-        cat(" \n The upwind-downwind concentration difference observed on 04/02/2019 is derived from 
-            a 2-hour wind event across the Tillage areas. This concentration difference is much less than 50 
-            micrograms/m<sup>3</sup> when distributed to a 24-hour average as specified in the Stipulated Judgement. This event is noted for informational purposes but does not qualify as an exceedance of the TwB2 requirements per the Stipulated Judgement.")
+#        cat(" \n The upwind-downwind concentration difference observed on 04/02/2019 is derived from 
+#            a 2-hour wind event across the Tillage areas. This concentration difference is much less than 50 
+#            micrograms/m<sup>3</sup> when distributed to a 24-hour average as specified in the Stipulated Judgement. This event is noted for informational purposes but does not qualify as an exceedance of the TwB2 requirements per the Stipulated Judgement.")
         cat("<p style=\"page-break-after:always;\"></p> \n")
     }
     if (area=='twb2'& exists('surface_df')){
@@ -337,6 +348,12 @@ for (i in report_index){
         cat(" \n\n## Comments \n")
         cat(paste0(" \n Surface survey data was collected ", coll_period, ".\n"))
         cat(" \n RS and RH results are reported as rounded integer numbers. RS/RH ratio reported above is calculated from the actual (decimal) values.\n")
+        if (i=='South'){
+            cat(" \n The portion of DCA T2-3 encompassing sites 1612 and 1613 was undergoing maintenance 
+                in June. No surface measurements were taken at these sites in June 2019.\n")
+            cat(" \n The portion of DCA T3NE encompassing sites 1616 and 1617 was undergoing maintenance 
+                in June. No surface measurements were taken at these sites in June 2019.\n")
+        }
         comment_file_surface <- 
             gsub(" ", "", paste0(area, month(start_date), year(start_date), i, 
                                  "_surface.txt"))
