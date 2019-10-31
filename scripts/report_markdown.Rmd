@@ -32,9 +32,16 @@ csc_locs <- load_sites(area, area_polys, end_date)
 csc_locs <- csc_locs %>% arrange(csc) %>% 
     left_join(distinct(select(area_polys, objectid, id1, id2, id3)), by="objectid")
 csc_collections <- load_collections(area, start_date, end_date)
+# here is where sites can be intentionally excluded from the report
+if (TRUE){
+    excluded_sites = paste(c(1920, 1921, seq(1938, 1947), 1960, 1962, 1963, 1964))
+    flux_df <- flux_df %>% filter(!(csc %in% excluded_sites))
+    csc_locs <- csc_locs %>% filter(!(csc %in% excluded_sites))
+    csc_collections <- csc_collections %>% filter(!(deployment %in% excluded_sites))
+}
 # this is a one-off adjustment to check fluxes for sites that weren't accessible 
 # prior to May 2019
-if (TRUE){
+if (FALSE){
     print("Running false flooded branch...")
     library(pbapply)
     source('~/code/owensReports/scripts/twb2_may_adjust.R')
@@ -349,10 +356,8 @@ for (i in report_index){
         cat(paste0(" \n Surface survey data was collected ", coll_period, ".\n"))
         cat(" \n RS and RH results are reported as rounded integer numbers. RS/RH ratio reported above is calculated from the actual (decimal) values.\n")
         if (i=='South'){
-            cat(" \n The portion of DCA T2-3 encompassing sites 1612 and 1613 was undergoing maintenance 
-                in June. No surface measurements were taken at these sites in June 2019.\n")
             cat(" \n The portion of DCA T3NE encompassing sites 1616 and 1617 was undergoing maintenance 
-                in June. No surface measurements were taken at these sites in June 2019.\n")
+                in September. No surface measurements were taken at these sites in September 2019.\n")
         }
         comment_file_surface <- 
             gsub(" ", "", paste0(area, month(start_date), year(start_date), i, 

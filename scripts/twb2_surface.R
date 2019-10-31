@@ -88,9 +88,13 @@ if (nrow(df3)>0){
             if (nrow(id2_na_plot)!=0){
                 id2_na_plot$keep <- rep(NA, nrow(id2_na_plot))
                 id2_na_plot$keep[nrow(id2_na_plot)] <- TRUE
-                for (p in c(2:(nrow(id2_na_plot)-1))){
-                    if (!is.na(id2_na_plot$rs[p-1]) & !is.na(id2_na_plot$rs[p])){
-                        id2_na_plot$keep[p] <- TRUE
+                if (nrow(id2_na_plot)==2){
+                    id2_na_plot$keep[1] <- TRUE
+                } else{
+                    for (p in c(2:(nrow(id2_na_plot)-1))){
+                        if (!is.na(id2_na_plot$rs[p-1]) & !is.na(id2_na_plot$rs[p])){
+                            id2_na_plot$keep[p] <- TRUE
+                        }
                     }
                 }
                 id2_na_plot <- id2_na_plot[complete.cases(id2_na_plot), ] %>% 

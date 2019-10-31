@@ -28,7 +28,7 @@ load_sites <- function(area, poly_df, end_date){
     query1 <- paste0("SELECT deployment::text AS csc, x, y ",
                      "FROM info.site_locations_at_date(',", end_date, "') ", 
                      "WHERE deployment ",
-                     "IN (", paste0(csc_list[[area]], collapse=", "), ");")
+                     "IN ('", paste0(csc_list[[area]], collapse="', '"), "');")
     sites_df <- query_db("owenslake", query1)
     sites_df$objectid <- apply(cbind(sites_df$x, sites_df$y), 1, 
                                aiRsci::point_in_dca, poly_df=poly_df, return_dca=F)

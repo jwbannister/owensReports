@@ -34,6 +34,7 @@ clean_events <- joined_events %>%
                 wd.dw=wd.y, pm10.dw=pm10_avg.y) %>%
   mutate(ws.avg.mps=mean(c(ws.uw, ws.dw))) %>%
   filter(ws.uw!=0,  ws.dw!=0) %>% 
+  filter(pm10.uw>=0) %>% 
   arrange(datetime) 
 clean_events$date <- format(clean_events$datetime %m-% seconds(1), "%m-%d-%y")
 clean_events <- clean_events[complete.cases(clean_events), ]
