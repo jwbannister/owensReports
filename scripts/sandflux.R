@@ -79,12 +79,10 @@ for (i in report_index){
         distinct()
     if (area %in% c('channel', 't1a1')){
         clr_bool = FALSE
-        label_data = tmp_bad
         legend_flux = ""
         plot_title = "Monitoring Sites"
     } else{
         clr_bool = TRUE
-        label_data = label_df
         legend_flux='Max. Daily Flux\n(g/cm^2/day)'
         plot_title = "Daily Flux"
     }
@@ -96,19 +94,28 @@ for (i in report_index){
         scale_shape_manual(name=NULL, values=c(21)) +
         geom_point(data=tmp_bad, mapping=aes(x=x, y=y, size=flag), 
                    color="black") +
-        ggrepel::geom_label_repel(data=label_data, mapping=aes(x=x, y=y, label=csc), 
-                   nudge_x=label_space_x/25, nudge_y=label_space_y/45,
-                   box.padding=0.5) +
+#        ggrepel::geom_label_repel(data=label_df, mapping=aes(x=x, y=y, label=csc), 
+#                   nudge_x=label_space_x/25, nudge_y=label_space_y/45,
+#                   box.padding=0.5) +
         scale_size_manual(name=NULL, values=c(4)) +
         guides(color=guide_colorbar(order=1), shape=guide_legend(order=2), 
                size=guide_legend(order=3))
-     if (!is.null(met_pts)){
+    if (area %in% c('channel', 't1a1')){
+        p1 <- p1 + geom_label(data=label_df, mapping=aes(x=x, y=y, label=csc),
+                   nudge_x=label_space_x/45, nudge_y=label_space_y/40)
+    } else{
+        p1 <- p1 + 
+        ggrepel::geom_label_repel(data=label_df, mapping=aes(x=x, y=y, label=csc), 
+                   nudge_x=label_space_x/25, nudge_y=label_space_y/45,
+                   box.padding=0.5)
+    }
+    if (!is.null(met_pts)){
          p1 <- p1 + geom_point(data=met_pts, 
                                aes(shape=deployment, x=x, y=y), 
                                color="blue", size=6) +
                 scale_shape_manual(name='Met Station', values=c(17), 
                                    labels=c('1552')) 
-     }
+    }
     fl <- tempfile(fileext=".png")
     png(filename=fl, width=8, height=8, units="in", res=300)
     print(p1)

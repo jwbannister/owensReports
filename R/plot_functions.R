@@ -127,13 +127,13 @@ move_channel_labels <- function(df1){
     df1[df1$id2=="Channel South", ]$x <- 410100 
     df1[df1$id2=="Channel South", ]$y <- 4020800
     df1[df1$id2=="Channel North", ]$x <- 411665
-    df1[df1$id2=="Channel North", ]$y <- 4022961
+    df1[df1$id2=="Channel North", ]$y <- 4023161
     df1
 }
 
 move_t1a1_labels <- function(df1){
     df1[df1$id2=='T1A-1', ]$x <- df1[df1$id2=='T1A-1', ]$x + 150
-    df1[df1$id2=='T1A-1', ]$y <- df1[df1$id2=='T1A-1', ]$y - 50
+    df1[df1$id2=='T1A-1', ]$y <- df1[df1$id2=='T1A-1', ]$y
     df1
 }
 
