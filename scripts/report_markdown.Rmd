@@ -34,7 +34,7 @@ csc_locs <- csc_locs %>% arrange(csc) %>%
 csc_collections <- load_collections(area, start_date, end_date)
 # here is where sites can be intentionally excluded from the report
 if (TRUE){
-    excluded_sites = paste(c(1920, 1921, seq(1938, 1947), 1960, 1962, 1963, 1964))
+    excluded_sites = paste(c(1920, 1921, seq(1938, 1940), seq(1942, 1947), 1960, 1963, 1964))
     flux_df <- flux_df %>% filter(!(csc %in% excluded_sites))
     csc_locs <- csc_locs %>% filter(!(csc %in% excluded_sites))
     csc_collections <- csc_collections %>% filter(!(deployment %in% excluded_sites))
@@ -260,8 +260,13 @@ for (i in report_index){
     ftp_output <- RCurl::getURL(url, userpwd = ftp_login, 
                                    ftp.use.epsv=FALSE, dirlistonly = TRUE) 
     comment_list <- strsplit(ftp_output, "\n")[[1]]
-    comment_file <- 
-        gsub(" ", "_", paste0(area, month(start_date), year(start_date), i, ".txt"))
+    if (area=='twb2'){
+        comment_file <- 
+            gsub(" ", "_", paste0(area, month(start_date), year(start_date), i, ".txt"))
+    } else{
+        comment_file <- 
+            gsub(" ", "_", paste0(area, month(start_date), year(start_date), ".txt"))
+    }
     if (comment_file %in% comment_list){
         file_url <- paste0(url, comment_file)
         fl <- RCurl::getURL(file_url, userpwd = ftp_login)
@@ -350,14 +355,17 @@ for (i in report_index){
                                    "Row Height (cm)", "RS/RH", 
                                    "Clod Coverage (%)")
         cat("<h6> \n")
-        pandoc.table(as.data.frame(tbl_surface), split.table=Inf)
+#        pandoc.table(as.data.frame(tbl_surface), split.table=Inf)
         cat("</h6> \n")
         cat(" \n\n## Comments \n")
-        cat(paste0(" \n Surface survey data was collected ", coll_period, ".\n"))
-        cat(" \n RS and RH results are reported as rounded integer numbers. RS/RH ratio reported above is calculated from the actual (decimal) values.\n")
+        cat(" \n A TwB2 surface survey was not conducted in October 2019, in order to ensure the 
+            sand catch collections would be completed on time.  The next survey is scheduled for the 
+            week of November 11 to 15, 2019.\n")
+#        cat(paste0(" \n Surface survey data was collected ", coll_period, ".\n"))
+#        cat(" \n RS and RH results are reported as rounded integer numbers. RS/RH ratio reported above is calculated from the actual (decimal) values.\n")
         if (i=='South'){
-            cat(" \n The portion of DCA T3NE encompassing sites 1616 and 1617 was undergoing maintenance 
-                in September. No surface measurements were taken at these sites in September 2019.\n")
+#            cat(" \n The portion of DCA T3NE encompassing sites 1616 and 1617 was undergoing maintenance 
+#                in September. No surface measurements were taken at these sites in September 2019.\n")
         }
         comment_file_surface <- 
             gsub(" ", "", paste0(area, month(start_date), year(start_date), i, 

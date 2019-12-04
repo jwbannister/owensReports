@@ -66,9 +66,12 @@ if (nrow(df3)>0){
         na_plot <- data.frame(id2=c(), index_date=c(), rs=c(), rh=c(), 
                               rs_rh1=c(), clods1=c())
         for (l in unique(plot_full$id2)){
-        id2_na_plot <- data.frame(id2=c(), index_date=c(), rs=c(), rh=c(), 
-                              rs_rh1=c(), clods1=c())
+            id2_na_plot <- data.frame(id2=c(), index_date=c(), rs=c(), rh=c(), 
+                                  rs_rh1=c(), clods1=c())
             tmp <- filter(plot_full, id2==l)
+            while (is.na(tmp[nrow(tmp), ]$rs)){
+                tmp <- tmp[1:(nrow(tmp)-1), ]
+            }
             na_run <- which(is.na(tmp$rs))
             if (!is.na(tmp$rs[nrow(tmp)])){
                 for (m in na_run){
