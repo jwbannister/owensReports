@@ -260,13 +260,7 @@ for (i in report_index){
     ftp_output <- RCurl::getURL(url, userpwd = ftp_login, 
                                    ftp.use.epsv=FALSE, dirlistonly = TRUE) 
     comment_list <- strsplit(ftp_output, "\n")[[1]]
-    if (area=='twb2'){
-        comment_file <- 
-            gsub(" ", "_", paste0(area, month(start_date), year(start_date), i, ".txt"))
-    } else{
-        comment_file <- 
-            gsub(" ", "_", paste0(area, month(start_date), year(start_date), ".txt"))
-    }
+    comment_file <- gsub(" ", "_", paste0(area, month(start_date), year(start_date), i, ".txt"))
     if (comment_file %in% comment_list){
         file_url <- paste0(url, comment_file)
         fl <- RCurl::getURL(file_url, userpwd = ftp_login)
@@ -333,10 +327,10 @@ for (i in report_index){
         } else{
         pandoc.table(as.data.frame(tbl_pair), split.table=Inf)
         }
-        # Comment relevant to April 2019 report only
-#        cat(" \n The upwind-downwind concentration difference observed on 04/02/2019 is derived from 
-#            a 2-hour wind event across the Tillage areas. This concentration difference is much less than 50 
-#            micrograms/m<sup>3</sup> when distributed to a 24-hour average as specified in the Stipulated Judgement. This event is noted for informational purposes but does not qualify as an exceedance of the TwB2 requirements per the Stipulated Judgement.")
+        if (i=='Central'){
+            cat(" \n After review of PM10 and meteorological data, it is determined that the positive PM10 concentration difference between upwind and downwind TEOMs on 11/19/2019 is due to a single hour (13:00). Several hours on the same day with similar wind directions did not show downwind PM10 concentration increases. Sand fluxes in the Central TwB2 areas were negligible for the 13:00 hour in question, as well as for the entire day.  Furthermore, November ground survey data showed that ridge geometry in the Central TwB2 areas meets required measurements. In aggregate, this information is indicative that the Central TwB2 areas did not contribute to the PM10 measured at the downwind (T16) monitor. ")
+            cat(" \n \n The upwind-downwind concentration difference observed on 11/19/2019 is derived from a 2-hour wind event across the Tillage areas. This concentration difference is much less than 50 micrograms/m<sup>3</sup> when distributed to a 24-hour average as specified in the Stipulated Judgement. This event is noted for informational purposes but does not qualify as an exceedance of the TwB2 requirements per the Stipulated Judgement.")
+        }
         cat("<p style=\"page-break-after:always;\"></p> \n")
     }
     if (area=='twb2'& exists('surface_df')){
@@ -355,18 +349,11 @@ for (i in report_index){
                                    "Row Height (cm)", "RS/RH", 
                                    "Clod Coverage (%)")
         cat("<h6> \n")
-#        pandoc.table(as.data.frame(tbl_surface), split.table=Inf)
+        pandoc.table(as.data.frame(tbl_surface), split.table=Inf)
         cat("</h6> \n")
         cat(" \n\n## Comments \n")
-        cat(" \n A TwB2 surface survey was not conducted in October 2019, in order to ensure the 
-            sand catch collections would be completed on time.  The next survey is scheduled for the 
-            week of November 11 to 15, 2019.\n")
-#        cat(paste0(" \n Surface survey data was collected ", coll_period, ".\n"))
-#        cat(" \n RS and RH results are reported as rounded integer numbers. RS/RH ratio reported above is calculated from the actual (decimal) values.\n")
-        if (i=='South'){
-#            cat(" \n The portion of DCA T3NE encompassing sites 1616 and 1617 was undergoing maintenance 
-#                in September. No surface measurements were taken at these sites in September 2019.\n")
-        }
+        cat(paste0(" \n Surface survey data was collected ", coll_period, ".\n"))
+        cat(" \n RS and RH results are reported as rounded integer numbers. RS/RH ratio reported above is calculated from the actual (decimal) values.\n")
         comment_file_surface <- 
             gsub(" ", "", paste0(area, month(start_date), year(start_date), i, 
                                  "_surface.txt"))

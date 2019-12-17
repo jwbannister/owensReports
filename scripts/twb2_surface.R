@@ -63,49 +63,7 @@ if (nrow(df3)>0){
             filter(id3==i & index_date>=start_date %m-% years(1)) %>%
             left_join(plot_data, by=c("id2", "id3", "index_date")) %>%
             arrange(id2, index_date)
-        na_plot <- data.frame(id2=c(), index_date=c(), rs=c(), rh=c(), 
-                              rs_rh1=c(), clods1=c())
-        for (l in unique(plot_full$id2)){
-            id2_na_plot <- data.frame(id2=c(), index_date=c(), rs=c(), rh=c(), 
-                                  rs_rh1=c(), clods1=c())
-            tmp <- filter(plot_full, id2==l)
-            while (is.na(tmp[nrow(tmp), ]$rs)){
-                tmp <- tmp[1:(nrow(tmp)-1), ]
-            }
-            na_run <- which(is.na(tmp$rs))
-            if (!is.na(tmp$rs[nrow(tmp)])){
-                for (m in na_run){
-                    a <- data.frame(index_date=tmp$index_date[m-1],
-                                       rs=tmp$rs[m-1], 
-                                       rh=tmp$rh[m-1], 
-                                       rs_rh1=tmp$rs_rh1[m-1], 
-                                       clods1=tmp$clods1[m-1]) 
-                    b <- data.frame(index_date=tmp$index_date[m+1],
-                                       rs=tmp$rs[m+1], 
-                                       rh=tmp$rh[m+1], 
-                                       rs_rh1=tmp$rs_rh1[m+1], 
-                                       clods1=tmp$clods1[m+1]) 
-                    id2_na_plot <- rbind(id2_na_plot, a, b)
-                }
-            }
-            if (nrow(id2_na_plot)!=0){
-                id2_na_plot$keep <- rep(NA, nrow(id2_na_plot))
-                id2_na_plot$keep[nrow(id2_na_plot)] <- TRUE
-                if (nrow(id2_na_plot)==2){
-                    id2_na_plot$keep[1] <- TRUE
-                } else{
-                    for (p in c(2:(nrow(id2_na_plot)-1))){
-                        if (!is.na(id2_na_plot$rs[p-1]) & !is.na(id2_na_plot$rs[p])){
-                            id2_na_plot$keep[p] <- TRUE
-                        }
-                    }
-                }
-                id2_na_plot <- id2_na_plot[complete.cases(id2_na_plot), ] %>% 
-                    filter(keep) %>% distinct()
-                id2_na_plot$id2 <- rep(l, nrow(id2_na_plot))
-            }
-            na_plot <- rbind(na_plot, id2_na_plot)
-        }
+        na_plot <- plot_full[complete.cases(plot_full), ]
         comply_lines <- data.frame(x=rep(max(plot_data$index_date) %m-% years(1), 3), 
                                    rh=c(29, 35, 41), rs_rh=c(12.5, 11, 9.5), 
                                    clods=c(55, NA, 65), 
@@ -116,6 +74,7 @@ if (nrow(df3)>0){
         fl <- tempfile()
         png(filename=fl, width=8, height=8, units="in", res=300)
         plt1 <- ggplot(plot_full, aes(x=index_date, y=rh)) + 
+                geom_path(data=na_plot, mapping=aes(group=id2), color='grey') +
                   geom_path(aes(color=id2)) +
                   geom_point(aes(color=id2)) +
                   ggrepel::geom_label_repel(data=label_data, 
@@ -135,16 +94,13 @@ if (nrow(df3)>0){
               ggtitle("Average Ridge Height") +
               theme(plot.background=element_blank(), 
                     legend.position="none")
-        if (nrow(na_plot) > 0){
-            plt1 <- plt1 + 
-                geom_path(data=na_plot, mapping=aes(group=id2), color='grey') 
-        }
         print(plt1)
         dev.off()
         tmp_plot <- png::readPNG(fl)
         surface_grobs[[i]]$rh_plot <- grid::rasterGrob(tmp_plot, interpolate=TRUE)
         png(filename=fl, width=8, height=8, units="in", res=300)
         plt2 <- ggplot(plot_full, aes(x=index_date, y=rs_rh1)) + 
+                geom_path(data=na_plot, mapping=aes(group=id2), color='grey') +
                   geom_path(aes(color=id2)) +
                   geom_point(aes(color=id2)) +
                   ggrepel::geom_label_repel(data=label_data, 
@@ -164,16 +120,13 @@ if (nrow(df3)>0){
               ggtitle("Average Ridge Spacing / Ridge Height Ratio") +
               theme(plot.background=element_blank(), 
                     legend.position="none")
-        if (nrow(na_plot) > 0){
-            plt2 <- plt2 + 
-                geom_path(data=na_plot, mapping=aes(group=id2), color='grey') 
-        }
         print(plt2)
         dev.off()
         tmp_plot <- png::readPNG(fl)
         surface_grobs[[i]]$rsrh_plot <- grid::rasterGrob(tmp_plot, interpolate=TRUE)
         png(filename=fl, width=8, height=8, units="in", res=300)
         plt3 <- ggplot(plot_full, aes(x=index_date, y=clods1)) + 
+                geom_path(data=na_plot, mapping=aes(group=id2), color='grey') +
               geom_path(aes(color=id2)) +
               geom_point(aes(color=id2)) +
               ggrepel::geom_label_repel(data=label_data, 
@@ -192,10 +145,6 @@ if (nrow(df3)>0){
               ggtitle("Average Clod Coverage") +
               theme(plot.background=element_blank(), 
                     legend.position="none")
-        if (nrow(na_plot) > 0){
-            plt3 <- plt3 + 
-                geom_path(data=na_plot, mapping=aes(group=id2), color='grey') 
-        }
         print(plt3)
         dev.off()
         tmp_plot <- png::readPNG(fl)
