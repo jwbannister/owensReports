@@ -327,10 +327,6 @@ for (i in report_index){
         } else{
         pandoc.table(as.data.frame(tbl_pair), split.table=Inf)
         }
-        if (i=='Central'){
-            cat(" \n After review of PM10 and meteorological data, it is determined that the positive PM10 concentration difference between upwind and downwind TEOMs on 11/19/2019 is due to a single hour (13:00). Several hours on the same day with similar wind directions did not show downwind PM10 concentration increases. Sand fluxes in the Central TwB2 areas were negligible for the 13:00 hour in question, as well as for the entire day.  Furthermore, November ground survey data showed that ridge geometry in the Central TwB2 areas meets required measurements. In aggregate, this information is indicative that the Central TwB2 areas did not contribute to the PM10 measured at the downwind (T16) monitor. ")
-            cat(" \n \n The upwind-downwind concentration difference observed on 11/19/2019 is derived from a 2-hour wind event across the Tillage areas. This concentration difference is much less than 50 micrograms/m<sup>3</sup> when distributed to a 24-hour average as specified in the Stipulated Judgement. This event is noted for informational purposes but does not qualify as an exceedance of the TwB2 requirements per the Stipulated Judgement.")
-        }
         cat("<p style=\"page-break-after:always;\"></p> \n")
     }
     if (area=='twb2'& exists('surface_df')){
