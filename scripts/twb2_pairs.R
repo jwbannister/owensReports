@@ -4,17 +4,20 @@ google_key = Sys.getenv("OWENS_MAPS_KEY")
 teom_wind <- pull_teom_wind(start_date, end_date)
 
 # pull data from m-files for T7 teom, keep wind direction and speed
-mfile <- pull_mfile(start_date, end_date)
+#mfile <- pull_mfile(start_date, end_date)
 
-deploys <- as.character(c(unique(teom_wind$deployment), 
-                          unique(mfile$deployment)))
+#deploys <- as.character(c(unique(teom_wind$deployment), 
+#                          unique(mfile$deployment)))
+deploys <- as.character(unique(teom_wind$deployment))
+
 teom_pm10 <- pull_pm10(start_date, end_date, deploys)
 
 teom <- left_join(teom_wind, filter(teom_pm10, !invalid), 
                   by=c("deployment", "datetime"))
 teom <- teom[complete.cases(teom), ] %>% select(-invalid)
 
-df0 <- rbind(teom, mfile)
+#df0 <- rbind(teom, mfile)
+df0 <- teom
 
 teom_locs <- pull_locations(deploys)
 teom_locs <- pair_teoms(teom_locs)

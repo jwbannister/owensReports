@@ -309,7 +309,7 @@ for (i in report_index){
         cat(" \n## Paired TEOM PM10 Results\n")
         cat(paste0("![](", pair_img_files[[i]], ")"))
         cat(" \n\n\n\n")
-        tbl_pair <- daily_summary %>% filter(id3==i, pm10.delta>0) %>% 
+        tbl_pair <- daily_summary %>% filter(id3==i, pm10.delta>5) %>% 
             arrange(desc(pm10.delta)) %>% select(-id3, -status)
         colnames(tbl_pair) <- c("Date", 
                                 "Upwind Cross-Tillage\\\nAvg. PM10 (micrograms/m<sup>3</sup>)", 
@@ -323,10 +323,17 @@ for (i in report_index){
             cat(" \n## Paired TEOM PM10 Results\n")
         }
         if (nrow(tbl_pair)==0){
-            cat(" \n\n###No PM10 increases across area recorded. \n")
+            cat(" \n\n###No significant PM10 increases across area recorded. \n")
         } else{
         pandoc.table(as.data.frame(tbl_pair), split.table=Inf)
         }
+
+        # Comments for Jan 202 report only
+        if (i=='South'){
+        cat(" \n After review of PM10 and meteorological data, it is determined that the positive PM10 concentration difference between upwind and downwind TEOMs on 1/16/2020 is due to two hours (19:00 and 20:00).  Sand fluxes in the South TwB2 areas were very low/negligible for the 19:00 and 20:00 hours in question, and were below the maintenance threshold for the entire day. Furthermore, the January ground survey data showed that ridge geometry in the South TwB2 areas meets required measurements. In aggregate, this information is indicative that the  PM10 measured at the downwind (T2-1) monitor is due to sources outside the TwB2 areas.  This event is noted for informational purposes but does not qualify as an exceedance of the TwB2 requirements per the Stipulated Judgement.\n")
+        cat(" \n After review of PM10 and meteorological data, it is determined that the positive PM10 concentration difference between upwind and downwind TEOMs on 1/29/2020 is due to two hours (06:00 and 07:00).  Sand fluxes in the South TwB2 areas were very low/negligible for the 06:00 and 07:00 hours in question, and were below the maintenance threshold for the entire day. Furthermore, the January ground survey data showed that ridge geometry in the South TwB2 areas meets required measurements. In aggregate, this information is indicative that the  PM10 measured at the downwind (T2-1) monitor is due to sources outside the TwB2 areas.  This event is noted for informational purposes but does not qualify as an exceedance of the TwB2 requirements per the Stipulated Judgement.\n")
+        }
+
         cat("<p style=\"page-break-after:always;\"></p> \n")
     }
     if (area=='twb2'& exists('surface_df')){
