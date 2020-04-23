@@ -35,7 +35,7 @@ csc_collections <- load_collections(area, start_date, end_date)
 # here is where sites can be intentionally excluded from the report
 if (TRUE){
     excluded_sites = paste(c(1920, 1921, seq(1938, 1940), seq(1942, 1947),
-                             1960, 1963, 1964, 1321, 1115))
+                             1960, 1963, 1964, 1321))
     flux_df <- flux_df %>% filter(!(csc %in% excluded_sites))
     csc_locs <- csc_locs %>% filter(!(csc %in% excluded_sites))
     csc_collections <- csc_collections %>% filter(!(deployment %in% excluded_sites))
