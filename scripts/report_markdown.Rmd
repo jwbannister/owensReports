@@ -34,7 +34,8 @@ csc_locs <- csc_locs %>% arrange(csc) %>%
 csc_collections <- load_collections(area, start_date, end_date)
 # here is where sites can be intentionally excluded from the report
 if (TRUE){
-    excluded_sites = paste(c(1920, 1921, seq(1938, 1940), seq(1942, 1947), 1960, 1963, 1964))
+    excluded_sites = paste(c(1920, 1921, seq(1938, 1940), seq(1942, 1947),
+                             1960, 1963, 1964, 1321, 1115))
     flux_df <- flux_df %>% filter(!(csc %in% excluded_sites))
     csc_locs <- csc_locs %>% filter(!(csc %in% excluded_sites))
     csc_collections <- csc_collections %>% filter(!(deployment %in% excluded_sites))
@@ -309,7 +310,7 @@ for (i in report_index){
         cat(" \n## Paired TEOM PM10 Results\n")
         cat(paste0("![](", pair_img_files[[i]], ")"))
         cat(" \n\n\n\n")
-        tbl_pair <- daily_summary %>% filter(id3==i, pm10.delta>5) %>% 
+        tbl_pair <- daily_summary %>% filter(id3==i, pm10.delta>1) %>% 
             arrange(desc(pm10.delta)) %>% select(-id3, -status)
         colnames(tbl_pair) <- c("Date", 
                                 "Upwind Cross-Tillage\\\nAvg. PM10 (micrograms/m<sup>3</sup>)", 
@@ -328,10 +329,9 @@ for (i in report_index){
         pandoc.table(as.data.frame(tbl_pair), split.table=Inf)
         }
 
-        # Comments for Jan 202 report only
+        # Comments for Mar 2020 report only
         if (i=='South'){
-        cat(" \n After review of PM10 and meteorological data, it is determined that the positive PM10 concentration difference between upwind and downwind TEOMs on 1/16/2020 is due to two hours (19:00 and 20:00).  Sand fluxes in the South TwB2 areas were very low/negligible for the 19:00 and 20:00 hours in question, and were below the maintenance threshold for the entire day. Furthermore, the January ground survey data showed that ridge geometry in the South TwB2 areas meets required measurements. In aggregate, this information is indicative that the  PM10 measured at the downwind (T2-1) monitor is due to sources outside the TwB2 areas.  This event is noted for informational purposes but does not qualify as an exceedance of the TwB2 requirements per the Stipulated Judgement.\n")
-        cat(" \n After review of PM10 and meteorological data, it is determined that the positive PM10 concentration difference between upwind and downwind TEOMs on 1/29/2020 is due to two hours (06:00 and 07:00).  Sand fluxes in the South TwB2 areas were very low/negligible for the 06:00 and 07:00 hours in question, and were below the maintenance threshold for the entire day. Furthermore, the January ground survey data showed that ridge geometry in the South TwB2 areas meets required measurements. In aggregate, this information is indicative that the  PM10 measured at the downwind (T2-1) monitor is due to sources outside the TwB2 areas.  This event is noted for informational purposes but does not qualify as an exceedance of the TwB2 requirements per the Stipulated Judgement.\n")
+        cat(" \n After review of PM10 and meteorological data, it is determined that the positive PM10 concentration difference between upwind and downwind TEOMs on 3/2/2020 is due to one hour (19:00). Sand fluxes in the South TwB2 areas were zero at all Sensit sites for the 19:00 hour in question, and were below the maintenance threshold for the entire day. Furthermore, the March ground survey data showed that ridge geometry in the South TwB2 areas meets required measurements. In aggregate, this information is indicative that the PM10 measured at the downwind (T2-1) monitor is due to sources outside the TwB2 areas. This event is noted for informational purposes but does not qualify as an exceedance of the TwB2 requirements per the Stipulated Judgement.\n")
         }
 
         cat("<p style=\"page-break-after:always;\"></p> \n")
